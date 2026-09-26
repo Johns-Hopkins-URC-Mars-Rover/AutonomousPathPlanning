@@ -1,0 +1,13 @@
+#pragma once
+#include "gps_interface/gps_driver_base.hpp"
+
+namespace gps_interface
+{
+  class MocGpsDriver: public GpsDriverBase
+  {
+  public:
+    bool connect() override;
+    GpsFix readPosition() override;
+    void close() override;
+  };
+}
