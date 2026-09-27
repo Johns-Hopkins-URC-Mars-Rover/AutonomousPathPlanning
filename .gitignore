@@ -1,0 +1,9 @@
+/build/
+/install/
+/log/
+.DS_Store
+*.swp
+*~
+__pycache__/
+*.pyc
+/.vscode/
