@@ -1,0 +1,5 @@
+waypoint_nav_node:
+  ros__parameters:
+    target_lat: 38.4180
+    target_lon: -110.7790
+    arrival_threshold_m: 1.0
