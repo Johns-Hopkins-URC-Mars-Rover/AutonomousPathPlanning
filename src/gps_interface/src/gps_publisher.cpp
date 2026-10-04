@@ -26,8 +26,8 @@ class GpsPublisher : public rclcpp::Node {
             message.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
             // Sample simulated data for the time being
-            message.latitude = 39.3299;
-            message.longitude = -76.6205;
+            message.latitude = 38.41801;
+            message.longitude = -110.77901;
             message.altitude = 0.0;
             message.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_UNKNOWN;
 
