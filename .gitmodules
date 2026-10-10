@@ -1,3 +1,0 @@
-[submodule "src/ublox_dgnss"]
-	path = src/ublox_dgnss
-	url = https://github.com/aussierobots/ublox_dgnss.git
