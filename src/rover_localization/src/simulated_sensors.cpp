@@ -88,6 +88,7 @@ namespace rover_localization {
 
       // Wheel odometry supplies forward velocity in the rover's frame.
       odometry.twist.twist.linear.x = linear_speed;
+      odometry.twist.twist.linear.y = 0.0;
       odometry.twist.covariance[0] = 0.01;
 
       // Other twist components are not measured by this publisher.
@@ -98,6 +99,7 @@ namespace rover_localization {
 
       // This message does not supply a usable pose measurement.
       odometry.pose.pose.orientation.w = 1.0;
+      odometry.twist.covariance[7] = 0.01;
 
       for (const int index : {0, 7, 14, 21, 28, 35})
       {
