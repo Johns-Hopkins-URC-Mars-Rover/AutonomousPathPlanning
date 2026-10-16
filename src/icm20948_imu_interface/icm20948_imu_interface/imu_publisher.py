@@ -10,7 +10,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class SMBusWrapper:
     """
-    A direct, lightweight wrapper that maps the SparkFun library's expected 
+    A direct wrapper that maps the SparkFun library's expected 
     API calls straight to a raw smbus2 file descriptor on the correct bus.
     """
     def __init__(self, bus_number):
@@ -40,46 +40,41 @@ class ImuPublisher(Node):
     def __init__(self):
         super().__init__("ImuPublisher")
 
-        # 1. Declare standard primitive parameters
         self.declare_parameter("i2c_address", 0x69)
-        self.declare_parameter("i2c_bus", 7)  # Jetson Orin Nano 40-pin header default bus
+        self.declare_parameter("i2c_bus", 7)
         self.declare_parameter("frame_id", "imu_link")
         self.declare_parameter("pub_rate", 50)
 
-        # 2. Parse parameter values into instance variables
         self.i2c_address = self.get_parameter("i2c_address").get_parameter_value().integer_value
         self.i2c_bus = self.get_parameter("i2c_bus").get_parameter_value().integer_value
         self.frame_id = self.get_parameter("frame_id").get_parameter_value().string_value
         self.pub_rate = self.get_parameter("pub_rate").get_parameter_value().integer_value
 
-        # 3. Create ROS 2 Publishers
         self.imu_publisher = self.create_publisher(Imu, '/imu/data_raw', 10)
         self.mag_publisher = self.create_publisher(MagneticField, '/imu/mag', 10)
         self.diag_publisher = self.create_publisher(DiagnosticArray, '/imu/diagnostics', 10)
 
-        # 4. Construct the custom SMBus wrapper targeting Bus 7 directly
+        # Construct the custom SMBus wrapper targeting Bus 7 directly
         try:
-            # Create our bulletproof driver wrapper explicitly locked to the parameter bus (7)
-            direct_i2c_driver = SMBusWrapper(self.i2c_bus)
-            
-            # Pass our custom driver straight to the sensor class constructor
+            # Create a wrapper explicitly locked to the parameter bus (7)
+            direct_i2c_driver = SMBusWrapper(self.i2c_bus)            
+
+            # Pass the driver straight to the sensor class constructor
             self.IMU = qwiic_icm20948.QwiicIcm20948(address=self.i2c_address, i2c_driver=direct_i2c_driver)
+            
         except Exception as e:
             self.get_logger().error(f"Failed to open smbus2 descriptor on Bus {self.i2c_bus}: {str(e)}")
             sys.exit(1)
 
-        # 5. Verify physical hardware connection over the direct bus link
         if not self.IMU.connected:
             self.get_logger().error(f"Hardware ping failed. Device not responding at address {hex(self.i2c_address)} on Bus {self.i2c_bus}.")
             raise RuntimeError("IMU physical hardware target missing or unreachable.")
 
-        # Initialize hardware settings
         self.IMU.begin()
         self.IMU.setFullScaleRangeGyro(qwiic_icm20948.dps2000)
         self.IMU.setFullScaleRangeAccel(qwiic_icm20948.gpm16)
         self.get_logger().info(f"ICM20948 successfully initialized on Bus {self.i2c_bus} via direct SMBus descriptor!")
-
-        # 6. Kick off publishing loops via timer
+        
         self.timer = self.create_timer(1.0 / self.pub_rate, self.timer_callback)
 
     def timer_callback(self):
@@ -88,7 +83,6 @@ class ImuPublisher(Node):
 
         time_stamp = self.get_clock().now().to_msg()
 
-        # Build Diagnostic Message metadata
         status = DiagnosticStatus()
         status.name = "icm20948-imu-interface/icm20948"
         status.hardware_id = "ICM-20948"
@@ -107,23 +101,25 @@ class ImuPublisher(Node):
             self.diag_publisher.publish(diagnostics_msg)
             return
 
-        # Scaling conversion constants
         acceleration_scale = 9.80665 / 2048.0
         gyro_scale = math.pi / (180 * 16.4)
         mag_scale = 0.15e-6
 
-        # Populate Standard IMU Raw Message
+        acceleration_bias = 0.0
+        gyro_bias = 0.0
+        mag_bias = 0.0
+        
         imu_msg = Imu()
         imu_msg.header.stamp = time_stamp
         imu_msg.header.frame_id = self.frame_id
 
-        imu_msg.linear_acceleration.x = self.IMU.axRaw * acceleration_scale
-        imu_msg.linear_acceleration.y = self.IMU.ayRaw * acceleration_scale
-        imu_msg.linear_acceleration.z = self.IMU.azRaw * acceleration_scale
+        imu_msg.linear_acceleration.x = self.IMU.axRaw * acceleration_scale - acceleration_bias
+        imu_msg.linear_acceleration.y = self.IMU.ayRaw * acceleration_scale - acceleration_bias
+        imu_msg.linear_acceleration.z = self.IMU.azRaw * acceleration_scale - acceleration_bias
 
-        imu_msg.angular_velocity.x = self.IMU.gxRaw * gyro_scale
-        imu_msg.angular_velocity.y = self.IMU.gyRaw * gyro_scale
-        imu_msg.angular_velocity.z = self.IMU.gzRaw * gyro_scale
+        imu_msg.angular_velocity.x = self.IMU.gxRaw * gyro_scale - gyro_bias
+        imu_msg.angular_velocity.y = self.IMU.gyRaw * gyro_scale - gyro_bias
+        imu_msg.angular_velocity.z = self.IMU.gzRaw * gyro_scale - gyro_bias
 
         # An orientation covariance matrix with -1 in the first element indicates 
         # that orientation data is not covered by this raw topic.
@@ -133,28 +129,23 @@ class ImuPublisher(Node):
                                            0.0, 0.0, 0.0]
 
 
-        # Populate Magnetic Field Message
         mag_msg = MagneticField()
         mag_msg.header.stamp = time_stamp
         mag_msg.header.frame_id = self.frame_id
 
-        mag_msg.magnetic_field.x = self.IMU.mxRaw * mag_scale
-        mag_msg.magnetic_field.y = self.IMU.myRaw * mag_scale
-        mag_msg.magnetic_field.z = self.IMU.mzRaw * mag_scale
+        mag_msg.magnetic_field.x = self.IMU.mxRaw * mag_scale - mag_bias
+        mag_msg.magnetic_field.y = self.IMU.myRaw * mag_scale - mag_bias
+        mag_msg.magnetic_field.z = self.IMU.mzRaw * mag_scale - mag_bias
 
-        # Complete and publish diagnostics
         status.level = DiagnosticStatus.OK
         status.message = "Status Read Successful."
         diagnostics_msg.status = [status]
 
-        # Publish all topic frames
         self.imu_publisher.publish(imu_msg)
         self.mag_publisher.publish(mag_msg)
         self.diag_publisher.publish(diagnostics_msg)
 
-        self.get_logger().info("Published IMU, magnetometer, and diagnostics data.")
-
-
+        
 def main(args=None):
     rclpy.init(args=args)
     imu_publisher = ImuPublisher()
