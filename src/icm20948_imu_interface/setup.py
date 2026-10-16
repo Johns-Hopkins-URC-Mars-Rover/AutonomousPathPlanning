@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'icm20948-imu-interface'
+package_name = 'icm20948_imu_interface'
 
 setup(
     name=package_name,
