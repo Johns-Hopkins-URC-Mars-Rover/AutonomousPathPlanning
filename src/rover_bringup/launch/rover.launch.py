@@ -15,7 +15,9 @@ def generate_launch_description():
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_zed = LaunchConfiguration('enable_zed')
+    enable_fusion = LaunchConfiguration('enable_fusion')
     camera_model = LaunchConfiguration('camera_model')
+    fusion_launch = os.path.join(get_package_share_directory('rover_imu_fusion'),'launch','imu_fusion.launch.py',)
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -27,6 +29,11 @@ def generate_launch_description():
             'enable_zed',
             default_value='true',
             description='Launch the ZED camera driver.',
+        ),
+        DeclareLaunchArgument(
+            'enable_fusion',
+            default_value='true',
+            description='Launch the IMU fusion node (ZED + ICM-20948).',
         ),
         DeclareLaunchArgument(
             'camera_model',
@@ -42,6 +49,13 @@ def generate_launch_description():
             condition=IfCondition(enable_zed),
             launch_arguments={
                 'camera_model': camera_model,
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(fusion_launch),
+            condition=IfCondition(enable_fusion),
+            launch_arguments={
+                'use_icm': enable_imu,
             }.items(),
         ),
     ])
