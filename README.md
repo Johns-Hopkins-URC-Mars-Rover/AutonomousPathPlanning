@@ -9,7 +9,7 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
 | `icm20948-imu-interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
 | `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
-| `rover_imu_fusion` | The rover's IMU path. Rotates the ZED IMU into `base_link` using TF and publishes it as `/imu/data`. The ICM-20948 and the EKF are not included yet. See its [README](src/rover_imu_fusion/README.md). |
+| `rover_imu_fusion` | Error-state EKF that fuses the ZED and ICM-20948 IMUs into one `sensor_msgs/Imu` on `/imu/data` (frame `base_link`) with covariances from the filter. Runs ZED-only until the ICM has measured covariances. See its [README](src/rover_imu_fusion/README.md). |
 
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
 
@@ -68,7 +68,7 @@ colcon build --symlink-install --packages-up-to ublox_dgnss
 # ICM-20948 interface
 colcon build --symlink-install --packages-select icm20948-imu-interface
 
-# ZED IMU path (publishes /imu/data)
+# IMU fusion (publishes /imu/data)
 colcon build --symlink-install --packages-select rover_imu_fusion
 
 # ZED wrapper (ZED SDK and CUDA must already be installed)
