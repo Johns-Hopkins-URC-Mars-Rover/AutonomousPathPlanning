@@ -1,0 +1,13 @@
+# sensor_msgs/msg/Imu message data for `ros2 topic pub`, NOT node parameters.
+# Stationary bench test only: angular velocity is zero in base_link axes.
+# The CLI replaces 'now' with the current ROS timestamp on every publication.
+header:
+  stamp: now
+  frame_id: base_link
+orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+orientation_covariance: [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+angular_velocity: {x: 0.0, y: 0.0, z: 0.0}
+# Arbitrary test variances in (rad/s)^2; not calibrated sensor uncertainty.
+angular_velocity_covariance: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+linear_acceleration: {x: 0.0, y: 0.0, z: 0.0}
+linear_acceleration_covariance: [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

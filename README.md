@@ -108,15 +108,11 @@ ros2 run icm20948_imu_interface imu_publisher
 
 The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
 
-### Rover localization without hardware
+### Rover localization
 
-On a ROS 2 Humble machine, build and check synthetic ZED odometry and joint IMU fusion from the repository root:
-
-```bash
-bash src/rover_localization/scripts/smoke_test.sh
-```
-
-This one command builds the package, runs the simulation, checks `/odometry/local` and `odom -> base_link`, and prints PASS or FAIL. See the [package README](src/rover_localization/README.md) for the file layout, input/output contract, live ZED launch, and validation limits.
+See the [localization testing guide](src/rover_localization/TESTING.md) for
+the hardware-free synthetic test, real-ZED/fake-IMU bench test, and validation
+limits.
 
 ### ZED camera
 

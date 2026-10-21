@@ -48,34 +48,33 @@ future GNSS fix ──> coordinate conversion + global localization
 
 The local `odom` frame starts near the rover and can drift over time. A future `map` frame can correct long-term drift. The camera and joint IMU must have known, fixed transforms to `base_link`, and only the local EKF should publish `odom -> base_link` in this design. ZED odometry must not publish a competing transform. Timestamps, coordinate conventions, and covariance are part of each input contract. The EKF currently uses 3D mode so it does not silently force a rover on uneven terrain to stay planar.
 
-## Hardware-free simulation
+## Testing
 
-The simulation launch needs ROS 2 Humble and `robot_localization`, but no camera or physical IMU. The simulator follows a known planar path and publishes:
-
-1. Fake ZED optical `nav_msgs/Odometry` at `/zed/zed_node/odom`, with deterministic measurement noise and covariance.
-2. Fake joint `sensor_msgs/Imu` at `/imu/fused`, providing angular velocity. It marks orientation and acceleration unavailable.
-3. Ground truth at `/simulation/ground_truth`, used **only for comparison**, never fused into the EKF.
-
-From the repository root on an Ubuntu 22.04 / ROS 2 Humble machine, run the complete hardware-free check with one command:
-
-```bash
-bash src/rover_localization/scripts/smoke_test.sh
-```
-
-The script sources ROS, builds this package, launches the synthetic sensors and EKF, waits up to 40 seconds for moving `/odometry/local`, compares it with `/simulation/ground_truth`, checks `odom -> base_link`, prints PASS or FAIL, and stops its launch process. It does not use the ZED or physical IMUs. A passing check confirms the synthetic pipeline only; real sensor timing, frames, and accuracy still need validation.
-
-To inspect the simulation yourself, launch it manually after building and sourcing the workspace, then run the other commands in separate sourced terminals:
-
-```bash
-ros2 launch rover_localization sim_localization.launch.py
-ros2 topic echo /odometry/local --once
-ros2 topic echo /simulation/ground_truth --once
-ros2 run tf2_ros tf2_echo odom base_link
-```
-
-The estimated and true paths should move in the same direction and stay reasonably close. The synthetic sensor node has `camera_dropout_start`, `camera_dropout_duration`, `imu_dropout_start`, and `imu_dropout_duration` parameters for future failure checks. This simulation verifies wiring and basic filter behavior; it does not establish physical accuracy. It does not generate camera images or depth because the EKF consumes ZED odometry, not pixels.
+All synthetic, real-camera/fake-IMU, and source-level validation procedures
+are in [TESTING.md](TESTING.md). The fake joint-IMU fixture lives at
+`config/fake_imu_stationary.yaml`.
 
 ## Live sensor bringup
+
+### ZED, optical odometry, and fused odometry
+
+There are **two current EKF inputs**, not three:
+
+| Name | Meaning | Role here |
+| --- | --- | --- |
+| ZED | The camera and its driver | Processes images into optical odometry; also exposes images/depth and raw IMU topics. |
+| Optical/visual odometry | Motion estimated from successive camera frames | The ZED's `/zed/zed_node/odom` input. The EKF currently uses its position and orientation. |
+| Joint IMU | One upstream stream combining the two physical IMUs | `/imu/fused` input. The EKF currently uses only angular velocity in rad/s. |
+| Local fused odometry | The EKF's combined motion estimate | `/odometry/local` output, plus `odom -> base_link` TF. |
+| Wheel odometry | Motion estimated from wheel encoders | A possible future input; currently not configured. |
+
+So "optical" tells you **how odometry was calculated**. You do not need to
+calculate and supply another odometry stream alongside the ZED optical one.
+Images/depth are not direct inputs to this EKF. If by "Z input" you mean the
+vertical `z` coordinate rather than the ZED camera, `z` alone is insufficient:
+the current camera contract is a full `nav_msgs/msg/Odometry` message.
+
+### Real joint IMU
 
 The upstream IMU team must publish one `/imu/fused` `sensor_msgs/Imu` topic. The actual topic may be changed with `fused_imu_topic:=...`. The ZED model is a launch argument; `zed2i` is only the default example. The live launch applies `config/zed_optical.yaml` through the wrapper's parameter override path:
 
