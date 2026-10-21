@@ -1,7 +1,9 @@
-ekf_local:
+ekf_local: # these params belong to the 'ekf_local' node, matches launch file name
   ros__parameters:
-    frequency: 30.0
-    sensor_timeout: 0.3
+    # TODO : confirm real zed pose z, roll, and pitch are reliable
+    # TODO : tune frequency and timeout
+    frequency: 30.0 # publish state estimate at 30hz
+    sensor_timeout: 0.3 # filter may run prediction without a sensor input if sensor was quiet for 0.3s
     two_d_mode: false
     use_sim_time: false
     publish_tf: true
