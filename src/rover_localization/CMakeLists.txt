@@ -28,6 +28,7 @@ add_executable(simulated_sensors
 )
 
 target_compile_features(simulated_sensors PRIVATE cxx_std_17)
+target_include_directories(simulated_sensors PRIVATE include)
 
 ament_target_dependencies(simulated_sensors
   rclcpp
@@ -38,5 +39,20 @@ ament_target_dependencies(simulated_sensors
 install(TARGETS simulated_sensors
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+if(BUILD_TESTING)
+  enable_testing()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_executable(simulation_model_test test/test_simulation_model.cpp)
+  target_compile_features(simulation_model_test PRIVATE cxx_std_17)
+  target_include_directories(simulation_model_test PRIVATE include)
+  add_test(NAME simulation_model_test COMMAND simulation_model_test)
+  add_test(NAME smoke_probe_unit
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test/test_smoke_probe.py")
+endif()
 
 ament_package()

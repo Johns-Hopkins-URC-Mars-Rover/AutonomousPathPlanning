@@ -7,9 +7,10 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | Package | Purpose |
 | --- | --- |
 | `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
-| `icm20948-imu-interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
+| `icm20948_imu_interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
 | `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
-| `rover_imu_fusion` | Error-state EKF that fuses the ZED and ICM-20948 IMUs into one `sensor_msgs/Imu` on `/imu/data` (frame `base_link`) with covariances from the filter. Runs ZED-only until the ICM has measured covariances. See its [README](src/rover_imu_fusion/README.md). |
+| `rover_localization` | Configures a local `robot_localization` EKF for ZED optical odometry and the team's joint IMU stream. Includes a hardware-free synthetic sensor launch; see [`src/rover_localization/README.md`](src/rover_localization/README.md). |
+| `rover_bringup` | Provides the top-level rover launch file that starts the enabled hardware drivers. |
 
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
 
@@ -66,7 +67,7 @@ Or build only the package you need:
 colcon build --symlink-install --packages-up-to ublox_dgnss
 
 # ICM-20948 interface
-colcon build --symlink-install --packages-select icm20948-imu-interface
+colcon build --symlink-install --packages-select icm20948_imu_interface
 
 # IMU fusion (publishes /imu/data)
 colcon build --symlink-install --packages-select rover_imu_fusion
@@ -84,6 +85,27 @@ source install/setup.bash
 ```
 
 ## 5. Run
+
+### Rover bringup
+
+Connect the IMU and ZED camera, then start both drivers with one command:
+
+```bash
+ros2 launch rover_bringup rover.launch.py camera_model:=zed2i
+```
+
+Replace `zed2i` with the attached camera model. The default is `zed2i`, so the
+argument can be omitted on a rover using that model. Either driver can be
+disabled while diagnosing hardware:
+
+```bash
+ros2 launch rover_bringup rover.launch.py enable_imu:=false camera_model:=zedx
+ros2 launch rover_bringup rover.launch.py enable_zed:=false
+```
+
+When another subsystem is ready, add its package as an `exec_depend` in
+`src/rover_bringup/package.xml` and include its launch file from
+`src/rover_bringup/launch/rover.launch.py` in the same way.
 
 ### u-blox GNSS
 
@@ -106,10 +128,20 @@ USB permissions may require the udev rules documented in [`src/ublox_dgnss/READM
 Connect the sensor over I2C and ensure the current user has permission to access the I2C device, then run:
 
 ```bash
-ros2 run icm20948-imu-interface imu_publisher
+ros2 run icm20948_imu_interface imu_publisher
 ```
 
 The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
+
+### Rover localization without hardware
+
+On a ROS 2 Humble machine, build and check synthetic ZED odometry and joint IMU fusion from the repository root:
+
+```bash
+bash src/rover_localization/scripts/smoke_test.sh
+```
+
+This one command builds the package, runs the simulation, checks `/odometry/local` and `odom -> base_link`, and prints PASS or FAIL. See the [package README](src/rover_localization/README.md) for the file layout, input/output contract, live ZED launch, and validation limits.
 
 ### ZED camera
 
