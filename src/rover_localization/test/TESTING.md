@@ -14,3 +14,7 @@ The C++ test covers straight motion, turning, and angle wrapping. The Ruby check
 ## Header layout follow-up
 
 The first implementation used `include/rover_localization/simulation_model.hpp`. The package-private header now lives at `include/simulation_model.hpp`, removing the nested same-name directory. The include statements and package README match the new location. Before the move, the added layout test failed and the C++ model test could not compile against the new include path. After the move, the Ruby suite passed with 4 tests and 25 assertions, and the C++ model test compiled and ran successfully. The ROS runtime gate above remains unchanged.
+
+## One-command smoke check
+
+The new `scripts/smoke_test.sh` builds and starts the ROS simulation and runs `scripts/probe_simulation.py`. Its evaluation function was tested first in a RED state because the probe file was missing. After implementation, `python3 -m unittest discover -s src/rover_localization/test -p test_smoke_probe.py -v` passed 5 cases: moving estimate, missing TF, stationary estimate, large position error, and too few samples. `bash -n` and Python compilation also passed. The full script still awaits execution on ROS 2 Humble; the current macOS checkout has no ROS runtime.

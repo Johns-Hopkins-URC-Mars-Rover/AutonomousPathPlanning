@@ -46,10 +46,13 @@ install(DIRECTORY config launch
 
 if(BUILD_TESTING)
   enable_testing()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
   add_executable(simulation_model_test test/test_simulation_model.cpp)
   target_compile_features(simulation_model_test PRIVATE cxx_std_17)
   target_include_directories(simulation_model_test PRIVATE include)
   add_test(NAME simulation_model_test COMMAND simulation_model_test)
+  add_test(NAME smoke_probe_unit
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test/test_smoke_probe.py")
 endif()
 
 ament_package()

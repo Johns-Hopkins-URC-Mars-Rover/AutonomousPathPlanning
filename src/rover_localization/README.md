@@ -17,6 +17,8 @@ src/
     ├── launch/sim_localization.launch.py  synthetic sensors + the same EKF
     ├── include/simulation_model.hpp  private, testable path model
     ├── src/simulated_sensors.cpp     synthetic odometry, joint IMU, and truth
+    ├── scripts/smoke_test.sh         one-command build, launch, and check
+    ├── scripts/probe_simulation.py   checks output, truth, and TF
     └── test/                        configuration and motion-model checks
 ```
 
@@ -54,18 +56,18 @@ The simulation launch needs ROS 2 Humble and `robot_localization`, but no camera
 2. Fake joint `sensor_msgs/Imu` at `/imu/fused`, providing angular velocity. It marks orientation and acceleration unavailable.
 3. Ground truth at `/simulation/ground_truth`, used **only for comparison**, never fused into the EKF.
 
-Build and run on a ROS 2 Humble machine:
+From the repository root on an Ubuntu 22.04 / ROS 2 Humble machine, run the complete hardware-free check with one command:
 
 ```bash
-source /opt/ros/humble/setup.bash
-colcon build --packages-select rover_localization --symlink-install
-source install/setup.bash
-ros2 launch rover_localization sim_localization.launch.py
+bash src/rover_localization/scripts/smoke_test.sh
 ```
 
-In separate sourced terminals, check the messages and transform:
+The script sources ROS, builds this package, launches the synthetic sensors and EKF, waits up to 40 seconds for moving `/odometry/local`, compares it with `/simulation/ground_truth`, checks `odom -> base_link`, prints PASS or FAIL, and stops its launch process. It does not use the ZED or physical IMUs. A passing check confirms the synthetic pipeline only; real sensor timing, frames, and accuracy still need validation.
+
+To inspect the simulation yourself, launch it manually after building and sourcing the workspace, then run the other commands in separate sourced terminals:
 
 ```bash
+ros2 launch rover_localization sim_localization.launch.py
 ros2 topic echo /odometry/local --once
 ros2 topic echo /simulation/ground_truth --once
 ros2 run tf2_ros tf2_echo odom base_link

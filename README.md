@@ -110,13 +110,13 @@ The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
 
 ### Rover localization without hardware
 
-After building and sourcing `rover_localization`, launch synthetic ZED odometry and joint IMU messages with the local EKF:
+On a ROS 2 Humble machine, build and check synthetic ZED odometry and joint IMU fusion from the repository root:
 
 ```bash
-ros2 launch rover_localization sim_localization.launch.py
+bash src/rover_localization/scripts/smoke_test.sh
 ```
 
-The EKF publishes `/odometry/local` and `odom -> base_link`. See the [package README](src/rover_localization/README.md) for the file layout, input/output contract, live ZED launch, and validation limits.
+This one command builds the package, runs the simulation, checks `/odometry/local` and `odom -> base_link`, and prints PASS or FAIL. See the [package README](src/rover_localization/README.md) for the file layout, input/output contract, live ZED launch, and validation limits.
 
 ### ZED camera
 
