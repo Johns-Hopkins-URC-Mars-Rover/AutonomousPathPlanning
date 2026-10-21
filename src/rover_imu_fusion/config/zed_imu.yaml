@@ -9,3 +9,12 @@ zed_imu:
     # on purpose so no invented noise values enter the data. Uncomment to set.
     # angular_velocity_variance: [0.0, 0.0, 0.0]      # (rad/s)^2, x y z
     # linear_acceleration_variance: [0.0, 0.0, 0.0]   # (m/s^2)^2, x y z
+
+    # ICM-20948 (not fused yet). Keep disabled until the driver publishes
+    # measured covariances and base_link -> imu_link has been measured. When
+    # enabled, the ICM IMU is rotated into base_link and published on
+    # /zed_imu/icm_base so the mount and covariances can be checked. Samples
+    # without a covariance are dropped.
+    icm:
+      enabled: false
+      input_topic: /imu/data_raw

@@ -94,6 +94,27 @@ ros2 topic echo /imu/data --once
 At rest with the rover level, `linear_acceleration` should read about 9.8 on
 the base-frame up axis, and `angular_velocity` close to zero.
 
+## ICM-20948 (prepared, off by default)
+
+The node has an ICM input that is disabled (`icm.enabled: false` in
+`config/zed_imu.yaml`). When enabled it subscribes to `/imu/data_raw`, rotates
+the ICM IMU into `base_link`, and publishes it on `/zed_imu/icm_base`. It is not
+fused with the ZED yet; this output exists so the mount transform and the
+covariances can be checked.
+
+Samples whose covariance is missing are dropped, with a warning. No fallback
+noise is used for the ICM.
+
+Before enabling it:
+
+1. The ICM driver publishes measured covariances on `/imu/data_raw`
+   (currently it publishes zeros).
+2. A measured TF `base_link -> imu_link` is published. Nothing publishes it yet.
+
+Then set `icm.enabled: true` and check `ros2 topic echo /zed_imu/icm_base`.
+With a good mount transform and the rover level at rest, the acceleration
+should read about 9.8 on the base-frame up axis, the same as `/imu/data`.
+
 ## Local test without the ZED
 
 Use this to check the node without hardware. It fakes the ZED IMU and the TF
@@ -160,8 +181,9 @@ test/test_imu_transform.cpp
 
 ## Not done yet
 
-- ICM-20948 gyro and accel fusion (the driver is unchanged and publishes zero
-  covariances, so it would need noise parameters first).
+- ICM-20948 gyro and accel fusion (the input is prepared but disabled; the
+  driver still publishes zero covariances and `base_link -> imu_link` is not
+  measured).
 - The error-state EKF, bias estimation, and an orientation with an honest,
   growing yaw covariance.
 - Diagnostics on `/diagnostics`.
