@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    pos_tracking:
+      pos_tracking_enabled: true
+      imu_fusion: false
+      publish_tf: false
+      publish_map_tf: false
+      reset_odom_with_loop_closure: false
+    sensors:
+      publish_imu: true
+      publish_imu_raw: true
