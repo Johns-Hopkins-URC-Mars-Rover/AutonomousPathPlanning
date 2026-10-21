@@ -1,6 +1,6 @@
 # Rover localization
 
-This package is Mariam's local localization pipeline. It combines camera motion and one **joint IMU stream** into a continuous estimate of the rover's local position, heading, and velocity. The estimator is the existing `robot_localization` EKF. The ZED driver remains in `src/zed-ros2-wrapper` and is not edited here.
+This package is the local localization pipeline. It combines camera motion and one **joint IMU stream** into a continuous estimate of the rover's local position, heading, and velocity. The estimator is the existing `robot_localization` EKF. The ZED driver remains in `src/zed-ros2-wrapper` and is not edited here.
 
 ## Files and ownership
 
