@@ -94,6 +94,59 @@ ros2 topic echo /imu/data --once
 At rest with the rover level, `linear_acceleration` should read about 9.8 on
 the base-frame up axis, and `angular_velocity` close to zero.
 
+## Local test without the ZED
+
+Use this to check the node without hardware. It fakes the ZED IMU and the TF
+with a 90 degree yaw mount. Open four terminals and run these two lines first
+in each one (otherwise `ros2: command not found`):
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/GitHub/AutonomousPathPlanning/install/setup.bash
+```
+
+Terminal 1, fake TF (leave running):
+
+```bash
+ros2 run tf2_ros static_transform_publisher --yaw 1.5708 --frame-id base_link --child-frame-id zed_imu_link
+```
+
+Terminal 2, the node (leave running). It logs `Got TF base_link <- zed_imu_link`
+once IMU data arrives; `Waiting for TF` means terminal 1 is not running:
+
+```bash
+ros2 launch rover_imu_fusion zed_imu.launch.py
+```
+
+Terminal 3, fake ZED IMU at 10 Hz (leave running; it blocks the terminal, which
+is why the echo needs its own terminal):
+
+```bash
+ros2 topic pub -r 10 /zed/zed_node/imu/data sensor_msgs/msg/Imu \
+"{header: {stamp: now, frame_id: zed_imu_link}, orientation: {w: 1.0}, angular_velocity: {x: 1.0}, linear_acceleration: {z: 9.81}, angular_velocity_covariance: [1e-4,0,0,0,1e-4,0,0,0,1e-4], linear_acceleration_covariance: [1e-2,0,0,0,1e-2,0,0,0,1e-2]}"
+```
+
+Terminal 4, look at the result:
+
+```bash
+ros2 topic echo /imu/data --once
+```
+
+Expected output for this fake input:
+
+| Field | Expected | Why |
+| --- | --- | --- |
+| `header.frame_id` | `base_link` | Re-framed. |
+| `angular_velocity` | x about 0, y = 1.0 | Input x = 1.0 rotated by the 90 degree yaw. |
+| `linear_acceleration.z` | 9.81 | A yaw rotation leaves the vertical axis unchanged. |
+| covariances | diagonals kept, off-diagonals 0 | Rotated covariance. |
+| `orientation_covariance[0]` | -1.0 | The fake message has no orientation covariance, so orientation is flagged unavailable. |
+
+To check the missing-covariance path, remove the two `*_covariance` fields from
+the `pub` command: the node warns once and publishes zero covariances.
+
+Stop everything with Ctrl-C in each terminal.
+
 ## Layout
 
 ```
