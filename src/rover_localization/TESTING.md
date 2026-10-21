@@ -78,25 +78,21 @@ Keep the rover and camera stationary. Turning the camera causes the fake gyro
 and real visual motion to disagree. For a moving test without hardware, use
 the synthetic test above.
 
-1. Terminal A: launch the ZED and EKF. Replace the model if required.
+1. Terminal A: launch the ZED, EKF, and fake IMU together. Replace the model
+   if required.
 
    ```bash
-   ros2 launch rover_localization zed_localization.launch.py camera_model:=zed2i
+   ros2 launch rover_localization zed_fake_imu_localization.launch.py \
+     camera_model:=zed2i
    ```
 
-2. Terminal B: publish the fixture at 50 Hz with fresh timestamps.
+   The launch starts a publisher that emits the same stationary IMU contract as
+   `config/fake_imu_stationary.yaml`, at 50 Hz with fresh timestamps. Run only
+   one publisher on `/imu/fused`; stop this launch before switching to the real
+   joint IMU. Do not launch `sim_localization.launch.py` with the real camera
+   because it also publishes fake ZED odometry.
 
-   ```bash
-   ros2 topic pub /imu/fused sensor_msgs/msg/Imu \
-     "$(cat src/rover_localization/config/fake_imu_stationary.yaml)" \
-     --rate 50 --print 50
-   ```
-
-   Run only one publisher on `/imu/fused`. Stop this command with Ctrl-C before
-   switching to the real joint IMU. Do not launch `sim_localization.launch.py`
-   with the real camera because it also publishes fake ZED odometry.
-
-3. Terminal C: inspect inputs, output, and transform.
+2. Terminal B: inspect inputs, output, and transform.
 
    ```bash
    ros2 topic echo /zed/zed_node/odom --once
