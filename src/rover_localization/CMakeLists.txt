@@ -45,6 +45,7 @@ install(DIRECTORY config launch
 )
 
 if(BUILD_TESTING)
+  enable_testing()
   add_executable(simulation_model_test test/test_simulation_model.cpp)
   target_compile_features(simulation_model_test PRIVATE cxx_std_17)
   target_include_directories(simulation_model_test PRIVATE include)
