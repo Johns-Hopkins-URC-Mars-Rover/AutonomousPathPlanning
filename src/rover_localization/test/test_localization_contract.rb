@@ -64,4 +64,11 @@ class LocalizationContractTest < Minitest::Test
     assert File.file?(File.join(ROOT, 'include', 'simulation_model.hpp'))
     refute Dir.exist?(File.join(ROOT, 'include', 'rover_localization'))
   end
+
+  def test_simulated_sensor_source_has_one_complete_node_definition
+    source = File.read(File.join(ROOT, 'src', 'simulated_sensors.cpp'))
+
+    assert_equal 1, source.scan(/^\s*class SimulatedSensors\b/).size
+    assert_match(/timer_ = create_wall_timer\(period, std::bind\(&SimulatedSensors::update, this\)\)/, source)
+  end
 end
