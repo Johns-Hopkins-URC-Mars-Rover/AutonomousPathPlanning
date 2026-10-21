@@ -9,6 +9,8 @@ namespace rover_imu_fusion
 
 void ImuInitializer::Stream::add(const Eigen::Vector3d & v)
 {
+  // Welford's online algorithm: numerically stable running mean and sum of
+  // squared deviations, without storing the samples.
   ++n;
   const Eigen::Vector3d delta = v - mean;
   mean += delta / static_cast<double>(n);
@@ -20,12 +22,14 @@ Eigen::Vector3d ImuInitializer::Stream::stddev() const
   if (n < 2) {
     return Eigen::Vector3d::Zero();
   }
+  // Sample (n - 1) standard deviation, per axis.
   return (m2 / static_cast<double>(n - 1)).cwiseSqrt();
 }
 
 ImuInitializer::ImuInitializer(const InitConfig & config)
 : cfg_(config) {}
 
+// Opens the averaging window at the first sample after a start or restart.
 void ImuInitializer::touch(double t)
 {
   if (!window_open_) {
@@ -63,6 +67,7 @@ void ImuInitializer::addAccel(int imu, double t, const Eigen::Vector3d & f)
 
 void ImuInitializer::tryFinish(double t)
 {
+  // Wait until the window has covered the full duration.
   if (!window_open_ || t - window_start_ < cfg_.duration) {
     return;
   }
@@ -90,7 +95,11 @@ void ImuInitializer::tryFinish(double t)
     // Not enough data yet: keep collecting rather than restarting.
     return;
   }
+  // Average the mean specific force over the usable accel streams.
   const Eigen::Vector3d f = f_sum / accel_streams;
+  // Not stationary: the spread is too large, the gyro mean says the rover is
+  // turning, or the accel magnitude is not close to g. Discard the window and
+  // start a new one.
   if (!still || min_gyro_mean > cfg_.gyro_mean_max ||
     std::abs(f.norm() - cfg_.gravity) > cfg_.accel_norm_tol)
   {
@@ -99,11 +108,14 @@ void ImuInitializer::tryFinish(double t)
     return;
   }
 
+  // At rest the specific force points up, so the rotation taking it onto world
+  // +z gives roll and pitch. Yaw is unobservable and left at 0.
   NominalState s;
   s.q = Eigen::Quaterniond::FromTwoVectors(f.normalized(), Eigen::Vector3d::UnitZ());
   s.q.normalize();
   s.a = f;
   for (std::size_t i = 0; i < 2; ++i) {
+    // The rover is still, so any mean gyro reading is that IMU's bias.
     if (gyro_[i].n >= cfg_.min_samples) {
       s.bg[i] = gyro_[i].mean;
     }

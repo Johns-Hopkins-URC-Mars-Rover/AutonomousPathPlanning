@@ -13,9 +13,12 @@ ImuFusion::ImuFusion(const FusionConfig & config)
 
 void ImuFusion::add(const Measurement & m)
 {
+  // Drop samples with an invalid IMU index; the magnetometer has no IMU index.
   if (m.kind != Measurement::Kind::kMag && (m.imu < 0 || m.imu > 1)) {
     return;
   }
+  // Track the newest stamp per IMU for the timeout check. This is done on
+  // arrival, before reordering, so a live IMU is seen as live immediately.
   if (m.kind != Measurement::Kind::kMag) {
     auto & last = last_stamp_[static_cast<std::size_t>(m.imu)];
     last = std::max(last, m.stamp);
@@ -25,9 +28,11 @@ void ImuFusion::add(const Measurement & m)
 
 void ImuFusion::process(double cutoff)
 {
+  // Release everything old enough to be in order and feed it to the filter.
   for (const Measurement & m : buffer_.popUntil(cutoff)) {
     handle(m);
   }
+  // Keep the output current even when no measurement arrived.
   if (ekf_) {
     ekf_->predict(cutoff);  // a stale cutoff is ignored
   }
@@ -35,6 +40,9 @@ void ImuFusion::process(double cutoff)
 
 void ImuFusion::handle(const Measurement & m)
 {
+  // Before the filter exists, samples only feed the stationary initializer
+  // (the magnetometer is ignored). The measurement that completes the window
+  // seeds the filter and is itself not applied as an update.
   if (!ekf_) {
     if (m.kind == Measurement::Kind::kGyro) {
       init_.addGyro(m.imu, m.stamp, m.z);
@@ -54,6 +62,8 @@ void ImuFusion::handle(const Measurement & m)
       break;
     case Measurement::Kind::kAccel:
       ekf_->updateAccel(m.imu, m.stamp, m.z, m.R);
+      // The gravity pseudo-measurement is rate-limited and piggybacks on accel
+      // samples, so it uses the freshly updated acceleration estimate.
       if (m.stamp - last_gravity_ >= cfg_.gravity_update_period) {
         // Roll/pitch aid; it is only applied when the filter time is current.
         if (ekf_->updateGravity(m.stamp) != UpdateStatus::kStale) {
@@ -75,6 +85,8 @@ std::optional<FusionOutput> ImuFusion::output() const
   FusionOutput out;
   out.stamp = ekf_->time();
   out.q = ekf_->state().q;
+  // Orientation covariance about world axes; w and a covariances are the
+  // matching diagonal blocks of P (already in base_link axes).
   out.q_cov = ekf_->orientationCovarianceWorld();
   out.w = ekf_->state().w;
   out.w_cov = ekf_->covariance().block<3, 3>(idx::kRate, idx::kRate);
@@ -89,6 +101,7 @@ bool ImuFusion::timedOut(int imu, double now) const
     return true;
   }
   const double last = last_stamp_[static_cast<std::size_t>(imu)];
+  // Never seen (-1) counts as timed out.
   return last < 0.0 || now - last > cfg_.imu_timeout;
 }
 

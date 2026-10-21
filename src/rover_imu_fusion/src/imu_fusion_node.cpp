@@ -24,6 +24,7 @@ namespace rover_imu_fusion
 namespace
 {
 
+// IMU indices, shared with the filter (ImuEkf uses 0 and 1 for per-IMU states).
 constexpr int kIcm = 0;
 constexpr int kZed = 1;
 
@@ -58,6 +59,8 @@ public:
       throw std::invalid_argument("publish_rate must be positive");
     }
 
+    // The fusion core is ROS-free; this node only converts messages to and from
+    // it and handles parameters, TF and diagnostics.
     FusionConfig cfg = declareFusionConfig();
     reorder_delay_ = cfg.reorder_delay;
     fusion_ = std::make_unique<ImuFusion>(cfg);
@@ -66,6 +69,8 @@ public:
     setupImu(kZed, "zed", "/zed/zed_node/imu/data", true);
     setupMagnetometer();
 
+    // Filtering runs on a fixed-rate timer rather than per message, so the output
+    // rate does not depend on the IMU rates.
     publisher_ = create_publisher<sensor_msgs::msg::Imu>(output_topic, 10);
     diag_publisher_ = create_publisher<diagnostic_msgs::msg::DiagnosticArray>(diag_topic, 10);
     publish_timer_ = create_wall_timer(
@@ -78,6 +83,8 @@ public:
   }
 
 private:
+  // One physical IMU input: its topic, TF rotation into base_frame, and
+  // subscription.
   struct Input
   {
     bool enabled{false};
@@ -106,11 +113,13 @@ private:
   Eigen::Matrix3d mag_soft_iron_{Eigen::Matrix3d::Identity()};
   Eigen::Matrix3d mag_to_imu_{Eigen::Matrix3d::Identity()};
 
+  // Helpers for array-valued parameters.
   std::vector<double> param_vector(const std::string & name, const std::vector<double> & def)
   {
     return declare_parameter<std::vector<double>>(name, def);
   }
 
+  // Reads a diagonal variance: empty means "not set", otherwise 3 positive values.
   std::optional<Eigen::Vector3d> optionalVariance(const std::string & name)
   {
     const auto v = param_vector(name, {});
@@ -123,6 +132,7 @@ private:
     return Eigen::Vector3d(v[0], v[1], v[2]);
   }
 
+  // Reads a 3x3 matrix parameter given as 9 row-major values.
   Eigen::Matrix3d matrixParam(const std::string & name, const Eigen::Matrix3d & def)
   {
     const auto v = param_vector(
@@ -166,7 +176,9 @@ private:
       static_cast<int>(declare_parameter<int64_t>("filter.nis_max_consecutive", 20));
     e.stuck_count = static_cast<int>(declare_parameter<int64_t>("filter.stuck_count", 20));
 
-    // Per IMU.
+    // Per IMU. The ICM is a noisier MEMS part than the ZED, so its biases drift
+    // faster and start with a larger uncertainty. Saturation limits are just
+    // under the full-scale range of each sensor (0 = not checked).
     e.gyro_bias_walk[kIcm] = declare_parameter<double>("icm.gyro_bias_walk", 1e-4);
     e.accel_bias_walk[kIcm] = declare_parameter<double>("icm.accel_bias_walk", 1e-3);
     e.init_gyro_bias_sigma[kIcm] = declare_parameter<double>("icm.init_gyro_bias_sigma", 0.01);
@@ -198,6 +210,10 @@ private:
     in.enabled = declare_parameter<bool>(name + ".enabled", zed);
     in.topic = declare_parameter<std::string>(name + ".topic", default_topic);
 
+    // Per-IMU covariance handling: an override replaces the message value, a
+    // fallback is used only when the message has none, and the accel covariance
+    // is inflated for the unmodelled lever arm. Samples with no usable
+    // covariance are dropped, since the filter needs R for every update.
     ImuRotator::Options opt;
     opt.name = name;
     opt.base_frame = base_frame_;
@@ -257,6 +273,7 @@ private:
 
   double stampOrNow(const builtin_interfaces::msg::Time & t)
   {
+    // Use the message stamp; fall back to receive time if the driver left it 0.
     const double s = toSeconds(t);
     return s > 0.0 ? s : now().seconds();
   }
@@ -264,10 +281,14 @@ private:
   void onImu(int index, const sensor_msgs::msg::Imu & msg)
   {
     Input & in = inputs_[static_cast<std::size_t>(index)];
+    // Rotate into base_frame; returns nothing until TF and covariances are
+    // available.
     const auto out = in.rotator->convert(msg);
     if (!out) {
       return;
     }
+    // One IMU message becomes two independent measurements (gyro and accel),
+    // both queued in the reorder buffer.
     const double stamp = stampOrNow(out->header.stamp);
 
     Measurement gyro;
@@ -297,6 +318,8 @@ private:
     }
     const Eigen::Vector3d raw(
       msg.magnetic_field.x, msg.magnetic_field.y, msg.magnetic_field.z);
+    // Apply the calibration (hard-iron offset, then soft-iron matrix), then
+    // rotate magnetometer axes -> IMU axes -> base_link.
     const Eigen::Vector3d calibrated = mag_soft_iron_ * (raw - mag_hard_iron_);
     Measurement m;
     m.kind = Measurement::Kind::kMag;
@@ -307,6 +330,8 @@ private:
 
   void onPublishTimer()
   {
+    // Only process samples older than reorder_delay so late-arriving ones from
+    // the other IMU can still be slotted into order.
     const double now_s = now().seconds();
     fusion_->process(now_s - reorder_delay_);
 
@@ -318,6 +343,7 @@ private:
       return;
     }
 
+    // Stamp is the filter time (now - reorder_delay), not the publish time.
     sensor_msgs::msg::Imu msg;
     msg.header.stamp = toStamp(out->stamp);
     msg.header.frame_id = base_frame_;
@@ -338,6 +364,7 @@ private:
     publisher_->publish(msg);
   }
 
+  // Diagnostics helpers: key/value entry and compact number formatting.
   static diagnostic_msgs::msg::KeyValue kv(const std::string & k, const std::string & v)
   {
     diagnostic_msgs::msg::KeyValue out;
@@ -361,6 +388,7 @@ private:
     diagnostic_msgs::msg::DiagnosticArray array;
     array.header.stamp = now();
 
+    // One status per enabled IMU, then one for the filter as a whole.
     int live = 0;
     int enabled = 0;
     for (int i = 0; i < 2; ++i) {
@@ -401,6 +429,8 @@ private:
       array.status.push_back(st);
     }
 
+    // Overall health: WARN while waiting to initialize or if one IMU is out,
+    // ERROR only when every enabled IMU has timed out.
     DiagnosticStatus fs;
     fs.name = "rover_imu_fusion/filter";
     fs.hardware_id = "imu_fusion";
@@ -418,6 +448,8 @@ private:
         fs.level = DiagnosticStatus::WARN;
       }
     }
+    // 1-sigma attitude uncertainty from the world-frame covariance: yaw is (2,2),
+    // roll/pitch use the mean of (0,0) and (1,1).
     if (const auto out = fusion_->output()) {
       fs.values.push_back(kv("yaw_sigma_deg", num(std::sqrt(out->q_cov(2, 2)) * 180.0 / M_PI)));
       fs.values.push_back(

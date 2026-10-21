@@ -32,6 +32,7 @@ public:
   ZedImuNode()
   : Node("zed_imu"), tf_buffer_(get_clock()), tf_listener_(tf_buffer_)
   {
+    // Pass-through path for the ZED (no filtering).
     const auto input_topic =
       declare_parameter<std::string>("input_topic", "/zed/zed_node/imu/data");
     const auto output_topic = declare_parameter<std::string>("output_topic", "/imu/data");

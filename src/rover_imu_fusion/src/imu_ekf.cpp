@@ -10,8 +10,12 @@ namespace rover_imu_fusion
 namespace
 {
 
+// Below this rotation angle (rad) exp/log switch to their first-order forms,
+// avoiding a division by a near-zero angle.
 constexpr double kSmallAngle = 1e-12;
 
+// A noise parameter is valid when finite and >= 0. Unset values are -1, so
+// this also catches a parameter that was never configured.
 bool validValue(double v) {return std::isfinite(v) && v >= 0.0;}
 
 }  // namespace
@@ -29,6 +33,7 @@ Eigen::Quaterniond expQuat(const Eigen::Vector3d & rotvec)
 {
   const double angle = rotvec.norm();
   if (angle < kSmallAngle) {
+    // First-order expansion: q ~ (1, rotvec / 2), renormalized.
     Eigen::Quaterniond q(1.0, 0.5 * rotvec.x(), 0.5 * rotvec.y(), 0.5 * rotvec.z());
     q.normalize();
     return q;
@@ -38,7 +43,8 @@ Eigen::Quaterniond expQuat(const Eigen::Vector3d & rotvec)
 
 Eigen::Vector3d logQuat(const Eigen::Quaterniond & q_in)
 {
-  // Take the shorter rotation (w >= 0).
+  // q and -q are the same rotation; pick the one with w >= 0 so the result is
+  // the shorter rotation (angle in [0, pi]).
   Eigen::Quaterniond q = q_in.normalized();
   if (q.w() < 0.0) {
     q.coeffs() = -q.coeffs();
@@ -52,6 +58,8 @@ Eigen::Vector3d logQuat(const Eigen::Quaterniond & q_in)
 
 void EkfConfig::validate() const
 {
+  // Process noise and initial uncertainty have no defaults on purpose; refuse to
+  // run with any of them unset (-1) rather than assume a perfect sensor.
   const bool ok = validValue(rate_walk) && validValue(accel_walk) &&
     validValue(init_attitude_sigma) && validValue(init_rate_sigma) &&
     validValue(init_accel_sigma);
@@ -89,6 +97,8 @@ void ImuEkf::initialize(const NominalState & state, double time)
   x_.q.normalize();
   time_ = time;
 
+  // Initial covariance is diagonal: the error-state blocks start uncorrelated
+  // with the variances set from the config sigmas.
   P_.setZero();
   P_.block<3, 3>(idx::kTheta, idx::kTheta).diagonal().setConstant(
     cfg_.init_attitude_sigma * cfg_.init_attitude_sigma);
@@ -103,6 +113,7 @@ void ImuEkf::initialize(const NominalState & state, double time)
     P_.block<3, 3>(idx::accelBias(i), idx::accelBias(i)).diagonal().setConstant(
       cfg_.init_accel_bias_sigma[k] * cfg_.init_accel_bias_sigma[k]);
   }
+  // Reset all diagnostics so a re-initialization starts from a clean slate.
   counters_ = {};
   gyro_health_ = {};
   accel_health_ = {};
@@ -116,9 +127,16 @@ void ImuEkf::initialize(const NominalState & state, double time)
 
 StateCov ImuEkf::transition(double dt) const
 {
+  // Identity for the random-walk states (w, a, biases); only the attitude rows
+  // have dynamics.
   StateCov F = StateCov::Identity();
+  // Rotation accumulated over the step, in the body frame.
   const Eigen::Vector3d phi = x_.w * dt;
+  // The attitude error lives in the body frame, which itself rotates by phi, so
+  // the old error is rotated back by Exp(-phi).
   F.block<3, 3>(idx::kTheta, idx::kTheta) = expQuat(-phi).toRotationMatrix();
+  // A rate error dw integrates into an attitude error; (I - 1/2 [phi]x) is the
+  // second-order form of the SO(3) right Jacobian.
   F.block<3, 3>(idx::kTheta, idx::kRate) =
     dt * (Eigen::Matrix3d::Identity() - 0.5 * skew(phi));
   return F;
@@ -131,15 +149,16 @@ bool ImuEkf::predict(double t)
   }
   const double dt = t - time_;
   if (dt < 0.0) {
-    return false;
+    return false;  // out-of-order time; the caller counts it as stale
   }
   if (dt == 0.0) {
-    return true;
+    return true;  // already at t, nothing to propagate
   }
 
   const StateCov F = transition(dt);
 
-  // Random-walk process noise, diagonal.
+  // Random-walk process noise, diagonal. There is no direct noise on the
+  // attitude: its uncertainty grows through the dw coupling in F.
   StateCov Q = StateCov::Zero();
   Q.block<3, 3>(
     idx::kRate,
@@ -155,8 +174,11 @@ bool ImuEkf::predict(double t)
   }
 
   P_ = F * P_ * F.transpose() + Q;
+  // Re-symmetrize to stop rounding error from accumulating asymmetry.
   P_ = 0.5 * (P_ + P_.transpose());
 
+  // Nominal state: only q changes; w, a and the biases are random walks, so
+  // their means stay put between measurements.
   x_.q = x_.q * expQuat(x_.w * dt);
   x_.q.normalize();
   time_ = t;
@@ -174,9 +196,12 @@ const ImuCounters & ImuEkf::counters(int imu) const
 UpdateStatus ImuEkf::checkHealth(
   StreamHealth & h, const Eigen::Vector3d & z, double limit) const
 {
+  // Sensor at its measurement range: the reading is clipped, not trustworthy.
   if (limit > 0.0 && z.norm() >= limit) {
     return UpdateStatus::kRejectedSaturated;
   }
+  // A frozen sensor repeats the exact same vector; real readings always carry
+  // noise, so bit-identical consecutive samples mean the stream is stuck.
   if (cfg_.stuck_count > 0) {
     if (h.has_last && z == h.last) {
       ++h.repeats;
@@ -194,6 +219,8 @@ UpdateStatus ImuEkf::checkHealth(
 
 void ImuEkf::inject(const StateVec & dx)
 {
+  // Fold the estimated error back into the nominal state. The attitude error is
+  // applied multiplicatively (it is a rotation), everything else additively.
   const Eigen::Vector3d dtheta = dx.segment<3>(idx::kTheta);
   x_.q = x_.q * expQuat(dtheta);
   x_.q.normalize();
@@ -205,7 +232,9 @@ void ImuEkf::inject(const StateVec & dx)
     x_.ba[k] += dx.segment<3>(idx::accelBias(i));
   }
 
-  // Covariance reset: the attitude error is now expressed about the new q.
+  // Covariance reset: the attitude error is now expressed about the new q, so P
+  // is transformed by the Jacobian of that re-linearization. The injected error
+  // is then zero again.
   StateCov G = StateCov::Identity();
   G.block<3, 3>(idx::kTheta, idx::kTheta) = Eigen::Matrix3d::Identity() - 0.5 * skew(dtheta);
   P_ = G * P_ * G.transpose();
@@ -217,6 +246,9 @@ UpdateStatus ImuEkf::applyUpdate(
   const Eigen::Matrix<double, M, kStateDim> & H, const Eigen::Matrix<double, M, 1> & y,
   const Eigen::Matrix<double, M, M> & R, double gate)
 {
+  // Innovation covariance and normalized innovation squared (NIS). Under a
+  // consistent model NIS is chi-square with M degrees of freedom, so a value
+  // beyond the gate marks an outlier.
   const Eigen::Matrix<double, M, M> S = H * P_ * H.transpose() + R;
   const Eigen::Matrix<double, M, M> S_inv = S.inverse();
   const double nis = (y.transpose() * S_inv * y).value();
@@ -224,10 +256,12 @@ UpdateStatus ImuEkf::applyUpdate(
   if (!(nis <= gate)) {  // also rejects NaN
     return UpdateStatus::kRejectedNis;
   }
+  // Kalman gain and error-state correction.
   const Eigen::Matrix<double, kStateDim, M> K = P_ * H.transpose() * S_inv;
   const StateVec dx = K * y;
   const StateCov I_KH = StateCov::Identity() - K * H;
-  P_ = I_KH * P_ * I_KH.transpose() + K * R * K.transpose();  // Joseph form
+  // Joseph form keeps P symmetric positive semi-definite despite rounding.
+  P_ = I_KH * P_ * I_KH.transpose() + K * R * K.transpose();
   P_ = 0.5 * (P_ + P_.transpose());
   inject(dx);
   return UpdateStatus::kApplied;
@@ -245,6 +279,8 @@ UpdateStatus ImuEkf::vectorUpdate(
   const auto k = static_cast<std::size_t>(imu);
   ImuCounters & c = counters_[k];
 
+  // Bring the filter to the measurement time first. A sample older than the
+  // filter time cannot be applied (no smoothing/rewind) and is dropped.
   if (!predict(t)) {
     ++c.stale;
     return UpdateStatus::kStale;
@@ -262,6 +298,7 @@ UpdateStatus ImuEkf::vectorUpdate(
     return health;
   }
 
+  // Measurement model: the sensor reads the true quantity plus its own bias.
   Eigen::Matrix<double, 3, kStateDim> H = Eigen::Matrix<double, 3, kStateDim>::Zero();
   Eigen::Vector3d predicted;
   if (gyro) {
@@ -273,6 +310,9 @@ UpdateStatus ImuEkf::vectorUpdate(
     H.block<3, 3>(0, idx::accelBias(imu)).setIdentity();
     predicted = x_.a + x_.ba[k];
   }
+  // Recovery rule: after nis_max_consecutive rejections in a row, accept the
+  // next sample regardless of the gate. Otherwise a real step change (or a
+  // wrong model) would reject every later sample and lock the stream out.
   int & consec = gyro ? gyro_consec_nis_[k] : accel_consec_nis_[k];
   const bool force = cfg_.nis_max_consecutive > 0 && consec >= cfg_.nis_max_consecutive;
   const double gate = force ? std::numeric_limits<double>::infinity() : cfg_.nis_gate_3dof;
@@ -310,14 +350,19 @@ UpdateStatus ImuEkf::updateGravity(double t)
   if (!predict(t)) {
     return UpdateStatus::kStale;
   }
+  // Deviation of the specific-force magnitude from g. A large value means the
+  // rover is accelerating, so the accel direction no longer points along
+  // gravity and cannot be used for roll/pitch.
   const double dyn = x_.a.norm() - cfg_.gravity;
   if (std::abs(dyn) > cfg_.gravity_skip) {
     ++gravity_skipped_;
     return UpdateStatus::kSkipped;
   }
+  // Noise grows smoothly with the deviation (doubles at |dyn| = gravity_adapt).
   const double ratio = dyn / cfg_.gravity_adapt;
   const double var = cfg_.gravity_sigma * cfg_.gravity_sigma * (1.0 + ratio * ratio);
 
+  // Gravity expressed in the body frame for the current attitude estimate.
   const Eigen::Vector3d g_body =
     x_.q.toRotationMatrix().transpose() * Eigen::Vector3d(0.0, 0.0, cfg_.gravity);
   Eigen::Matrix<double, 3, kStateDim> H = Eigen::Matrix<double, 3, kStateDim>::Zero();
@@ -346,19 +391,27 @@ UpdateStatus ImuEkf::updateMagYaw(double t, const Eigen::Vector3d & m_body)
     return UpdateStatus::kStale;
   }
   const Eigen::Matrix3d R = x_.q.toRotationMatrix();
+  // Field in the world frame; its horizontal direction gives the heading.
   const Eigen::Vector3d m_w = R * m_body;
+  // Skip a bad sample or a field pointing (almost) straight up/down, where the
+  // heading is undefined.
   if (!m_w.allFinite() || m_w.head<2>().norm() < 1e-12) {
     return UpdateStatus::kSkipped;
   }
   const double heading = std::atan2(m_w.y(), m_w.x());
+  // The first heading becomes the reference, which keeps yaw relative to the
+  // start heading (no absolute north needed).
   if (!has_mag_ref_) {
     mag_ref_heading_ = heading;
     has_mag_ref_ = true;
     return UpdateStatus::kSkipped;
   }
   double err = mag_ref_heading_ - heading;
+  // Wrap to (-pi, pi] so a crossing of +-pi does not look like a large error.
   err = std::atan2(std::sin(err), std::cos(err));
 
+  // Heading depends on the attitude error only through its component about the
+  // world z axis, written in body axes as R^T e_z.
   Eigen::Matrix<double, 1, kStateDim> H = Eigen::Matrix<double, 1, kStateDim>::Zero();
   H.block<1, 3>(0, idx::kTheta) = (R.transpose() * Eigen::Vector3d::UnitZ()).transpose();
   Eigen::Matrix<double, 1, 1> y;
@@ -370,6 +423,8 @@ UpdateStatus ImuEkf::updateMagYaw(double t, const Eigen::Vector3d & m_body)
 
 Eigen::Matrix3d ImuEkf::orientationCovarianceWorld() const
 {
+  // P stores the attitude error in body axes; REP-145 wants it about fixed
+  // world axes, so rotate it with the current attitude.
   const Eigen::Matrix3d R = x_.q.toRotationMatrix();
   const Eigen::Matrix3d P_theta = P_.block<3, 3>(idx::kTheta, idx::kTheta);
   return R * P_theta * R.transpose();
