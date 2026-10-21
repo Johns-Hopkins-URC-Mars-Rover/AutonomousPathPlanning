@@ -69,6 +69,9 @@ colcon build --symlink-install --packages-up-to ublox_dgnss
 # ICM-20948 interface
 colcon build --symlink-install --packages-select icm20948_imu_interface
 
+# IMU fusion (publishes /imu/data)
+colcon build --symlink-install --packages-select rover_imu_fusion
+
 # ZED wrapper (ZED SDK and CUDA must already be installed)
 colcon build --symlink-install --packages-up-to zed_wrapper \
   --packages-skip zed_debug \
