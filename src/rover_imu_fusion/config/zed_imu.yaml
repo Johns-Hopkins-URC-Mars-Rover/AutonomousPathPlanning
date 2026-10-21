@@ -1,0 +1,11 @@
+# ZED IMU path. See ../README.md.
+zed_imu:
+  ros__parameters:
+    input_topic: /zed/zed_node/imu/data
+    output_topic: /imu/data
+    base_frame: base_link
+
+    # Used only if the ZED message covariance is missing (all zero). Left unset
+    # on purpose so no invented noise values enter the data. Uncomment to set.
+    # angular_velocity_variance: [0.0, 0.0, 0.0]      # (rad/s)^2, x y z
+    # linear_acceleration_variance: [0.0, 0.0, 0.0]   # (m/s^2)^2, x y z
