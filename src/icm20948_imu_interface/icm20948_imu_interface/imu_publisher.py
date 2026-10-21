@@ -5,6 +5,7 @@ import smbus2
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu, MagneticField
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
@@ -44,15 +45,27 @@ class ImuPublisher(Node):
         self.declare_parameter("i2c_bus", 7)
         self.declare_parameter("frame_id", "imu_link")
         self.declare_parameter("pub_rate", 50)
+        # Diagonal variances reported in the Imu message, x y z. All zeros
+        # means "not measured yet": the message then carries zero covariance,
+        # which consumers read as "unknown". Set them from measured noise:
+        # angular_velocity_variance in (rad/s)^2, linear_acceleration_variance
+        # in (m/s^2)^2.
+        self.declare_parameter("angular_velocity_variance", [0.0, 0.0, 0.0])
+        self.declare_parameter("linear_acceleration_variance", [0.0, 0.0, 0.0])
+        self.declare_parameter("diagnostics_topic", "/diagnostics")
 
         self.i2c_address = self.get_parameter("i2c_address").get_parameter_value().integer_value
         self.i2c_bus = self.get_parameter("i2c_bus").get_parameter_value().integer_value
         self.frame_id = self.get_parameter("frame_id").get_parameter_value().string_value
         self.pub_rate = self.get_parameter("pub_rate").get_parameter_value().integer_value
+        self.gyro_cov = self._diagonal_covariance("angular_velocity_variance")
+        self.accel_cov = self._diagonal_covariance("linear_acceleration_variance")
+        diagnostics_topic = self.get_parameter("diagnostics_topic").value
 
-        self.imu_publisher = self.create_publisher(Imu, '/imu/data_raw', 10)
-        self.mag_publisher = self.create_publisher(MagneticField, '/imu/mag', 10)
-        self.diag_publisher = self.create_publisher(DiagnosticArray, '/imu/diagnostics', 10)
+        self.imu_publisher = self.create_publisher(Imu, '/imu/data_raw', qos_profile_sensor_data)
+        self.mag_publisher = self.create_publisher(
+            MagneticField, '/imu/mag', qos_profile_sensor_data)
+        self.diag_publisher = self.create_publisher(DiagnosticArray, diagnostics_topic, 10)
 
         # Construct the custom SMBus wrapper targeting Bus 7 directly
         try:
@@ -76,6 +89,14 @@ class ImuPublisher(Node):
         self.get_logger().info(f"ICM20948 successfully initialized on Bus {self.i2c_bus} via direct SMBus descriptor!")
         
         self.timer = self.create_timer(1.0 / self.pub_rate, self.timer_callback)
+
+    def _diagonal_covariance(self, name):
+        variances = list(self.get_parameter(name).value)
+        if len(variances) != 3 or any(v < 0.0 for v in variances):
+            raise ValueError(f"{name} must be 3 non-negative values, got {variances}")
+        return [variances[0], 0.0, 0.0,
+                0.0, variances[1], 0.0,
+                0.0, 0.0, variances[2]]
 
     def timer_callback(self):
         if not self.IMU.dataReady():
@@ -120,6 +141,9 @@ class ImuPublisher(Node):
         imu_msg.angular_velocity.x = self.IMU.gxRaw * gyro_scale - gyro_bias
         imu_msg.angular_velocity.y = self.IMU.gyRaw * gyro_scale - gyro_bias
         imu_msg.angular_velocity.z = self.IMU.gzRaw * gyro_scale - gyro_bias
+
+        imu_msg.angular_velocity_covariance = self.gyro_cov
+        imu_msg.linear_acceleration_covariance = self.accel_cov
 
         # An orientation covariance matrix with -1 in the first element indicates 
         # that orientation data is not covered by this raw topic.

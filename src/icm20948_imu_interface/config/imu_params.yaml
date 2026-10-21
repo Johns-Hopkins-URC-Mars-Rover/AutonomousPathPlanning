@@ -1,0 +1,14 @@
+# ICM-20948 driver parameters.
+#
+# The variances are zero until the noise has been measured (static recording of
+# /imu/data_raw). Zero means "unknown" to consumers, so no invented numbers
+# are published. Replace them with the measured diagonal variances.
+imu_publisher:
+  ros__parameters:
+    i2c_bus: 7
+    i2c_address: 105            # 0x69
+    frame_id: imu_link
+    pub_rate: 50
+    diagnostics_topic: /diagnostics
+    angular_velocity_variance: [0.0, 0.0, 0.0]      # (rad/s)^2, x y z
+    linear_acceleration_variance: [0.0, 0.0, 0.0]   # (m/s^2)^2, x y z
