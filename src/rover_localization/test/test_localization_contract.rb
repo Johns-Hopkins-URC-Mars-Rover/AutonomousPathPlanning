@@ -50,6 +50,16 @@ class LocalizationContractTest < Minitest::Test
     assert File.file?(File.join(ROOT, 'launch', 'zed_localization.launch.py'))
   end
 
+  def test_real_zed_fake_imu_bench_launch_uses_one_fake_fused_imu_stream
+    cmake = File.read(File.join(ROOT, 'CMakeLists.txt'))
+    launch = File.read(File.join(ROOT, 'launch', 'zed_fake_imu_localization.launch.py'))
+
+    assert_match(/install\(PROGRAMS\s+scripts\/fake_imu_publisher\.py/m, cmake)
+    assert_match(/zed_localization\.launch\.py/, launch)
+    assert_match(/executable='fake_imu_publisher\.py'/, launch)
+    assert_match(/default_value='\/imu\/fused'/, launch)
+  end
+
   def test_private_simulation_header_has_no_duplicate_package_directory
     assert File.file?(File.join(ROOT, 'include', 'simulation_model.hpp'))
     refute Dir.exist?(File.join(ROOT, 'include', 'rover_localization'))
