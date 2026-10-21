@@ -91,4 +91,10 @@ Before motion testing, provide the measured, static `base_link -> zed_camera_lin
 - Local source/configuration checks pass. ROS runtime, camera operation, EKF output, and TF behavior still require an Ubuntu/ROS machine; they have not been claimed as validated from this macOS checkout.
 - Before tuning, verify the real joint IMU's topic, rate, frame, angular-velocity covariance, and whether its orientation has a reliable heading. Check the ZED odometry covariance and tracking status during poor texture or rapid turns.
 
-Wheel and GNSS inputs remain disabled until their publishers and frames are available. SLAM/mapping consumes the local output in a later stage.
+### Why images and depth are a later step
+
+The local EKF expects estimated motion/state measurements, not camera pixels or depth maps. The ZED's tracking system processes camera frames and publishes optical odometry; that odometry is the camera-derived measurement this EKF fuses with the joint IMU's angular velocity. Adding the same images or depth as another EKF input would first require a vision algorithm to turn them into a pose, velocity, or other supported measurement. If that algorithm reused the same frames as ZED tracking, we would also need to account for correlated measurements rather than treating them as independent evidence.
+
+The next vision stage is SLAM/mapping: choose and integrate a ROS-compatible stereo/depth SLAM system, feed it ZED images, depth, camera calibration, and local odometry as appropriate for that system, then validate its map and map-relative pose on the rover. Keep the local EKF's continuous `odom -> base_link` transform; designate exactly one mapping/localization component to provide `map -> odom` so global corrections do not make local motion jump. Which image/depth topics and odometry inputs SLAM needs depends on the selected system and must be checked against the live ZED wrapper.
+
+Wheel and GNSS inputs remain disabled until their publishers and frames are available. They are separate later additions to the localization design.
