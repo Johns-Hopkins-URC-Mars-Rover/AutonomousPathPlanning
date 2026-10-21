@@ -49,4 +49,9 @@ class LocalizationContractTest < Minitest::Test
     assert File.file?(File.join(ROOT, 'launch', 'sim_localization.launch.py'))
     assert File.file?(File.join(ROOT, 'launch', 'zed_localization.launch.py'))
   end
+
+  def test_private_simulation_header_has_no_duplicate_package_directory
+    assert File.file?(File.join(ROOT, 'include', 'simulation_model.hpp'))
+    refute Dir.exist?(File.join(ROOT, 'include', 'rover_localization'))
+  end
 end

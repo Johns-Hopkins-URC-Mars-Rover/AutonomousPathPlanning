@@ -10,3 +10,7 @@ The intended behavior is a configurable local EKF that accepts optical ZED odome
 | `git diff --check` | Not applicable | Completed successfully |
 
 The C++ test covers straight motion, turning, and angle wrapping. The Ruby checks the YAML measurement masks, active sensor topics, ZED optical/raw-IMU settings, package dependencies, and launch-file presence. These are source and configuration checks. Coverage for the ROS node was not measured because ROS 2 and `colcon` are unavailable in this macOS checkout; Docker is installed but its daemon is not running. A ROS 2 Humble machine must still run `colcon build --packages-select rover_localization`, `colcon test --packages-select rover_localization`, and the simulated launch before the whole pipeline can be called runtime-validated.
+
+## Header layout follow-up
+
+The first implementation used `include/rover_localization/simulation_model.hpp`. The package-private header now lives at `include/simulation_model.hpp`, removing the nested same-name directory. The include statements and package README match the new location. Before the move, the added layout test failed and the C++ model test could not compile against the new include path. After the move, the Ruby suite passed with 4 tests and 25 assertions, and the C++ model test compiled and ran successfully. The ROS runtime gate above remains unchanged.

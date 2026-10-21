@@ -15,7 +15,7 @@ src/
     ├── launch/localization.launch.py EKF only; accepts existing sensor topics
     ├── launch/zed_localization.launch.py  ZED wrapper + EKF for a live rover
     ├── launch/sim_localization.launch.py  synthetic sensors + the same EKF
-    ├── include/rover_localization/simulation_model.hpp  testable path model
+    ├── include/simulation_model.hpp  private, testable path model
     ├── src/simulated_sensors.cpp     synthetic odometry, joint IMU, and truth
     └── test/                        configuration and motion-model checks
 ```

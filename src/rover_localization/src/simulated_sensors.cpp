@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "rover_localization/simulation_model.hpp"
+#include "simulation_model.hpp"
 
 namespace rover_localization {
 

@@ -7,8 +7,9 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | Package | Purpose |
 | --- | --- |
 | `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
-| `icm20948-imu-interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
+| `icm20948_imu_interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
 | `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
+| `rover_localization` | Configures a local `robot_localization` EKF for ZED optical odometry and the team's joint IMU stream. Includes a hardware-free synthetic sensor launch; see [`src/rover_localization/README.md`](src/rover_localization/README.md). |
 
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
 
@@ -65,7 +66,7 @@ Or build only the package you need:
 colcon build --symlink-install --packages-up-to ublox_dgnss
 
 # ICM-20948 interface
-colcon build --symlink-install --packages-select icm20948-imu-interface
+colcon build --symlink-install --packages-select icm20948_imu_interface
 
 # ZED wrapper (ZED SDK and CUDA must already be installed)
 colcon build --symlink-install --packages-up-to zed_wrapper \
@@ -102,10 +103,20 @@ USB permissions may require the udev rules documented in [`src/ublox_dgnss/READM
 Connect the sensor over I2C and ensure the current user has permission to access the I2C device, then run:
 
 ```bash
-ros2 run icm20948-imu-interface imu_publisher
+ros2 run icm20948_imu_interface imu_publisher
 ```
 
 The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
+
+### Rover localization without hardware
+
+After building and sourcing `rover_localization`, launch synthetic ZED odometry and joint IMU messages with the local EKF:
+
+```bash
+ros2 launch rover_localization sim_localization.launch.py
+```
+
+The EKF publishes `/odometry/local` and `odom -> base_link`. See the [package README](src/rover_localization/README.md) for the file layout, input/output contract, live ZED launch, and validation limits.
 
 ### ZED camera
 
