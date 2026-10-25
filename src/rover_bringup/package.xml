@@ -13,6 +13,7 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>icm20948_imu_interface</exec_depend>
   <exec_depend>zed_wrapper</exec_depend>
+  <exec_depend>rover_imu_fusion</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

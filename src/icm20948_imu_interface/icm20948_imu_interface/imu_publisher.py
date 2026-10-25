@@ -45,21 +45,21 @@ class ImuPublisher(Node):
         self.declare_parameter("i2c_bus", 7)
         self.declare_parameter("frame_id", "imu_link")
         self.declare_parameter("pub_rate", 50)
-        # Diagonal variances reported in the Imu message, x y z. All zeros
-        # means "not measured yet": the message then carries zero covariance,
-        # which consumers read as "unknown". Set them from measured noise:
-        # angular_velocity_variance in (rad/s)^2, linear_acceleration_variance
-        # in (m/s^2)^2.
-        self.declare_parameter("angular_velocity_variance", [0.0, 0.0, 0.0])
-        self.declare_parameter("linear_acceleration_variance", [0.0, 0.0, 0.0])
+        # Row-major 3x3 covariances reported in the Imu message, from a
+        # stationary recording (scripts/estimate_imu_covariance.py).
+        # angular_velocity_covariance in (rad/s)^2, linear_acceleration_covariance
+        # in (m/s^2)^2. All zeros means "not measured": consumers read the
+        # message as having no covariance.
+        self.declare_parameter("angular_velocity_covariance", [0.0] * 9)
+        self.declare_parameter("linear_acceleration_covariance", [0.0] * 9)
         self.declare_parameter("diagnostics_topic", "/diagnostics")
 
         self.i2c_address = self.get_parameter("i2c_address").get_parameter_value().integer_value
         self.i2c_bus = self.get_parameter("i2c_bus").get_parameter_value().integer_value
         self.frame_id = self.get_parameter("frame_id").get_parameter_value().string_value
         self.pub_rate = self.get_parameter("pub_rate").get_parameter_value().integer_value
-        self.gyro_cov = self._diagonal_covariance("angular_velocity_variance")
-        self.accel_cov = self._diagonal_covariance("linear_acceleration_variance")
+        self.gyro_cov = self._covariance("angular_velocity_covariance")
+        self.accel_cov = self._covariance("linear_acceleration_covariance")
         diagnostics_topic = self.get_parameter("diagnostics_topic").value
 
         self.imu_publisher = self.create_publisher(Imu, '/imu/data_raw', qos_profile_sensor_data)
@@ -90,13 +90,13 @@ class ImuPublisher(Node):
         
         self.timer = self.create_timer(1.0 / self.pub_rate, self.timer_callback)
 
-    def _diagonal_covariance(self, name):
-        variances = list(self.get_parameter(name).value)
-        if len(variances) != 3 or any(v < 0.0 for v in variances):
-            raise ValueError(f"{name} must be 3 non-negative values, got {variances}")
-        return [variances[0], 0.0, 0.0,
-                0.0, variances[1], 0.0,
-                0.0, 0.0, variances[2]]
+    def _covariance(self, name):
+        covariance = [float(v) for v in self.get_parameter(name).value]
+        if len(covariance) != 9:
+            raise ValueError(f"{name} must have 9 values (row-major 3x3), got {len(covariance)}")
+        if any(covariance[i] < 0.0 for i in (0, 4, 8)):
+            raise ValueError(f"{name} has a negative variance on the diagonal")
+        return covariance
 
     def timer_callback(self):
         if not self.IMU.dataReady():
@@ -152,26 +152,7 @@ class ImuPublisher(Node):
                                            0.0, 0.0, 0.0, 
                                            0.0, 0.0, 0.0]
 
-        imu_msg.angular_velocity_covariance = [0.00046247786575553924,
-                                              -0.0000883421234433383,
-                                              0.00013422339049407029,
-                                              -0.0000883421234433383,
-                                              0.0005159220200298525,
-                                              -0.00012246753116132067,
-                                              0.00013422339049407029,
-                                              -0.00012246753116132067,
-                                               0.0007581432302255761,]
 
-        imu_msg.linear_acceleration_covariance = [
-                                                    0.004684997687658727,
-                                                    0.0001290276302378583,
-                                                    -0.00006368290801713433,
-                                                    0.0001290276302378583,
-                                                    0.00445574940434253,
-                                                    -0.0000934743781289133,
-                                                    -0.00006368290801713433,
-                                                    -0.0000934743781289133,
-                                                    0.003982914504275855,]
         mag_msg = MagneticField()
         mag_msg.header.stamp = time_stamp
         mag_msg.header.frame_id = self.frame_id

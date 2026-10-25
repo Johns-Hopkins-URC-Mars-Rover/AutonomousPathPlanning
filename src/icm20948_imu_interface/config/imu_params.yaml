@@ -1,8 +1,9 @@
 # ICM-20948 driver parameters.
 #
-# The variances are zero until the noise has been measured (static recording of
-# /imu/data_raw). Zero means "unknown" to consumers, so no invented numbers
-# are published. Replace them with the measured diagonal variances.
+# Covariances are row-major 3x3, measured from 5000 stationary samples with
+# scripts/estimate_imu_covariance.py (results/imu_stationary.csv). Re-measure
+# if the mounting, range settings or sample rate change. All zeros means
+# "unknown" to consumers, so no invented numbers are published.
 imu_publisher:
   ros__parameters:
     i2c_bus: 7
@@ -10,5 +11,11 @@ imu_publisher:
     frame_id: imu_link
     pub_rate: 50
     diagnostics_topic: /diagnostics
-    angular_velocity_variance: [0.0, 0.0, 0.0]      # (rad/s)^2, x y z
-    linear_acceleration_variance: [0.0, 0.0, 0.0]   # (m/s^2)^2, x y z
+    angular_velocity_covariance: [      # (rad/s)^2
+      0.00046247786575553924, -0.0000883421234433383, 0.00013422339049407029,
+      -0.0000883421234433383, 0.0005159220200298525, -0.00012246753116132067,
+      0.00013422339049407029, -0.00012246753116132067, 0.0007581432302255761]
+    linear_acceleration_covariance: [   # (m/s^2)^2
+      0.004684997687658727, 0.0001290276302378583, -0.00006368290801713433,
+      0.0001290276302378583, 0.00445574940434253, -0.0000934743781289133,
+      -0.00006368290801713433, -0.0000934743781289133, 0.003982914504275855]
