@@ -41,7 +41,7 @@ future GNSS fix ──> coordinate conversion + global localization
 | ------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ZED driver and optical tracking | Stereo camera frames                                              | `nav_msgs/Odometry` in a local odometry frame; image, depth, and camera calibration topics remain available | Existing ZED ROS 2 wrapper. Enable positional tracking and disable its internal IMU fusion in rover launch/config; do not edit the wrapper's source. Actual topic prefix depends on the camera configuration. |
 | Two-IMU fusion                  | ZED IMU and second IMU                                            | One timestamped `sensor_msgs/Imu` topic with a frame ID and meaningful covariance                           | Separate team. This package treats it as an input contract. Orientation is optional until its heading reference and quality are known.                                                                        |
-| Local state estimation          | ZED optical odometry and joint IMU                                | `nav_msgs/Odometry` on `/odometry/local`, plus one `odom -> base_link` TF   | This package launches `robot_localization`'s EKF. The initial config fuses camera pose and IMU angular velocity; IMU orientation and acceleration await validation.                                                                                        |
+| Local state estimation          | ZED optical odometry and joint IMU                                | `nav_msgs/Odometry` on `/odometry/local`, plus one `odom -> base_link` TF                               | This package launches `robot_localization`'s EKF. The initial config fuses camera pose and IMU angular velocity; IMU orientation and acceleration await validation.                                         |
 | SLAM/mapping (later)            | ZED images, depth, camera calibration, and local odometry         | Map and map-relative rover pose                                                                               | A separate mapping stage; raw images and depth do not go directly into this EKF. Exactly one system must publish `map -> odom`.                                                                             |
 | Wheel odometry (later)          | Encoder measurements                                              | `nav_msgs/Odometry` or a twist measurement                                                                  | Add as another local EKF input when a real publisher exists.                                                                                                                                                  |
 | GNSS (later)                    | `sensor_msgs/NavSatFix`, local odometry, and a suitable heading | Geographic/global position estimate                                                                           | Use `navsat_transform_node` and a global localization design; keep the local `odom -> base_link` estimate continuous.                                                                                     |
@@ -60,13 +60,13 @@ are in [TESTING.md](TESTING.md). The fake joint-IMU fixture lives at
 
 There are **two current EKF inputs**, not three:
 
-| Name | Meaning | Role here |
-| --- | --- | --- |
-| ZED | The camera and its driver | Processes images into optical odometry; also exposes images/depth and raw IMU topics. |
-| Optical/visual odometry | Motion estimated from successive camera frames | The ZED's `/zed/zed_node/odom` input. The EKF currently uses its position and orientation. |
-| Joint IMU | One upstream stream combining the two physical IMUs | `/imu/fused` input. The EKF currently uses only angular velocity in rad/s. |
-| Local fused odometry | The EKF's combined motion estimate | `/odometry/local` output, plus `odom -> base_link` TF. |
-| Wheel odometry | Motion estimated from wheel encoders | A possible future input; currently not configured. |
+| Name                    | Meaning                                             | Role here                                                                                    |
+| ----------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| ZED                     | The camera and its driver                           | Processes images into optical odometry; also exposes images/depth and raw IMU topics.        |
+| Optical/visual odometry | Motion estimated from successive camera frames      | The ZED's `/zed/zed_node/odom` input. The EKF currently uses its position and orientation. |
+| Joint IMU               | One upstream stream combining the two physical IMUs | `/imu/fused` input. The EKF currently uses only angular velocity in rad/s.                 |
+| Local fused odometry    | The EKF's combined motion estimate                  | `/odometry/local` output, plus `odom -> base_link` TF.                                   |
+| Wheel odometry          | Motion estimated from wheel encoders                | A possible future input; currently not configured.                                           |
 
 So "optical" tells you **how odometry was calculated**. You do not need to
 calculate and supply another odometry stream alongside the ZED optical one.
