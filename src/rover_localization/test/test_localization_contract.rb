@@ -71,4 +71,26 @@ class LocalizationContractTest < Minitest::Test
     assert_equal 1, source.scan(/^\s*class SimulatedSensors\b/).size
     assert_match(/timer_ = create_wall_timer\(period, std::bind\(&SimulatedSensors::update, this\)\)/, source)
   end
+
+  def test_smoke_script_bounds_ros_launch_shutdown
+    script = File.read(File.join(ROOT, 'scripts', 'smoke_test.sh'))
+
+    assert_match(/shutdown_deadline=/, script)
+    assert_match(/kill -INT "\$launch_pid"/, script)
+    assert_match(/kill -TERM "\$launch_pid"/, script)
+    assert_match(/kill -KILL "\$launch_pid"/, script)
+  end
+
+  def test_synthetic_run_explains_its_data_contract_in_terminal_logs
+    script = File.read(File.join(ROOT, 'scripts', 'smoke_test.sh'))
+    source = File.read(File.join(ROOT, 'src', 'simulated_sensors.cpp'))
+
+    assert_match(/\[smoke 1\/4\] Building rover_localization/, script)
+    assert_match(/\[smoke 2\/4\] Starting synthetic data and EKF/, script)
+    assert_match(/\[smoke 3\/4\] Probing EKF output/, script)
+    assert_match(/\[smoke 4\/4\] PASS/, script)
+    assert_match(/Fake ZED optical odometry/, source)
+    assert_match(/Fake joint IMU gyro/, source)
+    assert_match(/Comparison-only ground truth/, source)
+  end
 end

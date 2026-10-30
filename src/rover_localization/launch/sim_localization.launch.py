@@ -1,4 +1,9 @@
-"""Run the local EKF against synthetic odometry and joint IMU messages."""
+"""Run the production local EKF against generated fake ZED and joint-IMU data.
+
+``simulated_sensors`` owns both fake inputs, using the same default topic names
+as the live rover. It also publishes comparison-only ground truth on
+``/simulation/ground_truth``; the EKF never subscribes to that topic.
+"""
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
@@ -24,6 +29,8 @@ def generate_launch_description():
             }.items(),
         ),
         Node(
+            # This node generates the fake ZED Odometry and fake joint Imu
+            # messages; it is not a second EKF and does not use camera hardware.
             package='rover_localization',
             executable='simulated_sensors',
             name='simulated_sensors',

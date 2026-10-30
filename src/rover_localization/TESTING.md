@@ -32,6 +32,23 @@ IMU. The simulator follows a known planar path and publishes:
 3. Ground truth at `/simulation/ground_truth`, used only for comparison and
    never fused into the EKF.
 
+### Where the fake data lives
+
+The fake data is generated live by
+`src/rover_localization/src/simulated_sensors.cpp`; there is no bag file or
+static sensor dataset. At 30 Hz, the node advances a known curved rover path
+(default `0.5 m/s` forward and `0.2 rad/s` yaw rate), publishes the clean path
+as ground truth, then adds deterministic seeded noise to make the fake ZED pose
+and fake joint-IMU gyro measurements. The launch file
+`launch/sim_localization.launch.py` connects those generated messages to the
+same `localization.launch.py` EKF used by the live system.
+
+The terminal output labels four stages: build, start fake data plus EKF, probe
+the output against the clean path, and PASS. It also lists every topic and
+explains that `/simulation/ground_truth` is comparison-only. A successful run
+therefore proves message types, topic wiring, basic filter motion, approximate
+agreement, and `odom -> base_link`; it does not prove physical sensor quality.
+
 Run the complete check from the repository root:
 
 ```bash

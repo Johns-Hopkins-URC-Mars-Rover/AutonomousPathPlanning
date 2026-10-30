@@ -14,6 +14,10 @@
 
 namespace rover_localization {
 
+// This node generates all fake sensor data for the hardware-free EKF test.
+// There is no prerecorded dataset: every timer tick advances a known curved
+// rover path, publishes that clean path as comparison-only ground truth, then
+// publishes noisy versions on the same two topics used by real hardware.
 class SimulatedSensors : public rclcpp::Node {
  public:
   SimulatedSensors()
@@ -44,9 +48,15 @@ class SimulatedSensors : public rclcpp::Node {
       throw std::invalid_argument("Invalid speed, rate, noise, or dropout duration");
     }
 
+    // Fake ZED optical odometry: an Odometry pose measurement on the exact
+    // topic the ZED wrapper is expected to publish in the live system.
     odom_publisher_ = create_publisher<nav_msgs::msg::Odometry>(odom_topic, 10);
+    // Fake joint IMU gyro: an Imu message on the exact topic expected from the
+    // future upstream two-IMU fusion component.
     imu_publisher_ = create_publisher<sensor_msgs::msg::Imu>(
         imu_topic, rclcpp::SensorDataQoS());
+    // Comparison-only ground truth: the clean simulated pose. The EKF never
+    // subscribes to this topic; probe_simulation.py uses it after the fact.
     truth_publisher_ = create_publisher<nav_msgs::msg::Odometry>(
         "/simulation/ground_truth", 10);
 
@@ -58,8 +68,14 @@ class SimulatedSensors : public rclcpp::Node {
       throw std::invalid_argument("publish_rate is too high");
     }
     timer_ = create_wall_timer(period, std::bind(&SimulatedSensors::update, this));
-    RCLCPP_INFO(get_logger(), "Synthetic optical odom: %s; joint IMU: %s",
-                odom_topic.c_str(), imu_topic.c_str());
+    RCLCPP_INFO(
+        get_logger(),
+        "Synthetic data started at %.1f Hz.\n"
+        "  Fake ZED optical odometry: %s (noisy pose in odom -> base_link)\n"
+        "  Fake joint IMU gyro: %s (noisy angular velocity in base_link)\n"
+        "  Comparison-only ground truth: /simulation/ground_truth (never fused)\n"
+        "  Motion model: %.2f m/s forward, %.2f rad/s turn; seeded noise is repeatable.",
+        publish_rate_, odom_topic.c_str(), imu_topic.c_str(), linear_speed_, angular_speed_);
   }
 
  private:
@@ -78,6 +94,8 @@ class SimulatedSensors : public rclcpp::Node {
     if (dt <= 0.0) {
       return;
     }
+    // This is the hidden ideal rover state. It advances before measurements are
+    // made so truth and both fake sensor messages share the same ROS timestamp.
     pose_ = advance_pose(pose_, linear_speed_, angular_speed_, dt);
     const double elapsed = (stamp - start_time_).seconds();
     publish_truth(stamp);
@@ -90,6 +108,8 @@ class SimulatedSensors : public rclcpp::Node {
   }
 
   void publish_truth(const rclcpp::Time &stamp) {
+    // Publish the uncorrupted path only for the test probe. Do not add this
+    // topic to ekf_local.yaml: doing so would let the filter see the answer.
     nav_msgs::msg::Odometry truth;
     truth.header.stamp = stamp;
     truth.header.frame_id = "odom";
@@ -104,6 +124,8 @@ class SimulatedSensors : public rclcpp::Node {
   }
 
   void publish_optical_odom(const rclcpp::Time &stamp) {
+    // Model the ZED wrapper's derived tracking result, not raw camera images.
+    // Position and yaw are perturbed; covariance advertises that uncertainty.
     nav_msgs::msg::Odometry odom;
     odom.header.stamp = stamp;
     odom.header.frame_id = "odom";
@@ -124,6 +146,9 @@ class SimulatedSensors : public rclcpp::Node {
   }
 
   void publish_joint_imu(const rclcpp::Time &stamp) {
+    // Model the fused gyro output expected from another component. Orientation
+    // and acceleration are deliberately marked unavailable because this EKF
+    // configuration does not yet fuse them.
     sensor_msgs::msg::Imu imu;
     imu.header.stamp = stamp;
     imu.header.frame_id = "base_link";
