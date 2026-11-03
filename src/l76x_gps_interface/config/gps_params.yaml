@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    baudrate: 9600
+    frame_id: gps_link
