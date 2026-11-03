@@ -10,11 +10,25 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    """Include the IMU and ZED launch files."""
-    imu_launch = os.path.join(get_package_share_directory('icm20948_imu_interface'),'launch','imu_launch.py',)
-    zed_launch = os.path.join(get_package_share_directory('zed_wrapper'),'launch','zed_camera.launch.py',)
+    """Launch the rover's sensors and IMU fusion nodes."""
+    imu_launch = os.path.join(
+        get_package_share_directory('icm20948_imu_interface'),
+        'launch',
+        'imu_launch.py',
+    )
+    gps_launch = os.path.join(
+        get_package_share_directory('l76x_gps_interface'),
+        'launch',
+        'gps_launch.py',
+    )
+    zed_launch = os.path.join(
+        get_package_share_directory('zed_wrapper'),
+        'launch',
+        'zed_camera.launch.py',
+    )
 
     enable_imu = LaunchConfiguration('enable_imu')
+    enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
     enable_fusion = LaunchConfiguration('enable_fusion')
     camera_model = LaunchConfiguration('camera_model')
@@ -25,6 +39,11 @@ def generate_launch_description():
             'enable_imu',
             default_value='true',
             description='Launch the ICM-20948 driver.',
+        ),
+        DeclareLaunchArgument(
+            'enable_gps',
+            default_value='true',
+            description='Launch the L76X GPS driver.',
         ),
         DeclareLaunchArgument(
             'enable_zed',
@@ -50,6 +69,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(imu_launch),
             condition=IfCondition(enable_imu),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(gps_launch),
+            condition=IfCondition(enable_gps),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(zed_launch),
