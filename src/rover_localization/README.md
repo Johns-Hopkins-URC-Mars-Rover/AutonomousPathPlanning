@@ -1,5 +1,12 @@
 # Rover localization
 
+For the new **ZED + ICM raw IMUs, ZED + wheel odometry, and optional GPS dual
+EKF**, use [robot_localization/DUAL_EKF.md](../robot_localization/DUAL_EKF.md)
+and `ros2 launch robot_localization dual_ekf.launch.py`. It includes the
+Humble source build, bringup commands, heading requirements, provisional mounts,
+and an integration test. The remainder of this README describes the earlier
+joint-IMU workflow; do not run both estimators together.
+
 This package configures `robot_localization`; it does not implement a new motion
 estimator. The [testing workflow](TESTING.md) contains build, Jetson/ROS-machine
 commands, recording, measured-motion checks and GPS prerequisites.

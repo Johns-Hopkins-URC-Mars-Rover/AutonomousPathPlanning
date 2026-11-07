@@ -70,9 +70,15 @@ RosRobotLocalizationListener::RosRobotLocalizationListener(
   rclcpp::SubscriptionOptions options)
 : qos1_(1),
   qos10_(10),
+#ifdef ROBOT_LOCALIZATION_LEGACY_MESSAGE_FILTERS
+  odom_sub_(node, "odom/filtered", qos1_.get_rmw_qos_profile(), options),
+  accel_sub_(node, "acceleration/filtered", qos1_.get_rmw_qos_profile(), options),
+  sync_(odom_sub_, accel_sub_, 10u),
+#else
   odom_sub_(node, "odom/filtered", qos1_, options),
   accel_sub_(node, "acceleration/filtered", qos1_, options),
   sync_(10u, odom_sub_, accel_sub_),
+#endif
   node_clock_(node->get_node_clock_interface()->get_clock()),
   node_logger_(node->get_node_logging_interface()),
   base_frame_id_(""),

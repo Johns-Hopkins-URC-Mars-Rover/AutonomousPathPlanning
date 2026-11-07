@@ -16,7 +16,7 @@
   <depend>gazebo_ros2_control</depend>
   <depend>controller_manager</depend>
 
-  <exec_depend>rover_localization</exec_depend>
+  <exec_depend>robot_localization</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>launch</exec_depend>

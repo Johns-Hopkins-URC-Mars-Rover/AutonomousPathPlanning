@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   rclcpp::NodeOptions options;
-  options.clock_type(RCL_ROS_TIME);
+  // The default ROS clock also supports Humble's older NodeOptions API.
   auto navsat_transform_node = std::make_shared<robot_localization::NavSatTransform>(options);
 
   rclcpp::spin(navsat_transform_node->get_node_base_interface());

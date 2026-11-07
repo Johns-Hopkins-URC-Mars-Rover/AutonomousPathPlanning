@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv, init_options);
   rclcpp::NodeOptions options;
   options.arguments({"ukf_filter_node"});
-  options.clock_type(RCL_ROS_TIME);
+  // The default ROS clock also supports Humble's older NodeOptions API.
   std::shared_ptr<robot_localization::RosUkf> filter =
     std::make_shared<robot_localization::RosUkf>(options);
   double alpha = filter->declare_parameter("alpha", 0.001);

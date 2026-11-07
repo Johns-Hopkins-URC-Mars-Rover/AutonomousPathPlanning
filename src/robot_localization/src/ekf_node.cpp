@@ -45,7 +45,8 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv, init_options);
   rclcpp::NodeOptions options;
   options.arguments({"ekf_filter_node"});
-  options.clock_type(RCL_ROS_TIME);
+  // Node clocks default to ROS time, including on Humble where NodeOptions
+  // does not expose clock_type(). use_sim_time still selects /clock.
   std::shared_ptr<robot_localization::RosEkf> filter =
     std::make_shared<robot_localization::RosEkf>(options);
   RCLCPP_INFO(

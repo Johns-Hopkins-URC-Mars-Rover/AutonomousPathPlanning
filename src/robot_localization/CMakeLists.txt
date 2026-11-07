@@ -38,6 +38,11 @@ find_package(tf2_ros REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+# Ubuntu 22.04 / ROS Humble exports the unnamespaced yaml-cpp target.
+if(NOT TARGET yaml-cpp::yaml-cpp)
+  add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+endif()
+
 # Geographiclib installs FindGeographicLib.cmake to this non-standard location
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/share/cmake/geographiclib/")
 find_package(GeographicLib REQUIRED)
@@ -107,6 +112,9 @@ target_link_libraries(${library_name} PRIVATE
 target_compile_definitions(${library_name} PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
 )
+if(message_filters_VERSION VERSION_LESS "5.0.0")
+  target_compile_definitions(${library_name} PRIVATE ROBOT_LOCALIZATION_LEGACY_MESSAGE_FILTERS)
+endif()
 if(WIN32 AND MSVC)
   set_target_properties(${library_name} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
@@ -148,6 +156,30 @@ target_link_libraries(robot_localization_listener_node PRIVATE
   ${library_name}
   rclcpp::rclcpp
 )
+
+# The rover's runtime and regression tests are contained in this package.
+# They can run without compiling the upstream C++ test suite on Humble.
+option(BUILD_ROVER_TESTING "Build rover sensor/dual-EKF regression tests" ${BUILD_TESTING})
+if(BUILD_ROVER_TESTING)
+  enable_testing()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/dual_ekf_launch_test.py TARGET rover_dual_ekf_e2e TIMEOUT 70)
+  add_launch_test(test/dual_ekf_launch_test.py TARGET rover_missing_wheel_e2e TIMEOUT 70
+    ENV ROVER_TEST_PROFILE=missing_wheel)
+  add_launch_test(test/dual_ekf_launch_test.py TARGET rover_zed_only_e2e TIMEOUT 70
+    ENV ROVER_TEST_PROFILE=zed_only)
+  add_launch_test(test/dual_ekf_launch_test.py TARGET rover_dropouts_e2e TIMEOUT 90
+    ENV ROVER_TEST_PROFILE=dropouts)
+  set_tests_properties(rover_dual_ekf_e2e rover_missing_wheel_e2e
+    rover_zed_only_e2e rover_dropouts_e2e PROPERTIES RUN_SERIAL TRUE)
+  add_test(NAME rover_sensor_contracts
+    COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
+      -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_rover_*.py")
+  add_test(NAME rover_sensor_math
+    COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
+      -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_sensor_contracts.py")
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -343,6 +375,15 @@ install(
   robot_localization_listener_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
+
+install(PROGRAMS
+  scripts/sensor_inputs.py
+  scripts/startup_heading.py
+  scripts/zed_imu_tf.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(FILES scripts/sensor_contracts.py DESTINATION lib/${PROJECT_NAME})
+install(FILES DUAL_EKF.md DESTINATION share/${PROJECT_NAME})
 
 install(TARGETS ${library_name}
   EXPORT ${PROJECT_NAME}
