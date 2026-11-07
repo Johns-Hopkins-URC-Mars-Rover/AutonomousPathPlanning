@@ -72,7 +72,7 @@ public:
     return (imu < 0 || imu > 1) ? -1.0 : last_stamp_[static_cast<std::size_t>(imu)];
   }
 
-  // True if the IMU has produced no sample within imu_timeout of now.
+  // True if gyro or accel has no accepted sample within imu_timeout of now.
   bool timedOut(int imu, double now) const;
   std::size_t rejectedBeforeInit() const {return init_.restarts();}
   std::size_t droppedFromBuffer() const {return buffer_.dropped();}
@@ -83,6 +83,9 @@ private:
   ImuInitializer init_;
   std::optional<ImuEkf> ekf_;
   std::array<double, 2> last_stamp_{-1.0, -1.0};
+  std::array<double, 2> last_gyro_applied_{-1., -1.};
+  std::array<double, 2> last_accel_applied_{-1., -1.};
+  double last_process_time_{-1.};
   double last_gravity_{-1e18};
 
   void handle(const Measurement & m);

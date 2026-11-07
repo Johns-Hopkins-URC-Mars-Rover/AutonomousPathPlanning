@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "ros_requested": false,
+  "results": [
+    {
+      "check": "Python/XML/JSON syntax",
+      "exit_code": 0
+    },
+    {
+      "check": "Python tests",
+      "tests": 40,
+      "exit_code": 0,
+      "coverage": {
+        "src/rover_localization/scripts/sensor_contracts.py": {
+          "covered": 74,
+          "statements": 78,
+          "percent": 94.9
+        },
+        "src/rover_localization/scripts/sensor_inputs.py": {
+          "covered": 138,
+          "statements": 141,
+          "percent": 97.9
+        },
+        "src/rover_localization/scripts/zed_imu_tf.py": {
+          "covered": 44,
+          "statements": 47,
+          "percent": 93.6
+        },
+        "src/l76x_gps_interface/l76x_gps_interface/nmea.py": {
+          "covered": 61,
+          "statements": 61,
+          "percent": 100.0
+        }
+      }
+    },
+    {
+      "check": "Ruby configuration contracts",
+      "exit_code": 0,
+      "seconds": 0.128
+    },
+    {
+      "check": "YAML syntax",
+      "exit_code": 0,
+      "seconds": 0.076
+    },
+    {
+      "check": "smoke shell syntax",
+      "exit_code": 0,
+      "seconds": 0.006
+    },
+    {
+      "check": "compile imu_ekf",
+      "exit_code": 0,
+      "seconds": 3.126
+    },
+    {
+      "check": "compile imu_fusion",
+      "exit_code": 0,
+      "seconds": 0.719
+    },
+    {
+      "check": "compile imu_initializer",
+      "exit_code": 0,
+      "seconds": 2.33
+    },
+    {
+      "check": "compile imu_transform",
+      "exit_code": 0,
+      "seconds": 0.825
+    },
+    {
+      "check": "build imu_input_safety",
+      "exit_code": 0,
+      "seconds": 0.755
+    },
+    {
+      "check": "imu_input_safety",
+      "exit_code": 0,
+      "seconds": 3.022
+    },
+    {
+      "check": "build imu_csv_replay",
+      "exit_code": 0,
+      "seconds": 1.047
+    },
+    {
+      "check": "imu_csv_replay",
+      "exit_code": 0,
+      "seconds": 0.772
+    },
+    {
+      "check": "build Release motion checks",
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    {
+      "check": "Release motion model",
+      "exit_code": 0,
+      "seconds": 1.301
+    }
+  ]
+}

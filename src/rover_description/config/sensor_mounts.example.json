@@ -1,0 +1,7 @@
+{
+  "verified": false,
+  "transforms": [
+    {"parent": "base_link", "child": "zed_camera_link", "xyz": [null, null, null], "rpy": [null, null, null]},
+    {"parent": "base_link", "child": "gps_link", "xyz": [null, null, null], "rpy": [null, null, null]}
+  ]
+}

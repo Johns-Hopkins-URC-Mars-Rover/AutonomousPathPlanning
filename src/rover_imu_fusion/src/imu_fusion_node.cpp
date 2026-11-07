@@ -126,7 +126,8 @@ private:
     if (v.empty()) {
       return std::nullopt;
     }
-    if (v.size() != 3 || v[0] <= 0.0 || v[1] <= 0.0 || v[2] <= 0.0) {
+    if (v.size() != 3 || !std::isfinite(v[0]) || !std::isfinite(v[1]) || !std::isfinite(v[2]) ||
+      v[0] <= 0.0 || v[1] <= 0.0 || v[2] <= 0.0) {
       throw std::invalid_argument(name + " must be empty or 3 positive values");
     }
     return Eigen::Vector3d(v[0], v[1], v[2]);
@@ -273,13 +274,20 @@ private:
 
   double stampOrNow(const builtin_interfaces::msg::Time & t)
   {
-    // Use the message stamp; fall back to receive time if the driver left it 0.
+    // Invalid source stamps are rejected; receive time must not hide a clock error.
     const double s = toSeconds(t);
-    return s > 0.0 ? s : now().seconds();
+    return s;
   }
 
   void onImu(int index, const sensor_msgs::msg::Imu & msg)
   {
+    const double source_stamp = toSeconds(msg.header.stamp);
+    const double age = now().seconds() - source_stamp;
+    if (source_stamp <= 0. || age > 0.5 || age < -0.05) {
+      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
+        "IMU timestamp invalid/stale/future; synchronize source clocks before fusion");
+      return;
+    }
     Input & in = inputs_[static_cast<std::size_t>(index)];
     // Rotate into base_frame; returns nothing until TF and covariances are
     // available.
@@ -339,7 +347,7 @@ private:
     if (!out) {
       RCLCPP_INFO_THROTTLE(
         get_logger(), *get_clock(), 5000,
-        "Waiting for a stationary start to initialize (keep the rover still)");
+        "No usable IMU output: keep still for initialization; check /diagnostics for stale/rejected inputs");
       return;
     }
 

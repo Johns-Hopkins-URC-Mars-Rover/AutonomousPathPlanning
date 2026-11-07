@@ -19,6 +19,7 @@ import argparse
 import csv
 import datetime
 import json
+import math
 import os
 import signal
 import subprocess
@@ -28,7 +29,12 @@ from collections import Counter
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
-BAG_TOPICS = ['/imu/data_raw', '/zed/zed_node/imu/data', '/imu/data', '/tf', '/tf_static']
+BAG_TOPICS = ['/imu/data_raw', '/zed/zed_node/imu/data', '/imu/data',
+              '/zed/zed_node/odom', '/zed/zed_node/pose/status', '/zed/zed_node/odom/status',
+              '/zed/zed_node/left_cam_imu_transform', '/localization/zed_odom_base', '/localization/imu',
+              '/odometry/local', '/odometry/global', '/odometry/gps', '/gps/fix',
+              '/gps/validated', '/imu/heading', '/localization/heading',
+              '/diagnostics', '/tf', '/tf_static']
 DEFAULT_DURATION = {'stationary': 90.0, 'moving': 90.0}
 STILL_START = 5.0   # s the rover must be still at the start of every run
 STOP_TIMEOUT = 30.0  # s to wait for a process to exit after SIGINT
@@ -87,13 +93,14 @@ def check_bag(bag_dir):
     return ok
 
 
-def check_csv(path):
+def check_csv(path, require_icm=True, require_fused=True):
     counts = Counter()
     with open(path, newline='') as f:
         for row in csv.DictReader(f):
             counts[row['source']] += 1
     print('CSV rows: ' + ', '.join(f'{s}={counts.get(s, 0)}' for s in ('icm', 'zed', 'fused')))
-    return all(counts.get(s, 0) > 0 for s in ('icm', 'zed', 'fused')), counts
+    required = ['zed'] + (['icm'] if require_icm else []) + (['fused'] if require_fused else [])
+    return all(counts.get(s, 0) > 0 for s in required), counts
 
 
 def main():
@@ -108,7 +115,11 @@ def main():
     parser.add_argument('--notes', default='', help='what you plan to do (saved in run_info.txt)')
     parser.add_argument('--no-bag', action='store_true', help='CSV only, skip the bag')
     parser.add_argument('--skip', type=float, default=5.0, help='seconds dropped by the analysis')
+    parser.add_argument('--no-icm', action='store_true', help='ZED-only input; do not require ICM rows')
+    parser.add_argument('--no-fused', action='store_true', help='Direct ZED IMU test; do not require IMU-filter output')
     args = parser.parse_args()
+    if args.duration is not None and (not math.isfinite(args.duration) or args.duration <= 0):
+        parser.error('--duration must be finite and positive')
 
     duration = args.duration or DEFAULT_DURATION[args.mode]
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -124,7 +135,7 @@ def main():
     log = open(run_dir / 'imu_compare.log', 'w')
     procs = {'imu_compare': start(
         [sys.executable, str(SCRIPTS / 'imu_compare.py'), '--output', str(csv_path),
-         '--period', '30'], log)}
+         '--period', '30', '--base-frame', 'base_link'], log)}
     if not args.no_bag:
         procs['ros2 bag'] = start(
             ['ros2', 'bag', 'record', '-o', str(bag_dir), *BAG_TOPICS], log)
@@ -151,10 +162,10 @@ def main():
     ok = True
     if not args.no_bag:
         ok &= check_bag(bag_dir)
-    csv_ok, counts = check_csv(csv_path)
+    csv_ok, counts = check_csv(csv_path, require_icm=not args.no_icm, require_fused=not args.no_fused)
     ok &= csv_ok
     if not csv_ok:
-        missing = [s for s in ('icm', 'zed', 'fused') if not counts.get(s)]
+        missing = [s for s in ['zed'] + ([] if args.no_icm else ['icm']) + ([] if args.no_fused else ['fused']) if not counts.get(s)]
         print(f'No data for: {", ".join(missing)}. Is the rover stack running?')
 
     if args.mode == 'stationary' and counts.get('fused'):

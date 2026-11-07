@@ -1,3 +1,9 @@
+> Current localization/GPS integration and two-machine commands are in
+> [rover_localization/TESTING.md](../rover_localization/TESTING.md).
+> CSV replay now requires base_link measurements and full covariance matrices;
+> use the current logger with `--base-frame base_link`. Unknown mounts cannot
+> be replaced by identity TF. IMU output stops after all usable inputs time out.
+
 # Testing the IMU fusion on the rover
 
 How to record a stationary and a moving run, check them, and tune the filter
@@ -58,7 +64,7 @@ Checks sensor noise against the published covariances and the fused yaw drift.
 2. In one terminal, log the CSV (4 minutes or more is plenty):
 
    ```bash
-   python3 scripts/imu_compare.py --output results/stationary_<date>.csv
+   python3 scripts/imu_compare.py --base-frame base_link --output results/stationary_<date>.csv
    ```
 
 3. In another terminal, record the inputs:
@@ -147,7 +153,7 @@ ros2 launch rover_imu_fusion imu_fusion.launch.py use_icm:=true publish_icm_tf:=
 # terminal 2
 ros2 bag play ~/rover_data/bags/moving_<date> --clock
 # terminal 3
-python3 scripts/imu_compare.py --sim-time --output results/replay_<date>.csv
+python3 scripts/imu_compare.py --sim-time --base-frame base_link --output results/replay_<date>.csv
 ```
 
 Then put the chosen values in `config/imu_fusion.yaml` under `filter:`.

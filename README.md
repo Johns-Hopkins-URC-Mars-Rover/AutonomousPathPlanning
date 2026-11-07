@@ -94,7 +94,7 @@ Connect the IMU and ZED camera, then start both drivers with one command:
 ros2 launch rover_bringup rover.launch.py camera_model:=zed2i
 ```
 
-Replace `zed2i` with the attached camera model. The default is `zed2i`, so the
+Replace `zed2i` with the attached camera model. ICM is disabled by default until its measured mount is available; L76X GPS and ZED-only IMU fusion are enabled. The camera default is `zed2i`, so the
 argument can be omitted on a rover using that model. Either driver can be
 disabled while diagnosing hardware:
 
@@ -167,3 +167,12 @@ To reopen the container later:
 ```bash
 docker start -ai autonomous-path-planning
 ```
+
+## Localization with L76X GPS
+
+The authoritative two-machine procedure is [rover_localization/TESTING.md](src/rover_localization/TESTING.md).
+The Jetson runs the ZED/L76X drivers; the ROS computer runs the estimator and
+visualization. `rover_description/gps_nav_launch.py` starts one local EKF plus
+optional global GPS localization. GPS defaults to recording/inspection until
+mounts, global heading and GPS uncertainty are verified. The imported full rover
+URDF sensor origins are simulation fixtures, not measured hardware mounts.

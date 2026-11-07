@@ -15,7 +15,7 @@ ekf_local: # these params belong to the 'ekf_local' node, matches launch file na
     world_frame: odom
 
     # Optical odometry: pose only. Its derived twist would reuse the same images.
-    odom0: /zed/zed_node/odom
+    odom0: /localization/zed_odom_base
     odom0_config: [true, true, true,
                    true, true, true,
                    false, false, false,
@@ -27,7 +27,7 @@ ekf_local: # these params belong to the 'ekf_local' node, matches launch file na
 
     # One upstream fused IMU stream. Orientation and acceleration stay disabled
     # until their reference frame, gravity handling, and covariance are verified.
-    imu0: /imu/fused
+    imu0: /localization/imu
     imu0_config: [false, false, false,
                   false, false, false,
                   false, false, false,

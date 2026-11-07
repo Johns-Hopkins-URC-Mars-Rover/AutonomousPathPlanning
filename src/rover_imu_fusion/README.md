@@ -1,3 +1,11 @@
+> Updated integration: use `rover_bringup` or `rover_localization/zed_driver.launch.py`
+> for optical-only ZED tracking and calibrated internal IMU TF. A direct wrapper
+> launch may suppress IMU TF when motion TF is off. See the current
+> [localization test workflow](../rover_localization/TESTING.md).
+> The filter suppresses output after all usable gyro/accel inputs time out;
+> diagnostics distinguish valid arrivals from accepted measurements. Startup-relative
+> yaw is not a verified global heading for GPS fusion.
+
 # rover_imu_fusion
 
 The rover's IMU path. An error-state EKF fuses the ZED camera IMU and the
@@ -13,8 +21,7 @@ filter.
 ```
 
 Later stages (GNSS, ZED VIO, wheel odometry) are out of scope; they can consume
-`/imu/data`. `rover_localization/config/ekf_local.yaml` already reads it as
-`imu0`.
+`/imu/data`. `rover_localization` defaults to this topic, validates it, then feeds the local EKF on `/localization/imu`.
 
 ## Status
 
@@ -98,12 +105,12 @@ All topic names are parameters in `config/imu_fusion.yaml`.
 
 ## Prerequisites
 
-- ZED wrapper running so `/tf` has `base_link -> ... -> zed_imu_link`. The ZED
-  URDF comes from the `zed_description` package, which is not in this repo:
-  confirm its root is `base_link` with
+- Run `rover_localization/zed_driver.launch.py` (or `rover_bringup`) for the
+  optical driver, camera URDF and calibrated camera/IMU TF bridge. Supply the
+  measured rover mount separately and check
   `ros2 run tf2_ros tf2_echo base_link zed_imu_link`.
-- Nothing else publishes `/imu/data`. `rover_localization/simulated_sensors`
-  now publishes its IMU on `/sim/imu`.
+- Nothing else may publish `/imu/data`. The independent localization simulator
+  publishes a gyro-only fixture on `/imu/fused`; it is not input for this filter.
 - Optional ZED overrides (same clock as the ICM, publish rate, raw IMU) without
   touching the submodule:
 
@@ -132,7 +139,7 @@ The consistency tests are slow in a Debug build (about 30 s); use
 ```bash
 source install/setup.bash
 ros2 launch rover_imu_fusion imu_fusion.launch.py            # ZED only
-ros2 launch rover_imu_fusion imu_fusion.launch.py use_icm:=true icm_x:=0.1 icm_z:=0.2 icm_yaw:=1.5708
+ros2 launch rover_imu_fusion imu_fusion.launch.py use_icm:=true
 ```
 
 Keep the rover still for the first second. Then check:
@@ -146,9 +153,7 @@ ros2 topic echo /diagnostics        # filter "ok", IMUs "live"
 Level and at rest, `linear_acceleration` reads about 9.8 on the base-frame up
 axis and `angular_velocity` is close to zero.
 
-`use_icm:=true` also publishes a placeholder `base_link -> imu_link` from the
-`icm_*` arguments (default all zero). **Replace it with the measured mount**
-(metres, radians) before trusting the ICM.
+`use_icm:=true` requires a measured `base_link -> imu_link` from the robot description. This launch no longer publishes placeholder mounts. Use `rover_description/launch/sensor_mounts.launch.py` for a headless setup, with a verified measured mount file.
 
 ### Enabling the ICM
 
@@ -168,27 +173,10 @@ the accel/gyro axes, so verify it. Yaw stays relative to the start heading.
 
 ## Test without hardware
 
-The simulator can publish synthetic IMUs on the real topic names with known
-biases and noise (ICM gyro bias `[0.02 -0.01 0.015]`, accel bias
-`[0.05 0 -0.03]`; the ZED stream has none). Both are aligned with `base_link`.
-
-```bash
-# terminal 1
-ros2 run rover_localization simulated_sensors --ros-args \
-  -p publish_synthetic_imus:=true -p start_delay:=3.0
-# terminal 2
-ros2 launch rover_imu_fusion imu_fusion.launch.py use_icm:=true
-# terminal 3
-ros2 topic echo /imu/data --once
-ros2 topic echo /simulation/ground_truth --once
-```
-
-`start_delay` keeps the simulated rover still long enough for the filter to
-initialize. Expect the fused yaw rate near 0.2 rad/s, yaw close to the ground
-truth, and the ICM gyro bias estimates in `/diagnostics` near the values above.
-
-Each terminal needs the two `source` lines first. With `ros2 topic echo`, add
-`--no-daemon` if it errors about `rclpy.ok()`.
+The `rover_localization` simulator provides camera pose and a gyro-only joint
+IMU fixture. It does not provide the accelerometer streams required to initialize
+this separate two-IMU filter. Use the C++ filter tests or a recorded bag with
+calibrated TF and real accelerometer/gyro measurements to validate this package.
 
 ## Record and replay
 
@@ -199,8 +187,7 @@ ros2 bag record -o imu_bag /imu/data_raw /zed/zed_node/imu/data /tf /tf_static
 
 Replay on sim time so the node's clock follows the bag. The bag path must come
 before `--clock` (in Humble `--clock` takes an optional rate and would swallow
-the path). The bag's `/tf_static` supplies the transforms, so turn the
-placeholder off:
+the path). The bag's `/tf_static` supplies the transforms; do not launch another mount publisher:
 
 ```bash
 # terminal 1
@@ -254,4 +241,4 @@ test/                    gtest for the core
   values first.
 - Real noise values: the ICM driver still publishes zero covariance until its
   noise has been measured.
-- Extrinsics: `base_link -> imu_link` is a placeholder.
+- Extrinsics: measured `base_link -> imu_link` must be supplied by the description; placeholder publishing has been removed.

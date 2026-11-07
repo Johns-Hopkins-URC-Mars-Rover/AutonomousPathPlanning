@@ -11,8 +11,8 @@ class LocalizationContractTest < Minitest::Test
   def test_local_filter_consumes_optical_odometry_and_one_joint_imu
     params = yaml_file('ekf_local.yaml').fetch('ekf_local').fetch('ros__parameters')
 
-    assert_equal '/zed/zed_node/odom', params.fetch('odom0')
-    assert_equal '/imu/fused', params.fetch('imu0')
+    assert_equal '/localization/zed_odom_base', params.fetch('odom0')
+    assert_equal '/localization/imu', params.fetch('imu0')
     refute params.key?('odom1'), 'wheel odometry must not be enabled before hardware exists'
     assert_equal 'odom', params.fetch('world_frame')
     assert_equal 'base_link', params.fetch('base_link_frame')

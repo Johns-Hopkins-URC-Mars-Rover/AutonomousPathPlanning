@@ -37,6 +37,10 @@ target_compile_features(imu_fusion_node PRIVATE cxx_std_17)
 target_link_libraries(imu_fusion_node imu_fusion_core)
 ament_target_dependencies(imu_fusion_node rclcpp sensor_msgs diagnostic_msgs tf2_ros tf2_eigen)
 
+add_executable(replay_imu_csv tools/replay_csv.cpp)
+target_link_libraries(replay_imu_csv imu_fusion_core)
+install(TARGETS replay_imu_csv DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS imu_fusion_core
   ARCHIVE DESTINATION lib
@@ -52,6 +56,14 @@ if(BUILD_TESTING)
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  add_executable(test_input_safety test/test_input_safety.cpp)
+  target_link_libraries(test_input_safety imu_fusion_core)
+  add_test(NAME input_safety COMMAND test_input_safety)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME replay_csv_contracts
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test/test_replay_csv.py"
+      $<TARGET_FILE:replay_imu_csv>)
 
   ament_add_gtest(test_imu_transform test/test_imu_transform.cpp)
   target_link_libraries(test_imu_transform imu_fusion_core)

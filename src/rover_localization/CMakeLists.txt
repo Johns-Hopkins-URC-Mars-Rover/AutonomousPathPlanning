@@ -42,8 +42,12 @@ install(TARGETS simulated_sensors
 
 install(PROGRAMS
   scripts/fake_imu_publisher.py
+  scripts/sensor_inputs.py
+  scripts/zed_imu_tf.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(FILES scripts/sensor_contracts.py DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
@@ -52,12 +56,16 @@ install(DIRECTORY config launch
 if(BUILD_TESTING)
   enable_testing()
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/localization_launch_test.py TARGET localization_ros_e2e TIMEOUT 60)
+  set_tests_properties(localization_ros_e2e PROPERTIES RUN_SERIAL TRUE)
   add_executable(simulation_model_test test/test_simulation_model.cpp)
   target_compile_features(simulation_model_test PRIVATE cxx_std_17)
   target_include_directories(simulation_model_test PRIVATE include)
   add_test(NAME simulation_model_test COMMAND simulation_model_test)
-  add_test(NAME smoke_probe_unit
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test/test_smoke_probe.py")
+  add_test(NAME localization_python_tests
+    COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
+      -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_*.py")
 endif()
 
 ament_package()

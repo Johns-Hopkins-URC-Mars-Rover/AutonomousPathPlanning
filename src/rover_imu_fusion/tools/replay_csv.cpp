@@ -3,7 +3,7 @@
 //
 // Only the "icm" and "zed" rows are used; "fused" rows from the recording are
 // ignored. Both IMUs are assumed to already be in base_link axes (no mount
-// rotation), and only the diagonal of each covariance is in the CSV.
+// rotation). Full covariance matrices are required; legacy diagonal-only CSVs are rejected.
 //
 // Build (from this directory):
 //   g++ -O2 -std=c++17 -I/usr/include/eigen3 -I../include replay_csv.cpp \
@@ -38,7 +38,8 @@ struct Sample
 {
   int imu;
   double stamp;
-  Eigen::Vector3d a, g, a_var, g_var;
+  Eigen::Vector3d a, g;
+  Eigen::Matrix3d a_cov, g_cov;
 };
 
 std::vector<std::string> split(const std::string & line)
@@ -47,6 +48,7 @@ std::vector<std::string> split(const std::string & line)
   std::stringstream ss(line);
   std::string cell;
   while (std::getline(ss, cell, ',')) {
+    if (!cell.empty() && cell.back() == '\r') cell.pop_back();
     out.push_back(cell);
   }
   return out;
@@ -69,6 +71,10 @@ std::vector<Sample> load(const std::string & path, bool use_icm, bool use_zed)
   std::vector<Sample> out;
   while (std::getline(f, line)) {
     const auto c = split(line);
+    if (c.size() != header.size() || !col.count("source") || !col.count("stamp") || !col.count("frame_id")) {
+      std::cerr << "Malformed CSV row/header; expected source, stamp, frame_id and complete measurement columns\n";
+      std::exit(1);
+    }
     const std::string & src = c[col["source"]];
     int imu;
     if (src == "icm" && use_icm) {
@@ -78,14 +84,27 @@ std::vector<Sample> load(const std::string & path, bool use_icm, bool use_zed)
     } else {
       continue;
     }
-    auto v = [&](const char * k) {return std::stod(c[col[k]]);};
+    if (!col.count("frame_id") || c.at(col.at("frame_id")) != "base_link") {
+      std::cerr << "CSV IMUs must already be in base_link; record with imu_compare.py --base-frame base_link or replay the bag with TF.\n";
+      std::exit(1);
+    }
+    auto v = [&](const char * k) {return std::stod(c.at(col.at(k)));};
     Sample s;
     s.imu = imu;
     s.stamp = v("stamp");
     s.a = {v("ax"), v("ay"), v("az")};
     s.g = {v("gx"), v("gy"), v("gz")};
-    s.a_var = {v("acc_cov_xx"), v("acc_cov_yy"), v("acc_cov_zz")};
-    s.g_var = {v("gyro_cov_xx"), v("gyro_cov_yy"), v("gyro_cov_zz")};
+    const char * axes[] = {"xx", "xy", "xz", "yx", "yy", "yz", "zx", "zy", "zz"};
+    for (int j = 0; j < 9; ++j) {
+      const std::string a_key = std::string("acc_cov_") + axes[j];
+      const std::string g_key = std::string("gyro_cov_") + axes[j];
+      if (!col.count(a_key) || !col.count(g_key)) {
+        std::cerr << "CSV needs full covariance matrices; record with the current imu_compare.py\n";
+        std::exit(1);
+      }
+      s.a_cov(j/3,j%3) = v(a_key.c_str());
+      s.g_cov(j/3,j%3) = v(g_key.c_str());
+    }
     out.push_back(s);
   }
   std::stable_sort(out.begin(), out.end(), [](const Sample & x, const Sample & y) {
@@ -144,7 +163,10 @@ int main(int argc, char ** argv)
 
   for (int i = 2; i < argc; ++i) {
     const std::string k = argv[i];
-    auto next = [&]() {return std::stod(argv[++i]);};
+    auto next = [&]() {
+        if (i + 1 >= argc) {std::cerr << "Missing value for " << k << "\n"; std::exit(1);}
+        return std::stod(argv[++i]);
+      };
     if (k == "--skip") {skip = next();}
     else if (k == "--rate-walk") {e.rate_walk = next();}
     else if (k == "--accel-walk") {e.accel_walk = next();}
@@ -154,7 +176,10 @@ int main(int argc, char ** argv)
     else if (k == "--accel-inflation") {inflation = next();}
     else if (k == "--no-icm") {use_icm = false;}
     else if (k == "--no-zed") {use_zed = false;}
-    else if (k == "--out") {out_path = argv[++i];}
+    else if (k == "--out") {
+      if (i + 1 >= argc) {std::cerr << "Missing value for --out\n"; return 1;}
+      out_path = argv[++i];
+    }
     else {std::cerr << "unknown option " << k << "\n"; return 1;}
   }
 
@@ -187,14 +212,14 @@ int main(int argc, char ** argv)
       g.imu = s.imu;
       g.stamp = s.stamp;
       g.z = s.g;
-      g.R = Eigen::Matrix3d(s.g_var.asDiagonal());
+      g.R = s.g_cov;
       fusion.add(g);
       Measurement a;
       a.kind = Measurement::Kind::kAccel;
       a.imu = s.imu;
       a.stamp = s.stamp;
       a.z = s.a;
-      a.R = Eigen::Matrix3d(inflation * s.a_var.asDiagonal());
+      a.R = inflation * s.a_cov;
       fusion.add(a);
     }
     fusion.process(now - cfg.reorder_delay);
@@ -233,7 +258,8 @@ int main(int argc, char ** argv)
     anorm.add(o->a.norm());
     roll.add(r * rd);
     pitch.add(p * rd);
-    yaw.add(y * rd);
+    const double yaw_deg = y * rd;
+    yaw.add(yaw.v.empty() ? yaw_deg : yaw.v.back() + std::remainder(yaw_deg - yaw.v.back(), 360.0));
     yawsig.add(std::sqrt(o->q_cov(2, 2)) * rd);
     t.add(now - t0);
   }

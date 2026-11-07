@@ -9,32 +9,28 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     zed_launch = PathJoinSubstitution(
-        [FindPackageShare('zed_wrapper'), 'launch', 'zed_camera.launch.py']
+        [FindPackageShare('rover_localization'), 'launch', 'zed_driver.launch.py']
     )
     local_launch = PathJoinSubstitution(
         [FindPackageShare('rover_localization'), 'launch', 'localization.launch.py']
     )
-    zed_config = PathJoinSubstitution(
-        [FindPackageShare('rover_localization'), 'config', 'zed_optical.yaml']
-    )
+
 
     return LaunchDescription([
+        DeclareLaunchArgument('base_frame', default_value='base_link'),
         DeclareLaunchArgument('camera_model', default_value='zed2i'),
         DeclareLaunchArgument('zed_odom_topic', default_value='/zed/zed_node/odom'),
-        DeclareLaunchArgument('fused_imu_topic', default_value='/imu/fused'),
+        DeclareLaunchArgument('fused_imu_topic', default_value='/imu/data'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(zed_launch),
             launch_arguments={
                 'camera_model': LaunchConfiguration('camera_model'),
-                'ros_params_override_path': zed_config,
-                'publish_tf': 'false',
-                'publish_map_tf': 'false',
-                'enable_gnss': 'false',
             }.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(local_launch),
             launch_arguments={
+                'base_frame': LaunchConfiguration('base_frame'),
                 'zed_odom_topic': LaunchConfiguration('zed_odom_topic'),
                 'fused_imu_topic': LaunchConfiguration('fused_imu_topic'),
             }.items(),

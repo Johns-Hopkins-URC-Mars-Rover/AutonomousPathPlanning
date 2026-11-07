@@ -7,6 +7,7 @@
 #include <tf2_ros/buffer.h>
 
 #include <array>
+#include <cmath>
 #include <optional>
 #include <string>
 #include <utility>
@@ -53,6 +54,14 @@ public:
   // produced yet (no TF, or covariance required but missing).
   std::optional<sensor_msgs::msg::Imu> convert(const sensor_msgs::msg::Imu & msg)
   {
+    if (msg.header.frame_id.empty() ||
+      !std::isfinite(msg.angular_velocity.x) || !std::isfinite(msg.angular_velocity.y) ||
+      !std::isfinite(msg.angular_velocity.z) || !std::isfinite(msg.linear_acceleration.x) ||
+      !std::isfinite(msg.linear_acceleration.y) || !std::isfinite(msg.linear_acceleration.z)) {
+      RCLCPP_WARN_THROTTLE(node_.get_logger(), *node_.get_clock(), 2000,
+        "%s: rejecting nonfinite IMU values or empty frame", opt_.name.c_str());
+      return std::nullopt;
+    }
     if (!ensureExtrinsic(msg.header.frame_id)) {
       return std::nullopt;
     }
@@ -94,7 +103,7 @@ public:
     const Eigen::Quaterniond q(
       msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z);
     const Eigen::Matrix3d q_cov = covarianceFromArray(msg.orientation_covariance);
-    if (q.norm() > 0.5 && isCovarianceProvided(q_cov)) {
+    if (q.coeffs().allFinite() && std::abs(q.norm() - 1.0) < 0.01 && isCovarianceProvided(q_cov)) {
       const Eigen::Quaterniond qb = baseOrientation(q, R_base_imu_);
       out.orientation.w = qb.w();
       out.orientation.x = qb.x();
