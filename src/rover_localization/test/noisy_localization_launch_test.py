@@ -1,4 +1,4 @@
-"""Exercise noisy asynchronous inputs, real sensor transforms, outages and recovery."""
+"""Exercise noisy inputs, known synthetic mounts, outages and recovery."""
 from pathlib import Path
 import sys
 import unittest

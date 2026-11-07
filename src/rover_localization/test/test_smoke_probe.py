@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 import unittest
 import math
+import ast
+from types import SimpleNamespace as NS
 
 
 PROBE = Path(__file__).resolve().parents[1] / 'scripts' / 'probe_simulation.py'
@@ -79,6 +81,22 @@ class SmokeEvaluationTest(unittest.TestCase):
     def test_rejects_old_output_even_when_input_health_is_fresh(self):
         with self.assertRaisesRegex(ValueError, 'stale'):
             probe.evaluate_samples(self.estimate, self.truth, True, now=10.)
+
+    def test_ros_byte_diagnostic_level_is_accepted(self):
+        # Humble's diagnostic_msgs byte field is bytes after deserialization.
+        tree = ast.parse(PROBE.read_text())
+        main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        cls = next(n for n in main.body if isinstance(n, ast.ClassDef))
+        method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'diagnostics')
+        ns = dict(vars(probe))
+        exec(compile(ast.Module(body=[method], type_ignores=[]), '<real_diagnostic_callback>', 'exec'), ns)
+        state = probe.InputHealth()
+        node = NS(input_health=state, get_logger=lambda: NS(warning=lambda *a, **kw: None))
+        msg = NS(header=NS(stamp=NS(sec=10, nanosec=0)), status=[
+            NS(name=name, level=b'\x00', message='accepting fresh measurements',
+               values=[NS(key='accepted', value='30')]) for name in state.names])
+        ns['diagnostics'](node, msg)
+        self.assertTrue(state.ready(10.1))
 
 
 if __name__ == '__main__':

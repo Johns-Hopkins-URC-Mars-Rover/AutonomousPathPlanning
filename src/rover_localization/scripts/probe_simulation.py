@@ -101,10 +101,14 @@ def main():
             for status in msg.status:
                 values = {v.key: v.value for v in status.values}
                 try:
-                    healthy = status.level == 0 and int(values.get('accepted', '0')) >= 5
+                    healthy = status.level in (0, b'\x00') and int(values.get('accepted', '0')) >= 5
                 except ValueError:
                     healthy = False
                 self.input_health.update(status.name, healthy, stamp)
+                if status.name in InputHealth.names and not healthy:
+                    self.get_logger().warning(
+                        f'{status.name}: level={status.level}, message={status.message}, values={values}',
+                        throttle_duration_sec=5.)
 
         @staticmethod
         def record(samples, msg):
@@ -142,7 +146,9 @@ def main():
                   f"mean error {result['mean_error_m']:.2f} m; "
                   'odom -> base_link TF present')
             return 0
-        print(f'FAIL: localization smoke test timed out: {last_error}')
+        print(f'FAIL: localization smoke test timed out: {last_error}; '
+              f'output_samples={len(node.estimated)}, truth_samples={len(node.truth)}, '
+              f'input_health={node.input_health.snapshots}, nodes={node.get_node_names()}')
         return 1
     finally:
         node.destroy_node()

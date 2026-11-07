@@ -62,7 +62,6 @@ mapping system must coordinate ownership of `map -> odom` with the GPS global
 EKF. Wheel odometry remains an additional future input to the live camera path.
 Upstream ZED and u-blox code is unchanged.
 
-Source and native regression checks are documented in
-[the repair evidence](../../docs/testing/localization-repair.tdd.md). Real
-tracking quality, calibrated mounts, timing, GPS accuracy and the earlier 17 m
-error still require the recorded hardware test described in TESTING.md.
+Offline checks and the next recorded hardware test are in [TESTING.md](TESTING.md).
+Noisy synthetic tests do not establish real tracking quality, GPS accuracy or
+resolution of the earlier large position error.

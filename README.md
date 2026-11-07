@@ -136,8 +136,8 @@ The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
 ### Rover localization
 
 See the [localization testing guide](src/rover_localization/TESTING.md) for
-the hardware-free synthetic test, real-ZED/fake-IMU bench test, and validation
-limits.
+offline noisy fusion tests, the next real-ZED/IMU recording, GPS prerequisites
+and validation limits.
 
 ### ZED camera
 

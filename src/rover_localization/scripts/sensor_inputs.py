@@ -133,14 +133,18 @@ class SensorInputs(Node):
             status.name = self.get_name() + '/' + key
             status.hardware_id = state['topic']
             age = None if state['stamp'] is None else now - state['stamp']
-            healthy = age is not None and 0 <= age <= self.max_age and state['reason'] == 'accepted'
+            publishers = self.count_publishers(state['topic'])
+            healthy = (publishers == 1 and age is not None and
+                       0 <= age <= self.max_age and state['reason'] == 'accepted')
             status.level = DiagnosticStatus.OK if healthy else DiagnosticStatus.ERROR
             status.message = 'accepting fresh measurements' if healthy else state['reason']
             if age is not None and age > self.max_age:
                 status.message = 'accepted input is stale; EKF output may be prediction only'
+            if publishers != 1:
+                status.message = f'expected exactly one input publisher; found {publishers}'
             status.values = [KeyValue(key=k, value=str(v)) for k, v in
                              dict(accepted=state['accepted'], rejected=state['rejected'],
-                                  age_s=age, publishers=self.count_publishers(state['topic'])).items()]
+                                  age_s=age, publishers=publishers).items()]
             array.status.append(status)
         self.diag.publish(array)
 
