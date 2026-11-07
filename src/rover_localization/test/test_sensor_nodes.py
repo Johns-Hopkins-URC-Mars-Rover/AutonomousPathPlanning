@@ -93,6 +93,9 @@ class FakeNode:
         self.name, self.messages, self.callbacks, self.logs = name, {}, {}, []
         self.publisher_count = 1
         self.now_s = 10.1
+    @property
+    def timers(self):
+        return ()  # rclpy exposes this as a read-only property.
     def declare_parameter(self, name, default):
         return NS(value=self.overrides.get(name, default))
     def create_publisher(self, kind, topic, qos):
@@ -124,7 +127,7 @@ class Broadcaster:
         self.messages.append(msg)
 
 
-def load(name):
+def load(name, folder=ROOT):
     mapping = {
         'rclpy': dict(init=lambda: None, spin=lambda node: None, try_shutdown=lambda: None),
         'rclpy.node': dict(Node=FakeNode),
@@ -132,6 +135,7 @@ def load(name):
         'rclpy.time': dict(Time=lambda: None),
         'nav_msgs.msg': dict(Odometry=Odom),
         'sensor_msgs.msg': dict(Imu=Imu, NavSatFix=Fix),
+        'std_msgs.msg': dict(String=lambda: NS(data='')),
         'geometry_msgs.msg': dict(TransformStamped=Transform),
         'diagnostic_msgs.msg': dict(DiagnosticArray=DiagnosticArray,
                                     DiagnosticStatus=DiagnosticStatus, KeyValue=lambda **kw: NS(**kw)),
@@ -147,7 +151,7 @@ def load(name):
     spec.loader.exec_module(contracts)
     modules['sensor_contracts'] = contracts
     with patch.dict(sys.modules, modules):
-        spec = importlib.util.spec_from_file_location(name, ROOT / (name+'.py'))
+        spec = importlib.util.spec_from_file_location(name, folder / (name+'.py'))
         result = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(result)
     return result
@@ -182,6 +186,19 @@ class SensorNodesTest(unittest.TestCase):
         self.assertEqual(self.node.states['camera']['rejected'], 5)
         self.node.report()
         self.assertEqual(self.node.messages['/diagnostics'][-1].status[0].level, 2)
+
+    def test_health_rechecks_disappeared_or_duplicate_publishers(self):
+        self.node.callbacks['/zed/zed_node/odom'](Odom())
+        self.node.callbacks['/imu/data'](Imu())
+        for count in (0, 2):
+            self.node.publisher_count = count
+            self.node.report()
+            for status in self.node.messages['/diagnostics'][-1].status:
+                self.assertEqual(status.level, 2)
+                self.assertIn('publisher', status.message)
+        self.node.publisher_count = 1
+        self.node.report()
+        self.assertTrue(all(s.level == 0 for s in self.node.messages['/diagnostics'][-1].status))
 
     def test_real_camera_mount_and_missing_imu_tf(self):
         msg = Odom(); msg.child_frame_id = 'zed_camera_link'
@@ -229,6 +246,42 @@ class SensorNodesTest(unittest.TestCase):
         node.receive(good); node.receive(good); node.check()
         self.assertEqual(node.broadcaster.messages, [good])
         mod.main()
+
+    def test_noisy_fixture_constructor_preserves_ros_node_properties(self):
+        import sys
+        folder = ROOT.parent / 'test'
+        with patch.dict(sys.modules):
+            sys.path.insert(0, str(folder))
+            try:
+                mod = load('noisy_position_fixture', folder=folder)
+                node = mod.Sensors(197, 'noisy')
+                self.assertEqual(len(node.fixture_timers), 5)
+                self.assertEqual(node.timers, ())
+                self.assertEqual(len(node.broadcaster.messages[0]), 2)
+            finally:
+                sys.path.remove(str(folder))
+
+    def test_noisy_probe_rejects_invalid_output_before_scoring(self):
+        folder = ROOT.parent / 'test'
+        sys.path.insert(0, str(folder))
+        try:
+            mod = load('noisy_position_fixture', folder=folder)
+        finally:
+            sys.path.remove(str(folder))
+        for field, value in (('position', math.nan), ('position', math.inf),
+                             ('orientation', math.nan), ('orientation', 0.),
+                             ('stamp', 0)):
+            msg = Odom()
+            if field == 'position': msg.pose.pose.position.x = value
+            elif field == 'orientation': msg.pose.pose.orientation.w = value
+            else: msg.header.stamp.sec = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                mod.Probe.record([], msg)
+        samples = []
+        mod.Probe.record(samples, Odom())
+        with self.assertRaisesRegex(ValueError, 'timestamp'):
+            mod.Probe.record(samples, Odom())
+        self.assertEqual(len(samples), 1)
 
 
 if __name__ == '__main__':
