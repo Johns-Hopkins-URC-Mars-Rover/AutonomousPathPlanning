@@ -1,0 +1,1 @@
+Invoking command in '/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/rover_imu_fusion -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/rover_imu_fusion

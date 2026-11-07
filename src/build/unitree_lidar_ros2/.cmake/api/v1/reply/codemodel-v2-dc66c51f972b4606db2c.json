@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-029d6fcf37d6f3f9b0e7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "unitree_lidar_ros2",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-98627c32da3a41386014.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "unitree_lidar_ros2_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-unitree_lidar_ros2_node-7bc57e9ac40222816141.json",
+					"name" : "unitree_lidar_ros2_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "unitree_lidar_ros2_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-unitree_lidar_ros2_uninstall-374608f270098d8de355.json",
+					"name" : "unitree_lidar_ros2_uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/clara/AutonomousPathPlanning/src/build/unitree_lidar_ros2",
+		"source" : "/home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

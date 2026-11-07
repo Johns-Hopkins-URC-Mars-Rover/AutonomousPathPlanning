@@ -1,0 +1,41 @@
+[1.215s] Invoking command in '/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface': PYTHONPATH=/home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/icm20948_imu_interface build --build-base /home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/build install --record /home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/install.log --install-scripts $base/lib/icm20948_imu_interface --single-version-externally-managed install_data
+[1.565s] running egg_info
+[1.587s] creating ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info
+[1.587s] writing ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/PKG-INFO
+[1.588s] writing dependency_links to ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/dependency_links.txt
+[1.588s] writing entry points to ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/entry_points.txt
+[1.589s] writing requirements to ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/requires.txt
+[1.589s] writing top-level names to ../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/top_level.txt
+[1.589s] writing manifest file '../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/SOURCES.txt'
+[1.633s] reading manifest file '../build/icm20948_imu_interface/icm20948_imu_interface.egg-info/SOURCES.txt'
+[1.633s] adding license file 'LICENSE'
+[1.633s] Traceback (most recent call last):
+[1.633s]   File "/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface/setup.py", line 6, in <module>
+[1.633s]     setup(
+[1.633s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/__init__.py", line 117, in setup
+[1.634s]     return distutils.core.setup(**attrs)  # type: ignore[return-value]
+[1.634s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_distutils/core.py", line 186, in setup
+[1.634s]     return run_commands(dist)
+[1.634s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_distutils/core.py", line 202, in run_commands
+[1.634s]     dist.run_commands()
+[1.634s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1001, in run_commands
+[1.634s]     self.run_command(cmd)
+[1.634s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/dist.py", line 1107, in run_command
+[1.634s]     super().run_command(command)
+[1.634s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1020, in run_command
+[1.634s]     cmd_obj.run()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/command/egg_info.py", line 338, in run
+[1.635s]     self.find_sources()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/command/egg_info.py", line 346, in find_sources
+[1.635s]     mm.run()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/command/egg_info.py", line 573, in run
+[1.635s]     self.prune_file_list()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/command/sdist.py", line 163, in prune_file_list
+[1.635s]     super().prune_file_list()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_distutils/command/sdist.py", line 386, in prune_file_list
+[1.635s]     base_dir = self.distribution.get_fullname()
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_core_metadata.py", line 275, in get_fullname
+[1.635s]     return _distribution_fullname(self.get_name(), self.get_version())
+[1.635s]   File "/home/clara/.local/lib/python3.10/site-packages/setuptools/_core_metadata.py", line 293, in _distribution_fullname
+[1.636s]     canonicalize_version(version, strip_trailing_zero=False),
+[1.636s] TypeError: canonicalize_version() got an unexpected keyword argument 'strip_trailing_zero'

@@ -1,0 +1,88 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-ba26da6b1a0d603c1f0a.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "rover_localization",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "rover_localization_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-rover_localization_uninstall-36118a1d93d0e2bc06d6.json",
+					"name" : "rover_localization_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "simulated_sensors::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-simulated_sensors-c1d7a8e52ac7dd0786a6.json",
+					"name" : "simulated_sensors",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "simulation_model_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-simulation_model_test-b84babc81110e06457a1.json",
+					"name" : "simulation_model_test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-485562e2f9fae9187d5c.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/clara/AutonomousPathPlanning/src/build/rover_localization",
+		"source" : "/home/clara/AutonomousPathPlanning/src/rover_localization"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

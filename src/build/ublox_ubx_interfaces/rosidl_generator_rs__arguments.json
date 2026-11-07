@@ -1,0 +1,39 @@
+{
+  "package_name": "ublox_ubx_interfaces",
+  "output_dir": "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_generator_rs/ublox_ubx_interfaces",
+  "template_dir": "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource",
+  "idl_tuples": [
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces:srv/HotStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces:srv/WarmStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces:srv/ColdStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces:srv/ResetODO.idl"
+  ],
+  "ros_interface_files": [
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/HotStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/WarmStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/ColdStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/ResetODO.idl"
+  ],
+  "target_dependencies": [
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../../../lib/rosidl_generator_rs/rosidl_generator_rs",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../../../local/lib/python3.10/dist-packages/rosidl_generator_rs/__init__.py",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/action.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/action/rmw.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/build.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/Cargo.toml.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/lib.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/msg.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/msg/rmw.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/srv.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/srv/rmw.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/templates/msg_idiomatic.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/templates/msg_rmw.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/templates/srv_idiomatic.rs.em",
+    "/opt/ros/humble/share/rosidl_generator_rs/cmake/../resource/templates/srv_rmw.rs.em",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/HotStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/WarmStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/ColdStart.idl",
+    "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/rosidl_adapter/ublox_ubx_interfaces/srv/ResetODO.idl"
+  ],
+  "package_version": "0.7.6"
+}

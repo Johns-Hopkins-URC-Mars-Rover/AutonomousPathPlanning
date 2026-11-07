@@ -1,0 +1,1 @@
+/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/ament_cmake_core/nav2_costmapConfig-version.cmake

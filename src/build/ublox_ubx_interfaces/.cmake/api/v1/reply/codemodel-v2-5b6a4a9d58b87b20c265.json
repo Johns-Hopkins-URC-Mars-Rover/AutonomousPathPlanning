@@ -1,0 +1,258 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-078ee3756942eafa0aed.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						17,
+						18
+					]
+				},
+				{
+					"build" : "ublox_ubx_interfaces__py",
+					"jsonFile" : "directory-ublox_ubx_interfaces__py-91816e0f43a5cb37acac.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/ublox_ubx_interfaces__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "ublox_ubx_interfaces__rs",
+					"jsonFile" : "directory-ublox_ubx_interfaces__rs-d158d90924c79ce4dc66.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/ublox_ubx_interfaces__rs",
+					"targetIndexes" : 
+					[
+						16
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "ublox_ubx_interfaces",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_ublox_ubx_interfaces_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_ublox_ubx_interfaces_egg-d9989b7736e991225ded.json",
+					"name" : "ament_cmake_python_build_ublox_ubx_interfaces_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_symlink_ublox_ubx_interfaces::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_symlink_ublox_ubx_interfaces-9a0784b8aaf152a90a0d.json",
+					"name" : "ament_cmake_python_symlink_ublox_ubx_interfaces",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces-417f0873046c96c1ce88.json",
+					"name" : "ublox_ubx_interfaces",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__cpp-9d8064d592d683861cd4.json",
+					"name" : "ublox_ubx_interfaces__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ublox_ubx_interfaces__py::@6f7756308f16cb24e4cb",
+					"jsonFile" : "target-ublox_ubx_interfaces__py-ff39d723e408839f4f7b.json",
+					"name" : "ublox_ubx_interfaces__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_generator_c-4e95130dd516e3002fbd.json",
+					"name" : "ublox_ubx_interfaces__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_generator_py-52180da92997c204e6fc.json",
+					"name" : "ublox_ubx_interfaces__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_c-578d983c5260f4115a5a.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_c__pyext-42ee2047146ecc7da5b5.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_cpp-d8ba7ae863ea39a300f5.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c-9919363cbb00eec25a65.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c__pyext-3bd2f5c76228df190cc8.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_fastrtps_cpp-fbdee02db0a176f2124c.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_introspection_c-4d3c9b0253548c0ad67c.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_introspection_c__pyext-25f94d060042b395ee56.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces__rosidl_typesupport_introspection_cpp-41510bf09ff2e824d309.json",
+					"name" : "ublox_ubx_interfaces__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ublox_ubx_interfaces__rs::@fdd1e91c746b6adbbe2a",
+					"jsonFile" : "target-ublox_ubx_interfaces__rs-02f5dafe0b70550df361.json",
+					"name" : "ublox_ubx_interfaces__rs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ublox_ubx_interfaces_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ublox_ubx_interfaces_uninstall-b8f5165e2d9c085ffad5.json",
+					"name" : "ublox_ubx_interfaces_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-18d0af122a9653e0e31e.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces",
+		"source" : "/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_interfaces"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

@@ -1,0 +1,60 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_ubx_msgs/msg/UBXRxmPmp.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module ublox_ubx_msgs {
+  module msg {
+    typedef uint32 uint32__2[2];
+    @verbatim (language="comment", text=
+      "UBXRxmPMP.msg" "\n"
+      "UBX-RXM-PMP (0x02 0x72) - Point to Multipoint (L-band) input message from NEO-D9S")
+    struct UBXRxmPmp {
+      @verbatim (language="comment", text=
+        "Header timestamp should be acquisition time")
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        "Fields" "\n"
+        "Message version (0x01 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Number of bytes the userData block has in this frame (0..504)")
+      uint16 num_bytes_user_data;
+
+      @verbatim (language="comment", text=
+        "ms - time since startup when frame started")
+      uint32 time_tag;
+
+      @verbatim (language="comment", text=
+        "Received unique words")
+      uint32__2 unique_word;
+
+      @verbatim (language="comment", text=
+        "Received service identifier")
+      uint16 service_identifier;
+
+      @verbatim (language="comment", text=
+        "Received spare data")
+      uint8 spare;
+
+      @verbatim (language="comment", text=
+        "Number of bit errors in both unique words")
+      uint8 unique_word_bit_errors;
+
+      @verbatim (language="comment", text=
+        "Number of bits corrected by FEC")
+      uint16 fec_bits;
+
+      @verbatim (language="comment", text=
+        "2^-3 dB - energy per bit to noise power spectral density ratio")
+      uint8 ebno;
+
+      @verbatim (language="comment", text=
+        "Received user data (= num_bytes_user_data)")
+      sequence<uint8> user_data;
+    };
+  };
+};

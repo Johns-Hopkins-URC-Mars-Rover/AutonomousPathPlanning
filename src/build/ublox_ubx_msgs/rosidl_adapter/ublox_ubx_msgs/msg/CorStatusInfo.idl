@@ -1,0 +1,76 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_ubx_msgs/msg/CorStatusInfo.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_ubx_msgs {
+  module msg {
+    module CorStatusInfo_Constants {
+      @verbatim (language="comment", text=
+        "Constants for protocol in statusInfo")
+      const uint8 PROTOCOL_UNKNOWN = 0;
+      const uint8 PROTOCOL_RTCM3 = 1;
+      const uint8 PROTOCOL_SPARTN = 2;
+      const uint8 PROTOCOL_UBX_RXM_PMP = 29;
+      const uint8 PROTOCOL_UBX_RXM_QZSSL6 = 30;
+      @verbatim (language="comment", text=
+        "Constants for error status")
+      const uint8 ERR_UNKNOWN = 0;
+      const uint8 ERR_ERROR_FREE = 1;
+      const uint8 ERR_ERRONEOUS = 2;
+      @verbatim (language="comment", text=
+        "Constants for message usage")
+      const uint8 MSG_USED_UNKNOWN = 0;
+      const uint8 MSG_NOT_USED = 1;
+      const uint8 MSG_USED = 2;
+      @verbatim (language="comment", text=
+        "Constants for encryption and decryption status")
+      const uint8 MSG_ENCRYPTION_UNKNOWN = 0;
+      const uint8 MSG_NOT_ENCRYPTED = 1;
+      const uint8 MSG_ENCRYPTED = 2;
+      const uint8 MSG_DECRYPTION_UNKNOWN = 0;
+      const uint8 MSG_NOT_DECRYPTED = 1;
+      const uint8 MSG_DECRYPTED = 2;
+    };
+    @verbatim (language="comment", text=
+      "CorStatusInfo - Status information for UBX-RXM-COR")
+    struct CorStatusInfo {
+      @verbatim (language="comment", text=
+        "Fields" "\n"
+        "Input correction data protocol (refer to constants)")
+      uint8 protocol;
+
+      @verbatim (language="comment", text=
+        "Error status of the received correction message")
+      uint8 err_status;
+
+      @verbatim (language="comment", text=
+        "Status of receiver using the input message")
+      uint8 msg_used;
+
+      @verbatim (language="comment", text=
+        "Identifier for the correction stream (station ID)")
+      uint16 correction_id;
+
+      @verbatim (language="comment", text=
+        "Validity of the msgType field")
+      boolean msg_type_valid;
+
+      @verbatim (language="comment", text=
+        "Validity of the msgSubType field")
+      boolean msg_sub_type_valid;
+
+      @verbatim (language="comment", text=
+        "Input handling support of the input message")
+      boolean msg_input_handle;
+
+      @verbatim (language="comment", text=
+        "Encryption status of the input message")
+      uint8 msg_encrypted;
+
+      @verbatim (language="comment", text=
+        "Decryption status of the input message")
+      uint8 msg_decrypted;
+    };
+  };
+};

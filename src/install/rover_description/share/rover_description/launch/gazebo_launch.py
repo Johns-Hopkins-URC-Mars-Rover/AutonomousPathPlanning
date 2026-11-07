@@ -1,0 +1,1 @@
+/home/clara/AutonomousPathPlanning/src/rover_description/launch/gazebo_launch.py

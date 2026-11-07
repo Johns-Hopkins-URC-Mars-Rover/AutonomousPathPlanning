@@ -1,0 +1,2 @@
+[console_scripts]
+imu_publisher = icm20948_imu_interface.imu_publisher:main

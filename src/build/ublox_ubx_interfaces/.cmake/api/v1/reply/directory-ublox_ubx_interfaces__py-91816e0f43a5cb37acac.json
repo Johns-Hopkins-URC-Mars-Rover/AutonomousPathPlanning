@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "ublox_ubx_interfaces__py",
+		"source" : "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces/ublox_ubx_interfaces__py"
+	}
+}

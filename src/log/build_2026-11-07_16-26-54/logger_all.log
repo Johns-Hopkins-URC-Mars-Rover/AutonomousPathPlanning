@@ -1,0 +1,575 @@
+[0.061s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[0.061s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=16, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x75296a26fc10>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x75296a26f6a0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x75296a26f6a0>>, mixin_verb=('build',))
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.095s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.095s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/clara/AutonomousPathPlanning/src'
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.095s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extensions ['ignore', 'ignore_ament_install']
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extension 'ignore'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extension 'ignore_ament_install'
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extensions ['colcon_pkg']
+[0.097s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extension 'colcon_pkg'
+[0.098s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extensions ['colcon_meta']
+[0.098s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extension 'colcon_meta'
+[0.098s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extensions ['ros']
+[0.098s] Level 1:colcon.colcon_core.package_identification:_identify(icm20948_imu_interface) by extension 'ros'
+[0.099s] DEBUG:colcon.colcon_core.package_identification:Package 'icm20948_imu_interface' with type 'ros.ament_python' and name 'icm20948_imu_interface'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extensions ['ignore', 'ignore_ament_install']
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extension 'ignore'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extension 'ignore_ament_install'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extensions ['colcon_pkg']
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extension 'colcon_pkg'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extensions ['colcon_meta']
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extension 'colcon_meta'
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extensions ['ros']
+[0.099s] Level 1:colcon.colcon_core.package_identification:_identify(l76x_gps_interface) by extension 'ros'
+[0.100s] DEBUG:colcon.colcon_core.package_identification:Package 'l76x_gps_interface' with type 'ros.ament_python' and name 'l76x_gps_interface'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extensions ['ignore', 'ignore_ament_install']
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extension 'ignore'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extension 'ignore_ament_install'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extensions ['colcon_pkg']
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extension 'colcon_pkg'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extensions ['colcon_meta']
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extension 'colcon_meta'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extensions ['ros']
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(nav2_costmap) by extension 'ros'
+[0.100s] DEBUG:colcon.colcon_core.package_identification:Package 'nav2_costmap' with type 'ros.ament_cmake' and name 'nav2_costmap'
+[0.100s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extensions ['ignore', 'ignore_ament_install']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extension 'ignore'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extension 'ignore_ament_install'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extensions ['colcon_pkg']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extension 'colcon_pkg'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extensions ['colcon_meta']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extension 'colcon_meta'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extensions ['ros']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_bringup) by extension 'ros'
+[0.101s] DEBUG:colcon.colcon_core.package_identification:Package 'rover_bringup' with type 'ros.ament_cmake' and name 'rover_bringup'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extensions ['ignore', 'ignore_ament_install']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extension 'ignore'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extension 'ignore_ament_install'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extensions ['colcon_pkg']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extension 'colcon_pkg'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extensions ['colcon_meta']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extension 'colcon_meta'
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extensions ['ros']
+[0.101s] Level 1:colcon.colcon_core.package_identification:_identify(rover_description) by extension 'ros'
+[0.102s] DEBUG:colcon.colcon_core.package_identification:Package 'rover_description' with type 'ros.ament_cmake' and name 'rover_description'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extensions ['ignore', 'ignore_ament_install']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extension 'ignore'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extension 'ignore_ament_install'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extensions ['colcon_pkg']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extension 'colcon_pkg'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extensions ['colcon_meta']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extension 'colcon_meta'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extensions ['ros']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_imu_fusion) by extension 'ros'
+[0.102s] DEBUG:colcon.colcon_core.package_identification:Package 'rover_imu_fusion' with type 'ros.ament_cmake' and name 'rover_imu_fusion'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extensions ['ignore', 'ignore_ament_install']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extension 'ignore'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extension 'ignore_ament_install'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extensions ['colcon_pkg']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extension 'colcon_pkg'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extensions ['colcon_meta']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extension 'colcon_meta'
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extensions ['ros']
+[0.102s] Level 1:colcon.colcon_core.package_identification:_identify(rover_localization) by extension 'ros'
+[0.103s] DEBUG:colcon.colcon_core.package_identification:Package 'rover_localization' with type 'ros.ament_cmake' and name 'rover_localization'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['ignore', 'ignore_ament_install']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'ignore'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'ignore_ament_install'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['colcon_pkg']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'colcon_pkg'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['colcon_meta']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'colcon_meta'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['ros']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'ros'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['cmake', 'python']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'cmake'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'python'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extensions ['python_setup_py']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss) by extension 'python_setup_py'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extensions ['ignore', 'ignore_ament_install']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extension 'ignore'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extension 'ignore_ament_install'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extensions ['colcon_pkg']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extension 'colcon_pkg'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extensions ['colcon_meta']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extension 'colcon_meta'
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extensions ['ros']
+[0.103s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ntrip_client_node) by extension 'ros'
+[0.104s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ntrip_client_node' with type 'ros.ament_cmake' and name 'ntrip_client_node'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extensions ['ignore', 'ignore_ament_install']
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extension 'ignore'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extension 'ignore_ament_install'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extensions ['colcon_pkg']
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extension 'colcon_pkg'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extensions ['colcon_meta']
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extension 'colcon_meta'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extensions ['ros']
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss) by extension 'ros'
+[0.104s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ublox_dgnss' with type 'ros.ament_cmake' and name 'ublox_dgnss'
+[0.104s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extensions ['ignore', 'ignore_ament_install']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extension 'ignore'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extension 'ignore_ament_install'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extensions ['colcon_pkg']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extension 'colcon_pkg'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extensions ['colcon_meta']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extension 'colcon_meta'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extensions ['ros']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_dgnss_node) by extension 'ros'
+[0.105s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ublox_dgnss_node' with type 'ros.ament_cmake' and name 'ublox_dgnss_node'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extensions ['ignore', 'ignore_ament_install']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extension 'ignore'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extension 'ignore_ament_install'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extensions ['colcon_pkg']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extension 'colcon_pkg'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extensions ['colcon_meta']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extension 'colcon_meta'
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extensions ['ros']
+[0.105s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_nav_sat_fix_hp_node) by extension 'ros'
+[0.106s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ublox_nav_sat_fix_hp_node' with type 'ros.ament_cmake' and name 'ublox_nav_sat_fix_hp_node'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extensions ['ignore', 'ignore_ament_install']
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extension 'ignore'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extension 'ignore_ament_install'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extensions ['colcon_pkg']
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extension 'colcon_pkg'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extensions ['colcon_meta']
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extension 'colcon_meta'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extensions ['ros']
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_interfaces) by extension 'ros'
+[0.106s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ublox_ubx_interfaces' with type 'ros.ament_cmake' and name 'ublox_ubx_interfaces'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extensions ['ignore', 'ignore_ament_install']
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extension 'ignore'
+[0.106s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extension 'ignore_ament_install'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extensions ['colcon_pkg']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extension 'colcon_pkg'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extensions ['colcon_meta']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extension 'colcon_meta'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extensions ['ros']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(ublox_dgnss/ublox_ubx_msgs) by extension 'ros'
+[0.107s] DEBUG:colcon.colcon_core.package_identification:Package 'ublox_dgnss/ublox_ubx_msgs' with type 'ros.ament_cmake' and name 'ublox_ubx_msgs'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['ignore', 'ignore_ament_install']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'ignore'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'ignore_ament_install'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['colcon_pkg']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'colcon_pkg'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['colcon_meta']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'colcon_meta'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['ros']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'ros'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['cmake', 'python']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'cmake'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'python'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extensions ['python_setup_py']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2) by extension 'python_setup_py'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['ignore', 'ignore_ament_install']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'ignore'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'ignore_ament_install'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['colcon_pkg']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'colcon_pkg'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['colcon_meta']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'colcon_meta'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['ros']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'ros'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['cmake', 'python']
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'cmake'
+[0.107s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'python'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extensions ['python_setup_py']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/docs) by extension 'python_setup_py'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['ignore', 'ignore_ament_install']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'ignore'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'ignore_ament_install'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['colcon_pkg']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'colcon_pkg'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['colcon_meta']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'colcon_meta'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['ros']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'ros'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['cmake', 'python']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'cmake'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'python'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extensions ['python_setup_py']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2) by extension 'python_setup_py'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['ignore', 'ignore_ament_install']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'ignore'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'ignore_ament_install'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['colcon_pkg']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'colcon_pkg'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['colcon_meta']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'colcon_meta'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['ros']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'ros'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['cmake', 'python']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'cmake'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'python'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extensions ['python_setup_py']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src) by extension 'python_setup_py'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extensions ['ignore', 'ignore_ament_install']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extension 'ignore'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extension 'ignore_ament_install'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extensions ['colcon_pkg']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extension 'colcon_pkg'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extensions ['colcon_meta']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extension 'colcon_meta'
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extensions ['ros']
+[0.108s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2) by extension 'ros'
+[0.109s] DEBUG:colcon.colcon_core.package_identification:Package 'unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2' with type 'ros.ament_cmake' and name 'unitree_lidar_ros2'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_sdk) by extensions ['ignore', 'ignore_ament_install']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_sdk) by extension 'ignore'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(unilidar_sdk2/unitree_lidar_sdk) ignored
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['ignore', 'ignore_ament_install']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'ignore'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'ignore_ament_install'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['colcon_pkg']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'colcon_pkg'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['colcon_meta']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'colcon_meta'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['ros']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'ros'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['cmake', 'python']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'cmake'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'python'
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extensions ['python_setup_py']
+[0.109s] Level 1:colcon.colcon_core.package_identification:_identify(zed-ros2-wrapper) by extension 'python_setup_py'
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.123s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.123s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.124s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/clara/AutonomousPathPlanning/src/install
+[0.125s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 381 installed packages in /opt/ros/humble
+[0.125s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_target' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_clean_cache' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_clean_first' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'cmake_force_configure' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'ament_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'catkin_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'icm20948_imu_interface' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.150s] DEBUG:colcon.colcon_core.verb:Building package 'icm20948_imu_interface' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface', 'symlink_install': True, 'test_result_base': None}
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_target' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_clean_cache' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_clean_first' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'cmake_force_configure' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'ament_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'catkin_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'l76x_gps_interface' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.150s] DEBUG:colcon.colcon_core.verb:Building package 'l76x_gps_interface' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/l76x_gps_interface', 'symlink_install': True, 'test_result_base': None}
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_target' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_clean_cache' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_clean_first' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'cmake_force_configure' from command line to 'False'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'ament_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'catkin_cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.150s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_costmap' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/nav2_costmap', 'symlink_install': True, 'test_result_base': None}
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_args' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_target' from command line to 'None'
+[0.150s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_clean_cache' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_clean_first' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'cmake_force_configure' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'ament_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'catkin_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client_node' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.151s] DEBUG:colcon.colcon_core.verb:Building package 'ntrip_client_node' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ntrip_client_node', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ntrip_client_node', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ntrip_client_node', 'symlink_install': True, 'test_result_base': None}
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_target' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_clean_cache' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_clean_first' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'cmake_force_configure' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'ament_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'catkin_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_description' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.151s] DEBUG:colcon.colcon_core.verb:Building package 'rover_description' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/rover_description', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/rover_description', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/rover_description', 'symlink_install': True, 'test_result_base': None}
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_target' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_clean_cache' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_clean_first' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'cmake_force_configure' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'ament_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'catkin_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_imu_fusion' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.151s] DEBUG:colcon.colcon_core.verb:Building package 'rover_imu_fusion' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/rover_imu_fusion', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/rover_imu_fusion', 'symlink_install': True, 'test_result_base': None}
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_target' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_clean_cache' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_clean_first' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'cmake_force_configure' from command line to 'False'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'ament_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'catkin_cmake_args' from command line to 'None'
+[0.151s] Level 5:colcon.colcon_core.verb:set package 'rover_localization' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.151s] DEBUG:colcon.colcon_core.verb:Building package 'rover_localization' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/rover_localization', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/rover_localization', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/rover_localization', 'symlink_install': True, 'test_result_base': None}
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_target' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_clean_cache' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_clean_first' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'cmake_force_configure' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'ament_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'catkin_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_interfaces' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.152s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_ubx_interfaces' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ublox_ubx_interfaces', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_interfaces', 'symlink_install': True, 'test_result_base': None}
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_target' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_clean_cache' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_clean_first' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'cmake_force_configure' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'ament_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'catkin_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'ublox_ubx_msgs' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.152s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_ubx_msgs' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_msgs', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ublox_ubx_msgs', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_msgs', 'symlink_install': True, 'test_result_base': None}
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_target' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_clean_cache' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_clean_first' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'cmake_force_configure' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'ament_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'catkin_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'unitree_lidar_ros2' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.152s] DEBUG:colcon.colcon_core.verb:Building package 'unitree_lidar_ros2' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/unitree_lidar_ros2', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/unitree_lidar_ros2', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2', 'symlink_install': True, 'test_result_base': None}
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_target' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_clean_cache' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_clean_first' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'cmake_force_configure' from command line to 'False'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'ament_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'catkin_cmake_args' from command line to 'None'
+[0.152s] Level 5:colcon.colcon_core.verb:set package 'rover_bringup' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.152s] DEBUG:colcon.colcon_core.verb:Building package 'rover_bringup' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/rover_bringup', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/rover_bringup', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/rover_bringup', 'symlink_install': True, 'test_result_base': None}
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_target' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_clean_cache' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_clean_first' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'cmake_force_configure' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'ament_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'catkin_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss_node' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.153s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_dgnss_node' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ublox_dgnss_node', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ublox_dgnss_node', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_dgnss_node', 'symlink_install': True, 'test_result_base': None}
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_target' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_clean_cache' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_clean_first' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'cmake_force_configure' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'ament_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'catkin_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_nav_sat_fix_hp_node' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.153s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_nav_sat_fix_hp_node' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ublox_nav_sat_fix_hp_node', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ublox_nav_sat_fix_hp_node', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_nav_sat_fix_hp_node', 'symlink_install': True, 'test_result_base': None}
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_target' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_clean_cache' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_clean_first' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'cmake_force_configure' from command line to 'False'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'ament_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'catkin_cmake_args' from command line to 'None'
+[0.153s] Level 5:colcon.colcon_core.verb:set package 'ublox_dgnss' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.153s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_dgnss' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/clara/AutonomousPathPlanning/src/build/ublox_dgnss', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/clara/AutonomousPathPlanning/src/install/ublox_dgnss', 'merge_install': False, 'path': '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_dgnss', 'symlink_install': True, 'test_result_base': None}
+[0.153s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.154s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.160s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_interfaces' with build type 'ament_cmake'
+[0.161s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_interfaces'
+[0.162s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.162s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.162s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.166s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_msgs' with build type 'ament_cmake'
+[0.166s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_msgs'
+[0.166s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.166s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.169s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface' with build type 'ament_python'
+[0.169s] Level 1:colcon.colcon_core.shell:create_environment_hook('icm20948_imu_interface', 'ament_prefix_path')
+[0.170s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface/share/icm20948_imu_interface/hook/ament_prefix_path.ps1'
+[0.170s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface/share/icm20948_imu_interface/hook/ament_prefix_path.dsv'
+[0.170s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface/share/icm20948_imu_interface/hook/ament_prefix_path.sh'
+[0.171s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.171s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.172s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/l76x_gps_interface' with build type 'ament_python'
+[0.172s] Level 1:colcon.colcon_core.shell:create_environment_hook('l76x_gps_interface', 'ament_prefix_path')
+[0.172s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface/share/l76x_gps_interface/hook/ament_prefix_path.ps1'
+[0.173s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface/share/l76x_gps_interface/hook/ament_prefix_path.dsv'
+[0.173s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface/share/l76x_gps_interface/hook/ament_prefix_path.sh'
+[0.173s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.173s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.183s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ntrip_client_node' with build type 'ament_cmake'
+[0.183s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/ublox_dgnss/ntrip_client_node'
+[0.183s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.183s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.186s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/rover_imu_fusion' with build type 'ament_cmake'
+[0.186s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/rover_imu_fusion'
+[0.186s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.186s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.188s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/rover_localization' with build type 'ament_cmake'
+[0.189s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/rover_localization'
+[0.189s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.189s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.191s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/nav2_costmap' with build type 'ament_cmake'
+[0.191s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/nav2_costmap'
+[0.191s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.191s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.194s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/rover_description' with build type 'ament_cmake'
+[0.194s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/rover_description'
+[0.194s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.194s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.197s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2' with build type 'ament_cmake'
+[0.197s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2'
+[0.197s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.197s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.201s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_interfaces -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/ublox_ubx_interfaces
+[0.204s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/ublox_dgnss/ublox_ubx_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/ublox_ubx_msgs
+[0.356s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface'
+[0.356s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.356s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.505s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/clara/AutonomousPathPlanning/src/l76x_gps_interface'
+[0.506s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.506s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.510s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/ntrip_client_node': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/ublox_dgnss/ntrip_client_node -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/ntrip_client_node
+[0.511s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/rover_imu_fusion -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/rover_imu_fusion
+[0.513s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/rover_localization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/rover_localization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/rover_localization
+[0.517s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/nav2_costmap -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/nav2_costmap
+[0.519s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/clara/AutonomousPathPlanning/src/build/rover_description -- -j16 -l16
+[0.524s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/unitree_lidar_ros2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/unitree_lidar_ros2
+[0.546s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/build/rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/clara/AutonomousPathPlanning/src/build/rover_description -- -j16 -l16
+[0.555s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/clara/AutonomousPathPlanning/src/build/rover_description
+[0.580s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rover_description)
+[0.581s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/build/rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/clara/AutonomousPathPlanning/src/build/rover_description
+[0.584s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description' for CMake module files
+[0.585s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description' for CMake config files
+[0.585s] Level 1:colcon.colcon_core.shell:create_environment_hook('rover_description', 'cmake_prefix_path')
+[0.586s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.ps1'
+[0.586s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.dsv'
+[0.587s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.sh'
+[0.587s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/bin'
+[0.588s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/lib/pkgconfig/rover_description.pc'
+[0.588s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/lib/python3.10/site-packages'
+[0.589s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/bin'
+[0.589s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.ps1'
+[0.590s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.dsv'
+[0.591s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.sh'
+[0.592s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.bash'
+[0.593s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.zsh'
+[0.594s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/clara/AutonomousPathPlanning/src/install/rover_description/share/colcon-core/packages/rover_description)
+[0.595s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rover_description)
+[0.595s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description' for CMake module files
+[0.596s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description' for CMake config files
+[0.597s] Level 1:colcon.colcon_core.shell:create_environment_hook('rover_description', 'cmake_prefix_path')
+[0.597s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.ps1'
+[0.598s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.dsv'
+[0.598s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/hook/cmake_prefix_path.sh'
+[0.599s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/bin'
+[0.599s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/lib/pkgconfig/rover_description.pc'
+[0.599s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/lib/python3.10/site-packages'
+[0.600s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/rover_description/bin'
+[0.600s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.ps1'
+[0.601s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.dsv'
+[0.602s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.sh'
+[0.603s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.bash'
+[0.603s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/rover_description/share/rover_description/package.zsh'
+[0.604s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/clara/AutonomousPathPlanning/src/install/rover_description/share/colcon-core/packages/rover_description)
+[1.088s] DEBUG:colcon.colcon_core.task.python.build:Available setuptools commands: setopt, egg_info, install_scripts, build_clib, sdist, build_scripts, install_data, check, bdist, saveopts, install, init_catalog, update_catalog, build, dist_info, extract_messages, install_lib, bdist_wheel, develop, alias, bdist_egg, editable_wheel, symlink_data, install_egg_info, rotate, bdist_dumb, install_headers, build_ext, bdist_rpm, compile_catalog, easy_install, build_py, clean
+[1.145s] DEBUG:colcon.colcon_core.task.python.build:Available setuptools commands: setopt, egg_info, install_scripts, build_clib, sdist, build_scripts, install_data, check, bdist, saveopts, install, init_catalog, update_catalog, build, dist_info, extract_messages, install_lib, bdist_wheel, develop, alias, bdist_egg, editable_wheel, symlink_data, install_egg_info, rotate, bdist_dumb, install_headers, build_ext, bdist_rpm, compile_catalog, easy_install, build_py, clean
+[1.328s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/nav2_costmap -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/nav2_costmap
+[1.330s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/clara/AutonomousPathPlanning/src/build/nav2_costmap -- -j16 -l16
+[1.365s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/clara/AutonomousPathPlanning/src/build/nav2_costmap -- -j16 -l16
+[1.366s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/clara/AutonomousPathPlanning/src/build/nav2_costmap
+[1.383s] DEBUG:colcon.colcon_core.task.python.build:Available setuptools 'develop' options: --user, --no-user-cfg, --index-url, --verbose, --help, --prefix, --no-deps, --quiet, --install-dir
+[1.383s] INFO:colcon.colcon_core.task.python.build:No '--editable' capability in setuptools, falling back to full install
+[1.385s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/icm20948_imu_interface': PYTHONPATH=/home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/clara/AutonomousPathPlanning/src/install/icm20948_imu_interface/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/icm20948_imu_interface build --build-base /home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/build install --record /home/clara/AutonomousPathPlanning/src/build/icm20948_imu_interface/install.log --install-scripts $base/lib/icm20948_imu_interface --single-version-externally-managed install_data
+[1.451s] DEBUG:colcon.colcon_core.task.python.build:Available setuptools 'develop' options: --user, --no-user-cfg, --index-url, --verbose, --help, --prefix, --no-deps, --quiet, --install-dir
+[1.451s] INFO:colcon.colcon_core.task.python.build:No '--editable' capability in setuptools, falling back to full install
+[1.454s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/clara/AutonomousPathPlanning/src/l76x_gps_interface': PYTHONPATH=/home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/l76x_gps_interface build --build-base /home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/build install --record /home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/install.log --install-scripts $base/lib/l76x_gps_interface --single-version-externally-managed install_data
+[1.525s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(nav2_costmap)
+[1.525s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap' for CMake module files
+[1.525s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/build/nav2_costmap' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/clara/AutonomousPathPlanning/src/build/nav2_costmap
+[1.526s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap' for CMake config files
+[1.526s] Level 1:colcon.colcon_core.shell:create_environment_hook('nav2_costmap', 'cmake_prefix_path')
+[1.526s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.ps1'
+[1.526s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.dsv'
+[1.527s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.sh'
+[1.527s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/bin'
+[1.527s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/lib/pkgconfig/nav2_costmap.pc'
+[1.527s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/lib/python3.10/site-packages'
+[1.527s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/bin'
+[1.527s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.ps1'
+[1.528s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.dsv'
+[1.528s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.sh'
+[1.528s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.bash'
+[1.529s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.zsh'
+[1.529s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/colcon-core/packages/nav2_costmap)
+[1.529s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(nav2_costmap)
+[1.529s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap' for CMake module files
+[1.530s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap' for CMake config files
+[1.530s] Level 1:colcon.colcon_core.shell:create_environment_hook('nav2_costmap', 'cmake_prefix_path')
+[1.530s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.ps1'
+[1.530s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.dsv'
+[1.531s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/hook/cmake_prefix_path.sh'
+[1.531s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/bin'
+[1.532s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/lib/pkgconfig/nav2_costmap.pc'
+[1.532s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/lib/python3.10/site-packages'
+[1.532s] Level 1:colcon.colcon_core.environment:checking '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/bin'
+[1.532s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.ps1'
+[1.533s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.dsv'
+[1.534s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.sh'
+[1.534s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.bash'
+[1.535s] INFO:colcon.colcon_core.shell:Creating package script '/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/nav2_costmap/package.zsh'
+[1.535s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/clara/AutonomousPathPlanning/src/install/nav2_costmap/share/colcon-core/packages/nav2_costmap)
+[1.749s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/clara/AutonomousPathPlanning/src/l76x_gps_interface' returned '1': PYTHONPATH=/home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/clara/AutonomousPathPlanning/src/install/l76x_gps_interface/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/l76x_gps_interface build --build-base /home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/build install --record /home/clara/AutonomousPathPlanning/src/build/l76x_gps_interface/install.log --install-scripts $base/lib/l76x_gps_interface --single-version-externally-managed install_data
+[3.512s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[3.512s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[3.512s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '1'
+[3.512s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[3.517s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[3.517s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[3.517s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[3.531s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[3.532s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/clara/AutonomousPathPlanning/src/install/local_setup.ps1'
+[3.533s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/clara/AutonomousPathPlanning/src/install/_local_setup_util_ps1.py'
+[3.534s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/clara/AutonomousPathPlanning/src/install/setup.ps1'
+[3.535s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/clara/AutonomousPathPlanning/src/install/local_setup.sh'
+[3.536s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/clara/AutonomousPathPlanning/src/install/_local_setup_util_sh.py'
+[3.536s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/clara/AutonomousPathPlanning/src/install/setup.sh'
+[3.538s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/clara/AutonomousPathPlanning/src/install/local_setup.bash'
+[3.538s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/clara/AutonomousPathPlanning/src/install/setup.bash'
+[3.539s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/clara/AutonomousPathPlanning/src/install/local_setup.zsh'
+[3.540s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/clara/AutonomousPathPlanning/src/install/setup.zsh'

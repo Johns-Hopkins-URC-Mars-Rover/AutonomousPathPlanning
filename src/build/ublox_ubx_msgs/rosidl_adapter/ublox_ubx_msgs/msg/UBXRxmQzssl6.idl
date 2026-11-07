@@ -1,0 +1,79 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_ubx_msgs/msg/UBXRxmQzssl6.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module ublox_ubx_msgs {
+  module msg {
+    module UBXRxmQzssl6_Constants {
+      @verbatim (language="comment", text=
+        "msg_name values (chInfo bit 10)")
+      const uint8 MSG_NAME_L6D = 0;
+      const uint8 MSG_NAME_L6E = 1;
+      @verbatim (language="comment", text=
+        "err_status values (chInfo bits 13...12)")
+      const uint8 ERR_UNKNOWN = 0;
+      const uint8 ERR_ERROR_FREE = 1;
+      const uint8 ERR_ERRONEOUS = 2;
+      @verbatim (language="comment", text=
+        "ch_name values (chInfo bits 15...14)")
+      const uint8 CH_NAME_A = 0;
+      const uint8 CH_NAME_B = 1;
+    };
+    @verbatim (language="comment", text=
+      "UBXRxmQZSSL6.msg" "\n"
+      "UBX-RXM-QZSSL6 (0x02 0x73) - QZSS L6 (CLAS) input message from NEO-D9C")
+    struct UBXRxmQzssl6 {
+      @verbatim (language="comment", text=
+        "Header timestamp should be acquisition time")
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        "Fields" "\n"
+        "Message version (0x01 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Satellite identifier (see Satellite Numbering)")
+      uint8 sv_id;
+
+      @verbatim (language="comment", text=
+        "2^-8 dBHz - mean C/N0")
+      uint16 cno;
+
+      @verbatim (language="comment", text=
+        "ms - local time tag at start of received QZSS L6 message")
+      uint32 time_tag;
+
+      @verbatim (language="comment", text=
+        "ns - L6 group delay w.r.t. L2 on channel")
+      uint8 group_delay;
+
+      @verbatim (language="comment", text=
+        "Number of bit errors corrected by Reed-Solomon decoder")
+      uint8 bit_err_corr;
+
+      @verbatim (language="comment", text=
+        "chInfo decoded fields" "\n"
+        "Receiver channel (0, 1)")
+      uint8 chn;
+
+      @verbatim (language="comment", text=
+        "Message name, 0=L6D, 1=L6E")
+      uint8 msg_name;
+
+      @verbatim (language="comment", text=
+        "Error status, 0=unknown, 1=error-free, 2=erroneous")
+      uint8 err_status;
+
+      @verbatim (language="comment", text=
+        "Channel name, 0=channel A, 1=channel B")
+      uint8 ch_name;
+
+      @verbatim (language="comment", text=
+        "Bytes in a QZSS L6 message (250 bytes)")
+      sequence<uint8> msg_bytes;
+    };
+  };
+};

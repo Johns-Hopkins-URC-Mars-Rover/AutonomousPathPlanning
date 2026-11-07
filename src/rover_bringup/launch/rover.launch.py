@@ -33,6 +33,8 @@ def generate_launch_description():
     enable_fusion = LaunchConfiguration('enable_fusion')
     camera_model = LaunchConfiguration('camera_model')
     fusion_launch = os.path.join(get_package_share_directory('rover_imu_fusion'),'launch','imu_fusion.launch.py',)
+    localization_launch = os.path.join(get_package_share_directory('rover_localization'), 'launch', 'localization.launch.py',)
+    zed_config = os.path.join(get_package_share_directory('rover_localization'), 'config', 'zed_optical.yaml',)
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -79,8 +81,18 @@ def generate_launch_description():
             condition=IfCondition(enable_zed),
             launch_arguments={
                 'camera_model': camera_model,
-                # The fusion node needs base_link -> zed_imu_link.
+                'ros_params_override_path': zed_config, # override config parameters
+                'publish_tf': 'false',
+                'publish_map_tf': 'false',
                 'publish_imu_tf': 'true',
+                'enable_gnss': 'false',
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(localization_launch),
+            launch_arguments={
+                'use_sim_time': 'false',
+                'fused_imu_topic': '/imu/data',
             }.items(),
         ),
         # Connects the ZED tree (odom -> zed_camera_link) to base_link, which
@@ -99,8 +111,8 @@ def generate_launch_description():
                 '--yaw', LaunchConfiguration('zed_yaw'),
                 '--pitch', LaunchConfiguration('zed_pitch'),
                 '--roll', LaunchConfiguration('zed_roll'),
-                '--frame-id', 'zed_camera_link',
-                '--child-frame-id', 'base_link',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'zed_camera_link',
             ],
         ),
         IncludeLaunchDescription(

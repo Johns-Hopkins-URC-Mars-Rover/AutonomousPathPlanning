@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/clara/AutonomousPathPlanning/src/build/rover_localization/simulated_sensors" "TARGETS" "simulated_sensors" "DESTINATION" "lib/rover_localization")

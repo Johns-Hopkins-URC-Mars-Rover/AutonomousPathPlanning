@@ -1,0 +1,1 @@
+Invoking command in '/home/clara/AutonomousPathPlanning/src/build/unitree_lidar_ros2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/unilidar_sdk2/unitree_lidar_ros2/src/unitree_lidar_ros2 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/unitree_lidar_ros2
