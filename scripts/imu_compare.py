@@ -33,7 +33,7 @@ from rclpy.time import Time
 import copy
 
 # These scripts run from the repository; reuse the tested ROS-free math.
-_contract_path = Path(__file__).resolve().parents[1] / 'src/rover_localization/scripts/sensor_contracts.py'
+_contract_path = Path(__file__).resolve().parents[1] / 'src/robot_localization/scripts/sensor_contracts.py'
 _spec = importlib.util.spec_from_file_location('sensor_contracts', _contract_path)
 _contracts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_contracts)

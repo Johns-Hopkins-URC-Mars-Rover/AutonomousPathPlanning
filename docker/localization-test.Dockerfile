@@ -2,6 +2,8 @@ FROM ros:humble-ros-base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake python3-colcon-common-extensions \
+    libboost-dev libeigen3-dev libgeographic-dev libyaml-cpp-dev \
+    ros-humble-rosidl-default-generators \
     ros-humble-robot-localization \
     ros-humble-launch-testing ros-humble-launch-testing-ament-cmake \
     ros-humble-ament-lint-auto ros-humble-ament-lint-common \
