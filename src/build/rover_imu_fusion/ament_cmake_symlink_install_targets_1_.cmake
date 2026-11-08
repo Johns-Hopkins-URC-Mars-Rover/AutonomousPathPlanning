@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion/zed_imu_node" "/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion/imu_fusion_node" "TARGETS" "zed_imu_node" "imu_fusion_node" "DESTINATION" "lib/rover_imu_fusion")

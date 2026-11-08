@@ -1,1 +1,0 @@
-/home/clara/AutonomousPathPlanning/src/build/rover_description/ament_cmake_core/rover_descriptionConfig-version.cmake

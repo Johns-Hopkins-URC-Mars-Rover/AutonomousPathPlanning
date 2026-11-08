@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/clara/AutonomousPathPlanning/src/build/ublox_ubx_msgs/rosidl_generator_py/ublox_ubx_msgs/ublox_ubx_msgs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" "TARGETS" "ublox_ubx_msgs__rosidl_typesupport_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/ublox_ubx_msgs")

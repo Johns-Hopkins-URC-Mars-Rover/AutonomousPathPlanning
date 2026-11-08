@@ -1,1 +1,0 @@
-/home/clara/AutonomousPathPlanning/src/nav2_costmap/launch/zed_costmap.launch.py

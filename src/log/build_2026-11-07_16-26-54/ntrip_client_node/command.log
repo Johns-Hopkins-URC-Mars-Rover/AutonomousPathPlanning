@@ -1,1 +1,0 @@
-Invoking command in '/home/clara/AutonomousPathPlanning/src/build/ntrip_client_node': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/clara/AutonomousPathPlanning/src/ublox_dgnss/ntrip_client_node -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/clara/AutonomousPathPlanning/src/install/ntrip_client_node

@@ -1,9 +1,0 @@
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/uninstall.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/nav2_costmap_uninstall.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/test.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/edit_cache.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/rebuild_cache.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/list_install_components.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/install.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/install/local.dir
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/CMakeFiles/install/strip.dir

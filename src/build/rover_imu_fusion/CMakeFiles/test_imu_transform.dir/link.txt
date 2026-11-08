@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/test_imu_transform.dir/test/test_imu_transform.cpp.o -o test_imu_transform  gtest/libgtest_main.a gtest/libgtest.a libimu_fusion_core.a -pthread 

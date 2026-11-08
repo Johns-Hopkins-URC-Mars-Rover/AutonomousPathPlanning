@@ -1,1 +1,0 @@
-/home/clara/AutonomousPathPlanning/src/build/nav2_costmap/ament_cmake_environment_hooks/local_setup.bash

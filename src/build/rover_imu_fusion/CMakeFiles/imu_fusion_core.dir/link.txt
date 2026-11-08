@@ -1,2 +1,0 @@
-/usr/bin/ar qc libimu_fusion_core.a CMakeFiles/imu_fusion_core.dir/src/imu_transform.cpp.o CMakeFiles/imu_fusion_core.dir/src/imu_ekf.cpp.o CMakeFiles/imu_fusion_core.dir/src/imu_initializer.cpp.o CMakeFiles/imu_fusion_core.dir/src/imu_fusion.cpp.o
-/usr/bin/ranlib libimu_fusion_core.a

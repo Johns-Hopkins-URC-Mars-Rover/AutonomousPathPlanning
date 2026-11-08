@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/clara/AutonomousPathPlanning/src/build/rover_imu_fusion/libimu_fusion_core.a" "TARGETS" "imu_fusion_core" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "bin")
