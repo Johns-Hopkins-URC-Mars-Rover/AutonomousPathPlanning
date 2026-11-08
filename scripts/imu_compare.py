@@ -20,6 +20,7 @@ Usage:
 import argparse
 import csv
 import math
+import importlib.util
 from pathlib import Path
 
 import rclpy
@@ -27,6 +28,15 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu
+from tf2_ros import Buffer, TransformListener, TransformException
+from rclpy.time import Time
+import copy
+
+# These scripts run from the repository; reuse the tested ROS-free math.
+_contract_path = Path(__file__).resolve().parents[1] / 'src/robot_localization/scripts/sensor_contracts.py'
+_spec = importlib.util.spec_from_file_location('sensor_contracts', _contract_path)
+_contracts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_contracts)
 
 SOURCES = {
     'icm': '/imu/data_raw',
@@ -42,7 +52,8 @@ COLUMNS = [
     'acc_cov_xx', 'acc_cov_yy', 'acc_cov_zz',
     'gyro_cov_xx', 'gyro_cov_yy', 'gyro_cov_zz',
     'ori_cov_xx', 'ori_cov_yy', 'ori_cov_zz',
-]
+] + [kind + '_cov_' + axes for kind in ('acc', 'gyro')
+     for axes in ('xy', 'xz', 'yx', 'yz', 'zx', 'zy')]
 
 
 def euler_deg(x, y, z, w):
@@ -75,12 +86,17 @@ def row_from(source, msg):
         *[msg.linear_acceleration_covariance[i] for i in (0, 4, 8)],
         *[msg.angular_velocity_covariance[i] for i in (0, 4, 8)],
         *ori_cov,
+        *[cov[i] for cov in (msg.linear_acceleration_covariance, msg.angular_velocity_covariance)
+          for i in (1, 2, 3, 5, 6, 7)],
     ]
 
 
 class ImuCompare(Node):
-    def __init__(self, output, period):
+    def __init__(self, output, period, base_frame=""):
         super().__init__('imu_compare')
+        self.base_frame = base_frame
+        self.buffer = Buffer(node=self)
+        self.listener = TransformListener(self.buffer, self)
         self.latest = {}
         self.counts = dict.fromkeys(SOURCES, 0)
         Path(output).parent.mkdir(parents=True, exist_ok=True)
@@ -95,6 +111,29 @@ class ImuCompare(Node):
         self.get_logger().info(f'Logging to {output}')
 
     def on_msg(self, name, msg):
+        if self.base_frame and msg.header.frame_id != self.base_frame:
+            try:
+                transform = self.buffer.lookup_transform(self.base_frame, msg.header.frame_id, Time()).transform
+                rotation = transform.rotation
+                q = _contracts.normalize_quaternion((rotation.x, rotation.y, rotation.z, rotation.w))
+                msg = copy.deepcopy(msg)
+                for field, covariance_field in (('angular_velocity', 'angular_velocity_covariance'),
+                                                ('linear_acceleration', 'linear_acceleration_covariance')):
+                    vector = getattr(msg, field)
+                    vector.x, vector.y, vector.z = _contracts.rotate(q, (vector.x, vector.y, vector.z))
+                    cov = getattr(msg, covariance_field)
+                    columns = [_contracts.rotate(q, tuple(float(i == j) for i in range(3))) for j in range(3)]
+                    rotated = [sum(columns[i][r]*cov[i*3+j]*columns[j][c]
+                                   for i in range(3) for j in range(3)) for r in range(3) for c in range(3)]
+                    setattr(msg, covariance_field, rotated)
+                if msg.orientation_covariance[0] >= 0:
+                    ori = msg.orientation
+                    qb = _contracts.multiply((ori.x, ori.y, ori.z, ori.w), (-q[0], -q[1], -q[2], q[3]))
+                    ori.x, ori.y, ori.z, ori.w = qb
+                msg.header.frame_id = self.base_frame
+            except (TransformException, ValueError) as error:
+                self.get_logger().warning(f'{name}: cannot log in {self.base_frame}: {error}', throttle_duration_sec=2.)
+                return
         row = row_from(name, msg)
         self.writer.writerow(row)
         self.latest[name] = row
@@ -132,10 +171,11 @@ def main():
     parser.add_argument('--period', type=float, default=1.0, help='print period [s]')
     parser.add_argument('--sim-time', action='store_true',
                         help='use /clock (bag replay with --clock)')
+    parser.add_argument('--base-frame', default='', help='Rotate IMU vectors/covariances via calibrated static TF before CSV logging')
     args = parser.parse_args()
 
     rclpy.init()
-    node = ImuCompare(args.output, args.period)
+    node = ImuCompare(args.output, args.period, args.base_frame)
     if args.sim_time:
         node.set_parameters([Parameter('use_sim_time', Parameter.Type.BOOL, True)])
     try:

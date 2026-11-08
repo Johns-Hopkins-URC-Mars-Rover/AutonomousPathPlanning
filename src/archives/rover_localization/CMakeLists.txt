@@ -1,0 +1,72 @@
+cmake_minimum_required(VERSION 3.8)
+project(rover_localization)
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+add_executable(simulated_sensors
+  src/simulated_sensors.cpp
+)
+
+target_compile_features(simulated_sensors PRIVATE cxx_std_17)
+target_include_directories(simulated_sensors PRIVATE include)
+
+ament_target_dependencies(simulated_sensors
+  rclcpp
+  nav_msgs
+  sensor_msgs
+)
+
+install(TARGETS simulated_sensors
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/fake_imu_publisher.py
+  scripts/sensor_inputs.py
+  scripts/zed_imu_tf.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(FILES scripts/sensor_contracts.py DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+if(BUILD_TESTING)
+  enable_testing()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/localization_launch_test.py TARGET localization_ros_e2e TIMEOUT 60)
+  add_launch_test(test/noisy_localization_launch_test.py TARGET localization_noisy_e2e TIMEOUT 120)
+  set_tests_properties(localization_ros_e2e localization_noisy_e2e PROPERTIES RUN_SERIAL TRUE)
+  add_executable(simulation_model_test test/test_simulation_model.cpp)
+  target_compile_features(simulation_model_test PRIVATE cxx_std_17)
+  target_include_directories(simulation_model_test PRIVATE include)
+  add_test(NAME simulation_model_test COMMAND simulation_model_test)
+  add_test(NAME localization_python_tests
+    COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
+      -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_*.py")
+endif()
+
+ament_package()

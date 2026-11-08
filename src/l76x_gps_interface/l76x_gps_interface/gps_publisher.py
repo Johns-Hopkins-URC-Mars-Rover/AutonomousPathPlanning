@@ -9,61 +9,7 @@ from serial import SerialException
 from .L76X import L76X
 
 
-def decimal_degrees(value, hemisphere, is_latitude):
-    """Convert NMEA ddmm.mmmm / dddmm.mmmm to signed degrees."""
-    allowed = ("N", "S") if is_latitude else ("E", "W")
-    if hemisphere not in allowed:
-        raise ValueError("Invalid hemisphere")
-
-    raw = float(value)
-    if not math.isfinite(raw) or raw < 0:
-        raise ValueError("Invalid coordinate")
-
-    degrees = int(raw // 100)
-    minutes = raw - degrees * 100
-
-    if not 0 <= minutes < 60:
-        raise ValueError("Invalid minutes")
-
-    result = degrees + minutes / 60.0
-    limit = 90 if is_latitude else 180
-
-    if result > limit:
-        raise ValueError("Coordinate out of range")
-
-    return -result if hemisphere in ("S", "W") else result
-
-
-def parse_rmc(line):
-    """Return RMC fields only for a checksum-valid GP/GN sentence."""
-    try:
-        text = line.decode("ascii").strip()
-
-        if not text.startswith("$"):
-            return None
-
-        body, checksum = text[1:].split("*")
-        if len(checksum) != 2:
-            return None
-
-        calculated = 0
-        for character in body:
-            calculated ^= ord(character)
-
-        if calculated != int(checksum, 16):
-            return None
-
-        fields = body.split(",")
-        if fields[0] not in ("GPRMC", "GNRMC"):
-            return None
-
-        if len(fields) < 10 or fields[2] not in ("A", "V"):
-            return None
-
-        return fields
-
-    except (UnicodeDecodeError, ValueError):
-        return None
+from .nmea import decimal_degrees, parse_rmc, parse_gga, ellipsoid_altitude, utc_timestamp
 
 
 class GPSPublisher(Node):
@@ -76,6 +22,13 @@ class GPSPublisher(Node):
         baudrate = int(self.get_parameter("baudrate").value)
         self.frame_id = self.get_parameter("frame_id").value
 
+        self.variance = self.declare_parameter('position_variance', [0.0, 0.0, 0.0]).value
+        if (len(self.variance) != 3 or not all(math.isfinite(v) and v >= 0 for v in self.variance)
+                or (any(self.variance) and not all(v > 0 for v in self.variance))):
+            raise ValueError('position_variance must be all zero (unknown) or 3 positive measured variances')
+        self.pending = {}
+        self.gga = {}
+        self.last_epoch = None
         self.publisher = self.create_publisher(NavSatFix, "/gps/fix", 10)
 
         self.gps = L76X()
@@ -84,7 +37,7 @@ class GPSPublisher(Node):
         self.gps.L76X_Exit_BackupMode()
         self.gps.L76X_Send_Command(self.gps.SET_NORMAL_MODE)
 
-        self.gps.L76X_Send_Command("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+        self.gps.L76X_Send_Command("$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
         self.gps.L76X_Send_Command(self.gps.SET_POS_FIX_400MS)
 
         self.serial = self.gps.config.serial
@@ -113,7 +66,34 @@ class GPSPublisher(Node):
                 if fields is not None:
                     self.last_rmc = time.monotonic()
                     self.warned_silent = False
-                    self.publish_fix(fields)
+                    try:
+                        epoch = float(fields[1])
+                        if math.isfinite(epoch) and epoch != self.last_epoch:
+                            self.pending[epoch] = (fields, time.monotonic())
+                    except ValueError:
+                        pass
+                gga = parse_gga(line)
+                if gga is not None:
+                    try:
+                        epoch = float(gga[1])
+                        if math.isfinite(epoch):
+                            self.gga[epoch] = (gga, time.monotonic())
+                    except ValueError:
+                        pass
+
+            for epoch, (fields, received) in list(self.pending.items()):
+                pair = self.gga.get(epoch)
+                if pair is not None and time.monotonic() - pair[1] > 1.0:
+                    pair = None
+                if pair is not None or fields[2] == 'V' or time.monotonic() - received > 1.0:
+                    self.publish_fix(fields, pair[0] if pair else None)
+                    self.last_epoch = epoch
+                    del self.pending[epoch]
+            # Bound caches even with malformed or missing counterpart sentences.
+            for cache in (self.pending, self.gga):
+                for epoch in list(cache):
+                    if time.monotonic() - cache[epoch][1] > 2.0:
+                        del cache[epoch]
 
             if len(self.buffer) > 8192:
                 self.buffer.clear()
@@ -127,10 +107,16 @@ class GPSPublisher(Node):
             self.get_logger().error(f"Serial connection failed: {error}")
             self.timer.cancel()
 
-    def publish_fix(self, fields):
+    def publish_fix(self, fields, gga=None):
         msg = NavSatFix()
 
-        msg.header.stamp = self.get_clock().now().to_msg()
+        try:
+            stamp = utc_timestamp(fields)
+        except ValueError as error:
+            self.get_logger().warning(f'GPS acquisition time invalid: {error}', throttle_duration_sec=2.)
+            return
+        msg.header.stamp.sec = int(stamp)
+        msg.header.stamp.nanosec = int((stamp - int(stamp)) * 1e9)
         msg.header.frame_id = self.frame_id
         msg.status.service = 0
 
@@ -154,6 +140,15 @@ class GPSPublisher(Node):
                 return
 
             msg.status.status = NavSatStatus.STATUS_FIX
+            if gga is not None:
+                try:
+                    msg.altitude = ellipsoid_altitude(gga)
+                except ValueError:
+                    pass  # Raw horizontal fix remains available; fusion gate rejects unknown altitude.
+            if all(v > 0 for v in self.variance):
+                msg.position_covariance = [v if r == c else 0.
+                                           for r, v in enumerate(self.variance) for c in range(3)]
+                msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
 
         self.publisher.publish(msg)
 
@@ -167,6 +162,7 @@ class GPSPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
 
+    node = None
     try:
         node = GPSPublisher()
         rclpy.spin(node)

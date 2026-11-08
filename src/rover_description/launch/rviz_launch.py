@@ -11,7 +11,8 @@ def generate_launch_description():
     urdf_file = os.path.join(package_share, 'urdf', urdf_name)
 
     with open(urdf_file, 'r') as infp:
-        robot_description = infp.read()
+        robot_description = infp.read().replace('@ROVER_CONTROLLER_CONFIG@',
+            os.path.join(package_share, 'config', 'rover_controller.yaml'))
 
     return LaunchDescription([
         Node(

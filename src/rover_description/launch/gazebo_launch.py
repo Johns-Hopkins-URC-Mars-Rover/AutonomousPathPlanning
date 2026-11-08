@@ -15,7 +15,8 @@ def generate_launch_description():
     world_file = os.path.join(package_share, 'world', 'park.world')
 
     with open(urdf_file, 'r') as infp:
-        robot_description = infp.read()
+        robot_description = infp.read().replace('@ROVER_CONTROLLER_CONFIG@',
+            os.path.join(package_share, 'config', 'rover_controller.yaml'))
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -37,7 +38,7 @@ def generate_launch_description():
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}],
+        parameters=[{'robot_description': robot_description, 'use_sim_time': True}],
         output='screen'
     )
 

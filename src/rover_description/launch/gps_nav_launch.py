@@ -1,73 +1,44 @@
+"""Self-contained robot_localization EKFs and optional Nav2.
+
+Hardware drivers run separately (normally on the Jetson). This launch owns the
+estimators; do not also start another local EKF from rover_bringup.
+"""
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
-from launch_ros.actions import Node
-from launch.actions import GroupAction
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import SetRemap
-import os
+
 
 def generate_launch_description():
-    package_share = get_package_share_directory('rover_description')
-    ekf_config = os.path.join(package_share, 'config', 'dual_ekf_navsat.yaml')
-    nav2_config = os.path.join(package_share, 'config', 'nav2_params.yaml')
-
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
-
-    # Local EKF: fuses wheel odometry + IMU -> /odometry/local
-    ekf_local_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node_odom',
-        output='screen',
-        parameters=[ekf_config, {'use_sim_time': True}],
-        remappings=[('odometry/filtered', 'odometry/local')]
-    )
-
-    # Global EKF: fuses wheel odometry + IMU + GPS-derived odom -> /odometry/global
-    ekf_global_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node_map',
-        output='screen',
-        parameters=[ekf_config, {'use_sim_time': True}],
-        remappings=[('odometry/filtered', 'odometry/global')]
-    )
-
-    # Converts GPS lat/lon into local X/Y odometry, using global EKF output for yaw
-    navsat_transform_node = Node(
-        package='robot_localization',
-        executable='navsat_transform_node',
-        name='navsat_transform',
-        output='screen',
-        parameters=[ekf_config, {'use_sim_time': True}],
-        remappings=[
-            ('imu', '/rover/imu/data'),
-            ('gps/fix', '/rover/gps/fix'),
-            ('odometry/filtered', 'odometry/global')
-        ]
-    )
-
-    # Nav2 bringup (planner, controller, costmaps, behavior tree navigator)
-    nav2 = GroupAction(
-        actions=[
+    args = {'use_sim_time': 'false',
+            'zed_odom_topic': '/zed/zed_node/odom',
+            'wheel_odom_topic': '/diff_drive_controller/odom',
+            'zed_imu_topic': '/zed/zed_node/imu/data', 'icm_imu_topic': '/imu/data_raw',
+            'gps_topic': '/gps/fix', 'heading_topic': '/imu/heading',
+            'enable_global': 'false', 'heading_mode': 'unset',
+            'initial_heading_deg': 'nan', 'publish_approximate_mounts': 'false',
+            'use_zed_odom': 'true', 'use_wheel_odom': 'true',
+            'use_zed_imu': 'true', 'use_icm_imu': 'true',
+            'enable_nav2': 'false'}
+    def include(package, file, names, condition=None):
+        kwargs = {} if condition is None else {'condition': condition}
+        return IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
+            FindPackageShare(package), 'launch', file])),
+            launch_arguments={name: LaunchConfiguration(name) for name in names}.items(), **kwargs)
+    actions = [DeclareLaunchArgument(name, default_value=value) for name, value in args.items()]
+    actions += [
+        GroupAction(actions=[include('robot_localization', 'dual_ekf.launch.py',
+                tuple(name for name in args if name != 'enable_nav2'))]),
+        GroupAction(condition=IfCondition(LaunchConfiguration('enable_nav2')), actions=[
             SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    os.path.join(nav2_bringup_dir, 'launch', 'navigation_launch.py')
-                ),
-                launch_arguments={
-                    'use_sim_time': 'true',
-                    'params_file': nav2_config
-                }.items()
-            )
-        ]
-    )
-
-    return LaunchDescription([
-        ekf_local_node,
-        ekf_global_node,
-        navsat_transform_node,
-        nav2,
-    ])
+            IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
+            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'),
+                              'params_file': PathJoinSubstitution([FindPackageShare('rover_description'),
+                                                                  'config', 'nav2_params.yaml'])}.items()),
+        ]),
+    ]
+    return LaunchDescription(actions)
