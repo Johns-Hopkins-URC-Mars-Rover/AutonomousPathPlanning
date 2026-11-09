@@ -17,9 +17,6 @@ def generate_launch_description():
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
     camera_model = LaunchConfiguration('camera_model')
-    fusion_launch = os.path.join(get_package_share_directory('rover_imu_fusion'),'launch','imu_fusion.launch.py',)
-    localization_launch = os.path.join(get_package_share_directory('rover_localization'), 'launch', 'localization.launch.py',)
-    zed_config = os.path.join(get_package_share_directory('rover_localization'), 'config', 'zed_optical.yaml',)
 
     return LaunchDescription([
         DeclareLaunchArgument(
