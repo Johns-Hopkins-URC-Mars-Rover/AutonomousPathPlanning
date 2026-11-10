@@ -50,14 +50,31 @@ planner_server:
     use_sim_time: true
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"
+
+      # REEDS_SHEPP allows for backward movement
+      # DUBIN is forward-only
+      motion_model_for_search: "REEDS_SHEPP" 
+      minimum_turning_radius: 1.0  # placeholder value
+      angle_quantization_bins: 72 # how fine you want angle movements to be
+
+      # tolerance is based on estimated distance left, takes heading into account
+      tolerance: 0.25 # in meters
+      allow_unknown: false # don't go into unknown places :(
+      max_planning_time: 5.0 # in seconds
+      downsample_costmap: false # don't decrease costmap resolution
+
+      analytic_expansion_max_length: 5.0 # how far to look in the future
+      smooth_path: true # uhhh smooth ?
 
 global_costmap:
   global_costmap:
     ros__parameters:
       use_sim_time: true
-      global_frame: map
+      global_frame: odom # temp
       robot_base_frame: base_link
+      robot_radius: 0.5 # errr might want to change later
+      track_unknown_space: false
       rolling_window: true
       width: 50
       height: 50
