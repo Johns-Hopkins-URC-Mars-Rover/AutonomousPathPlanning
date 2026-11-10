@@ -171,11 +171,15 @@ if(BUILD_ROVER_TESTING)
     ENV ROVER_TEST_PROFILE=zed_only)
   add_launch_test(test/dual_ekf_launch_test.py TARGET rover_dropouts_e2e TIMEOUT 90
     ENV ROVER_TEST_PROFILE=dropouts)
-  set_tests_properties(rover_dual_ekf_e2e rover_missing_wheel_e2e
+  add_launch_test(test/noisy_localization_launch_test.py TARGET rover_noisy_e2e TIMEOUT 120)
+  set_tests_properties(rover_noisy_e2e rover_dual_ekf_e2e rover_missing_wheel_e2e
     rover_zed_only_e2e rover_dropouts_e2e PROPERTIES RUN_SERIAL TRUE)
   add_test(NAME rover_sensor_contracts
     COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
       -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_rover_*.py")
+  add_test(NAME rover_noisy_model
+    COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
+      -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_noisy_sensor_model.py")
   add_test(NAME rover_sensor_math
     COMMAND "${Python3_EXECUTABLE}" -B -m unittest discover
       -s "${CMAKE_CURRENT_SOURCE_DIR}/test" -p "test_sensor_contracts.py")
