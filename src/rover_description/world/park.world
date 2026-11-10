@@ -12,7 +12,7 @@
         <collision name="collision">
           <geometry>
             <heightmap>
-              <uri>file:///home/georgexu/rover_t/src/rover_description/world/park.tif</uri>
+              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park.tif</uri>
               <size>150 150 50</size>
               <pos>0 0 -46</pos>
             </heightmap>
@@ -45,7 +45,7 @@
                 <min_height>4</min_height>
                 <fade_dist>5</fade_dist>
               </blend>
-              <uri>file:///home/georgexu/rover_t/src/rover_description/world/park.tif</uri>
+              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park.tif</uri>
               <size>150 150 50</size>
               <pos>0 0 -46</pos>
             </heightmap>

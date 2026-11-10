@@ -31,7 +31,8 @@ def generate_launch_description():
 
     set_model_path = SetEnvironmentVariable(
         name='GAZEBO_MODEL_PATH',
-        value=os.path.join(package_share, '..') + ':' + os.environ.get('GAZEBO_MODEL_PATH', '')
+        value=('/usr/share/gazebo-11/models:' + os.path.dirname(package_share) + ':'
+            + os.environ.get('GAZEBO_MODEL_PATH', '')),
     )
 
     robot_state_publisher = Node(

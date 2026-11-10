@@ -9,7 +9,7 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
 | `icm20948_imu_interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
 | `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
-| `rover_localization` | Configures a local `robot_localization` EKF for ZED optical odometry and the team's joint IMU stream. Includes a hardware-free synthetic sensor launch; see [`src/rover_localization/README.md`](src/rover_localization/README.md). |
+| `robot_localization` | Contains the local/global EKFs, ZED/wheel odometry and raw ZED/ICM gyro configuration, sensor adapters, heading/TF helpers, GPS conversion, and tests. See [`DUAL_EKF.md`](src/robot_localization/DUAL_EKF.md). |
 | `rover_bringup` | Provides the top-level rover launch file that starts the enabled hardware drivers. |
 
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
@@ -69,8 +69,9 @@ colcon build --symlink-install --packages-up-to ublox_dgnss
 # ICM-20948 interface
 colcon build --symlink-install --packages-select icm20948_imu_interface
 
-# IMU fusion (publishes /imu/data)
-colcon build --symlink-install --packages-select rover_imu_fusion
+# Self-contained local/global EKFs and rover bringup
+colcon build --symlink-install --packages-select robot_localization rover_bringup \
+  --cmake-args -DBUILD_TESTING=OFF
 
 # ZED wrapper (ZED SDK and CUDA must already be installed)
 colcon build --symlink-install --packages-up-to zed_wrapper \
@@ -94,7 +95,8 @@ Connect the IMU and ZED camera, then start both drivers with one command:
 ros2 launch rover_bringup rover.launch.py camera_model:=zed2i
 ```
 
-Replace `zed2i` with the attached camera model. ICM is disabled by default until its measured mount is available; L76X GPS and ZED-only IMU fusion are enabled. The camera default is `zed2i`, so the
+Replace `zed2i` with the attached camera model. ICM and localization are disabled
+by default; L76X GPS and ZED are enabled. The camera default is `zed2i`, so the
 argument can be omitted on a rover using that model. Either driver can be
 disabled while diagnosing hardware:
 
@@ -135,9 +137,27 @@ The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
 
 ### Rover localization
 
-See the [localization testing guide](src/rover_localization/TESTING.md) for
-offline noisy fusion tests, the next real-ZED/IMU recording, GPS prerequisites
-and validation limits.
+For the direct two-IMU and wheel/ZED dual-EKF workflow, follow
+[the dual-EKF build and run guide](src/robot_localization/DUAL_EKF.md).
+Enable local estimation from bringup with:
+
+```bash
+ros2 launch rover_bringup rover.launch.py enable_imu:=true \
+  enable_localization:=true publish_approximate_mounts:=true
+```
+
+The approximate mounts assume a centered IMU/GPS and a front-mounted ZED on
+the 27-inch-long rover. Disable them when the URDF supplies measured mounts.
+GPS/global estimation additionally requires an earth heading and usable GPS
+covariance; neither is silently guessed.
+
+Missing wheel or IMU data does not block the remaining inputs. For a test
+without wheel encoders, add `use_wheel_odom:=false`; see the guide for the
+other source switches and dropout/recovery diagnostics.
+
+Run `bash scripts/test_localization_container.sh` to build and test the source
+EKFs in isolation, including through bringup, with synthetic sensors. The test
+environment excludes the retiring custom localization and IMU-fusion packages.
 
 ### ZED camera
 
@@ -170,9 +190,10 @@ docker start -ai autonomous-path-planning
 
 ## Localization with L76X GPS
 
-The authoritative two-machine procedure is [rover_localization/TESTING.md](src/rover_localization/TESTING.md).
-The Jetson runs the ZED/L76X drivers; the ROS computer runs the estimator and
-visualization. `rover_description/gps_nav_launch.py` starts one local EKF plus
-optional global GPS localization. GPS defaults to recording/inspection until
-mounts, global heading and GPS uncertainty are verified. The imported full rover
-URDF sensor origins are simulation fixtures, not measured hardware mounts.
+The build, run and output guide is [robot_localization/DUAL_EKF.md](src/robot_localization/DUAL_EKF.md).
+On two machines, the Jetson runs the ZED/L76X/ICM drivers with localization
+disabled; the ROS computer runs `robot_localization/dual_ekf.launch.py` and RViz.
+Synchronize their clocks and provide sensor TF on the ROS network. GPS/global
+fusion requires a measured startup bearing or a calibrated heading topic and
+usable GPS covariance. The full rover URDF's sensor origins are simulation
+fixtures, not measured hardware mounts.
