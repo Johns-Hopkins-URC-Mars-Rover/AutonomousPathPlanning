@@ -337,6 +337,16 @@ prediction uncertainty, availability diagnostics and that a 2 m GPS jump does
 not jump local odometry. These establish graph/configuration behavior, not
 real tracking accuracy or tuned noise.
 
+The `rover_noisy_e2e` test adapts the earlier rover localization noisy-motion
+fixture to this planar local EKF. It uses two seeded baseline runs and a
+camera tracking-fault run, with a synthetic camera mount, one synthetic gyro,
+timestamp errors, latency, and sensor outages. Wheel odometry, the second IMU,
+and GPS are disabled in this fixture. It reports planar position and yaw errors
+against independent synthetic truth and checks input loss and recovery. The
+fault run characterizes the effect of incorrect camera poses; it does not prove
+that the EKF rejects them. The assumptions and error bounds are regression
+fixtures, not measured hardware performance.
+
 The Docker workflow below builds only robot_localization and rover_bringup.
 It checks that neither retiring package is discoverable, then tests the real
 EKFs/navsat directly and through rover_bringup using synthetic sensor messages:

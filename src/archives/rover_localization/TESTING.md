@@ -66,30 +66,57 @@ Neither command installs dependencies or modifies hardware data/tuning.
 
 ## 2. Next hardware test: record the failure before tuning
 
-Jetson: ZED + L76X drivers. ROS computer: EKF, RViz and recording. Keep clocks
-synchronized and exactly one driver/estimator per stream. Stop earlier fake
-publishers and temporary identity transforms. On each machine, build its own
-workspace; do not copy build/install/log directories between machines:
+Use your **Mac as SSH terminals**. The **Jetson runs the ZED/L76X drivers, local
+EKF and recording**, using its installed ROS Humble, ZED SDK/wrapper and rover
+packages. Your Mac needs neither ROS nor Docker for this hardware test. The
+Docker command in section 1 is a separate synthetic test with no external
+network; it does not receive the real camera stream.
+
+Connect the Mac and Jetson over a reachable network. Open a Mac Terminal tab and
+SSH into the Jetson (replace the IP address):
 
 ```bash
+ssh jhurover@<JETSON_IP>
+```
+
+After login, commands execute on the Jetson. Build once in its repository:
+
+```bash
+cd ~/ws/AutonomousPathPlanning
 source /opt/ros/humble/setup.bash
 export ROS_DOMAIN_ID=35
 colcon build --symlink-install --packages-select rover_localization rover_description rover_imu_fusion rover_bringup l76x_gps_interface
 source install/setup.bash
 ```
 
-Source ROS, export domain 35 and source that machine's overlay in every new
-terminal. Use the installed Jetson ZED SDK/wrapper. For this unmounted handheld
-bench, the body frame is `zed_camera_link`; no rover mounting transform is
-invented. The calibrated internal camera-to-IMU transform is still required.
+Adjust the repository path if your Jetson checkout is elsewhere. Open four Mac
+tabs (A–D) and SSH into the same Jetson in each. In **every SSH session**, run:
 
-1. **Jetson terminal A:** start the real camera, its IMU and GPS:
+```bash
+cd ~/ws/AutonomousPathPlanning
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+export ROS_DOMAIN_ID=35
+```
+
+All commands below run inside these Jetson SSH sessions. Bags and other files
+are saved on the Jetson, not the Mac. Keep the tabs open while their processes
+run. Stop earlier fake publishers and temporary identity transforms; use exactly
+one driver/estimator per stream. Check the Jetson clock because sensor timestamp
+validation still matters even with every node on one machine.
+
+For this unmounted handheld bench, the body frame is `zed_camera_link`; no rover
+mounting transform is invented. The calibrated internal camera-to-IMU transform
+is still required. The Jetson must have enough CPU/GPU, memory and disk for the
+driver, estimator and bag recording; watch for dropped data or stale diagnostics.
+
+1. **Mac tab A → Jetson SSH:** start the real camera, its IMU and GPS:
 
    ```bash
    ros2 launch rover_bringup rover.launch.py camera_model:=zed2i enable_imu:=false enable_fusion:=false enable_gps:=true
    ```
 
-2. **ROS-computer terminal B:** verify calibrated TF, then Ctrl-C:
+2. **Mac tab B → Jetson SSH:** verify calibrated TF, then Ctrl-C:
 
    ```bash
    ros2 run tf2_ros tf2_echo zed_camera_link zed_imu_link
@@ -101,7 +128,7 @@ invented. The calibrated internal camera-to-IMU transform is still required.
    `sensors.publish_cam_imu_transf=true` on `/zed/zed_node`. The wrapper must
    support the calibration-message option; inspect its declared parameters.
 
-3. **ROS-computer terminal B:** run one local EKF using the ZED gyro directly:
+3. **The same SSH session in tab B:** run one local EKF using the ZED gyro directly:
 
    ```bash
    ros2 launch rover_description gps_nav_launch.py base_frame:=zed_camera_link fused_imu_topic:=/zed/zed_node/imu/data
@@ -111,7 +138,7 @@ invented. The calibrated internal camera-to-IMU transform is still required.
    GPS/global fusion and Nav2 stay disabled. Later, the measured rover rig can
    use `base_link` and the default joint IMU topic `/imu/data`.
 
-4. **ROS-computer terminal C:** record before moving; use a new output directory
+4. **Mac tab C → Jetson SSH:** record before moving; use a new output directory
    each run. Ctrl-C closes the recording:
 
    ```bash
@@ -120,13 +147,22 @@ invented. The calibrated internal camera-to-IMU transform is still required.
 
    Inspect `ros2 topic list -t` and add available ZED tracking-status topics;
    their names/types vary by wrapper version. Save `ros2 param dump /zed/zed_node`
-   and `ros2 param dump /ekf_local` plus machine clock offsets and package versions.
+   and `ros2 param dump /ekf_local` plus Jetson clock checks and package versions.
 
-5. **ROS-computer terminal D:** inspect `/diagnostics` and `/odometry/local`.
+5. **Mac tab D → Jetson SSH:** inspect diagnostics, then Ctrl-C before inspecting
+   position:
+
+   ```bash
+   ros2 topic echo /diagnostics
+   # Press Ctrl-C, then run:
+   ros2 topic echo /odometry/local --field pose.pose.position
+   ```
+
    Hold still 20 s; move a measured 0.30 m straight; stop 10 s; return; rotate
-   a measured 90 degrees. Repeat and note movement times. In RViz use Fixed
-   Frame `odom` and add TF + Odometry `/odometry/local`. Every streaming command
-   needs its own terminal or Ctrl-C before another command.
+   a measured 90 degrees. Repeat and note movement times. Ordinary SSH displays
+   terminal output; it does not automatically display RViz on your Mac. RViz is
+   optional for this test. If using a Jetson display or a separately configured
+   remote desktop, set Fixed Frame `odom` and add TF + Odometry `/odometry/local`.
 
 6. Compare raw camera, converted camera and EKF at matching timestamps in
    meters. During rest, drift/velocity should be small; translation and rotation
