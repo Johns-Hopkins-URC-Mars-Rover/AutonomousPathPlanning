@@ -538,7 +538,7 @@
   <link name="zed_camera_link">
     <visual>
       <geometry>
-        <mesh filename="package://rover_description/meshes/zed2.stl"/>
+        <mesh filename="package://rover_description/meshes/zed2i.stl"/>
       </geometry>
       <material name="dark_gray">
         <color rgba="0.15 0.15 0.15 1"/>
