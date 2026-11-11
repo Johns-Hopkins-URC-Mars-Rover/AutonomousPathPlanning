@@ -8,12 +8,14 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    """Launch rover sensors and optional dual-EKF localization."""
+    """Launch rover sensors, localization, and costmaps."""
     imu_launch = PathJoinSubstitution([FindPackageShare('icm20948_imu_interface'), 'launch', 'imu_launch.py'])
     gps_launch = PathJoinSubstitution([FindPackageShare('l76x_gps_interface'), 'launch', 'gps_launch.py'])
     zed_launch = PathJoinSubstitution([FindPackageShare('zed_wrapper'), 'launch', 'zed_camera.launch.py'])
     localization_launch = PathJoinSubstitution([
         FindPackageShare('rover_localization'), 'launch', 'dual_ekf_launch.py'])
+    costmap_launch = PathJoinSubstitution([
+        FindPackageShare('rover_costmap'), 'launch', 'costmap.launch.py'])
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
@@ -37,6 +39,7 @@ def generate_launch_description():
             description='Launch the ZED camera driver.',
         ),
         DeclareLaunchArgument('enable_localization', default_value='false'),
+        DeclareLaunchArgument('enable_costmaps', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument(
             'camera_model',
@@ -66,6 +69,13 @@ def generate_launch_description():
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(localization_launch),
             condition=IfCondition(LaunchConfiguration('enable_localization')),
+            launch_arguments={
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }.items(),
+        )]),
+        GroupAction(actions=[IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(costmap_launch),
+            condition=IfCondition(LaunchConfiguration('enable_costmaps')),
             launch_arguments={
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }.items(),
