@@ -20,16 +20,16 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         Node(
-            package='nav2_costmap_2d',
-            executable='nav2_costmap_2d',
+            package='rover_costmap',
+            executable='rover_costmap_node',
             namespace='global_costmap',
             name='global_costmap',
             output='screen',
             parameters=costmap_parameters,
         ),
         Node(
-            package='nav2_costmap_2d',
-            executable='nav2_costmap_2d',
+            package='rover_costmap',
+            executable='rover_costmap_node',
             namespace='local_costmap',
             name='local_costmap',
             output='screen',
@@ -43,6 +43,9 @@ def generate_launch_description():
             parameters=[{
                 'use_sim_time': use_sim_time,
                 'autostart': True,
+                # Humble's standalone Costmap2DROS does not create a lifecycle
+                # bond, so service-driven lifecycle management is used.
+                'bond_timeout': 0.0,
                 'node_names': [
                     'global_costmap/global_costmap',
                     'local_costmap/local_costmap',

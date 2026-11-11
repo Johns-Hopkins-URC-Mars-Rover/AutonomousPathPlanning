@@ -7,8 +7,8 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: false
       rolling_window: true
-      width: 10.0
-      height: 10.0
+      width: 10
+      height: 10
       resolution: 0.05
       robot_radius: 0.381
       plugins: ["voxel_layer", "inflation_layer"]
@@ -49,8 +49,8 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: false
       rolling_window: true
-      width: 3.0
-      height: 3.0
+      width: 3
+      height: 3
       resolution: 0.05
       robot_radius: 0.32
       plugins: ["voxel_layer", "inflation_layer"]

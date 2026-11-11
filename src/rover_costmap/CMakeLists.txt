@@ -6,6 +6,18 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
+find_package(rclcpp REQUIRED)
+
+add_executable(rover_costmap_node src/costmap_node.cpp)
+ament_target_dependencies(rover_costmap_node
+  nav2_costmap_2d
+  rclcpp
+)
+
+install(TARGETS rover_costmap_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY
   launch
