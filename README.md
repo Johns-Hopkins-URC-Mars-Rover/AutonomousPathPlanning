@@ -9,7 +9,7 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
 | `icm20948_imu_interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
 | `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
-| `robot_localization` | Contains the local/global EKFs, ZED/wheel odometry and raw ZED/ICM gyro configuration, sensor adapters, heading/TF helpers, GPS conversion, and tests. See [`DUAL_EKF.md`](src/robot_localization/DUAL_EKF.md). |
+| `rover_localization` | Configures the system-installed `robot_localization` binaries as local/global EKFs with GPS conversion. |
 | `rover_bringup` | Provides the top-level rover launch file that starts the enabled hardware drivers. |
 
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
@@ -69,9 +69,8 @@ colcon build --symlink-install --packages-up-to ublox_dgnss
 # ICM-20948 interface
 colcon build --symlink-install --packages-select icm20948_imu_interface
 
-# Self-contained local/global EKFs and rover bringup
-colcon build --symlink-install --packages-select robot_localization rover_bringup \
-  --cmake-args -DBUILD_TESTING=OFF
+# Rover local/global EKF configuration and bringup
+colcon build --symlink-install --packages-select rover_localization rover_bringup
 
 # ZED wrapper (ZED SDK and CUDA must already be installed)
 colcon build --symlink-install --packages-up-to zed_wrapper \
@@ -137,27 +136,23 @@ The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
 
 ### Rover localization
 
-For the direct two-IMU and wheel/ZED dual-EKF workflow, follow
-[the dual-EKF build and run guide](src/robot_localization/DUAL_EKF.md).
-Enable local estimation from bringup with:
+Install the ROS binary dependency, then enable dual-EKF localization from bringup:
+
+```bash
+sudo apt install ros-humble-robot-localization
+```
 
 ```bash
 ros2 launch rover_bringup rover.launch.py enable_imu:=true \
-  enable_localization:=true publish_approximate_mounts:=true
+  enable_localization:=true
 ```
 
-The approximate mounts assume a centered IMU/GPS and a front-mounted ZED on
-the 27-inch-long rover. Disable them when the URDF supplies measured mounts.
-GPS/global estimation additionally requires an earth heading and usable GPS
-covariance; neither is silently guessed.
+The ZED wrapper's TF publication is disabled by bringup so the EKFs remain the
+only owners of `odom -> base_link` and `map -> odom`. Global estimation requires
+usable GPS covariance and an absolute orientation source.
 
-Missing wheel or IMU data does not block the remaining inputs. For a test
-without wheel encoders, add `use_wheel_odom:=false`; see the guide for the
-other source switches and dropout/recovery diagnostics.
-
-Run `bash scripts/test_localization_container.sh` to build and test the source
-EKFs in isolation, including through bringup, with synthetic sensors. The test
-environment excludes the retiring custom localization and IMU-fusion packages.
+Run `bash scripts/test_localization_container.sh` to build and test the rover
+configuration against the released ROS binaries.
 
 ### ZED camera
 
@@ -190,9 +185,8 @@ docker start -ai autonomous-path-planning
 
 ## Localization with L76X GPS
 
-The build, run and output guide is [robot_localization/DUAL_EKF.md](src/robot_localization/DUAL_EKF.md).
 On two machines, the Jetson runs the ZED/L76X/ICM drivers with localization
-disabled; the ROS computer runs `robot_localization/dual_ekf.launch.py` and RViz.
+disabled; the ROS computer runs `rover_localization/dual_ekf_launch.py` and RViz.
 Synchronize their clocks and provide sensor TF on the ROS network. GPS/global
 fusion requires a measured startup bearing or a calibrated heading topic and
 usable GPS covariance. The full rover URDF's sensor origins are simulation

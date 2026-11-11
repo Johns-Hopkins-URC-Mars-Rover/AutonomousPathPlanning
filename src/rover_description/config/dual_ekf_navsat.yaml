@@ -1,5 +1,5 @@
 # Legacy Gazebo wheel/GPS example; not used by gps_nav_launch.py.
-# Live ZED/GPS workflow uses robot_localization/params/dual_ekf.yaml.
+# Live ZED/GPS workflow uses rover_localization/config/ekf.yaml.
 ### ekf_filter_node (local) - fuses wheel odom + IMU
 ekf_filter_node_odom:
   ros__parameters:

@@ -1,20 +1,26 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('rover_localization')
     ekf_config_path = os.path.join(pkg_share, 'config', 'ekf.yaml')
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
     return LaunchDescription([
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
         # 1. Local EKF Node
         Node(
             package='robot_localization',
             executable='ekf_node',
             name='local_ekf_node',
             output='screen',
-            parameters=[ekf_config_path]
+            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+            remappings=[('/odometry/filtered', '/odometry/local')],
         ),
 
         # 2. Global EKF Node
@@ -23,9 +29,8 @@ def generate_launch_description():
             executable='ekf_node',
             name='global_ekf_node',
             output='screen',
-            parameters=[ekf_config_path],
-            # Rename default output topic so it doesn't conflict with local EKF
-            remappings=[('/odometry/filtered', '/odometry/filtered/global')]
+            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+            remappings=[('/odometry/filtered', '/odometry/global')],
         ),
 
         # 3. Navsat Transform Node (GPS handler)
@@ -34,12 +39,14 @@ def generate_launch_description():
             executable='navsat_transform_node',
             name='navsat_transform_node',
             output='screen',
-            parameters=[ekf_config_path],
+            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
             remappings=[
-                ('/gps/fix', '/gps/fix'), # Change right-side topic if your GPS uses a different name
-                ('/imu', '/zed/zed_node/imu/data'), # Input IMU for global heading orientation
-                ('/odometry/filtered', '/odometry/filtered/global'),
-                ('/odometry/gps', '/odometry/gps')
-            ]
-        )
+                ('/gps/fix', '/gps/fix'),
+                ('/imu', '/zed/zed_node/imu/data'),
+                # Navsat must use the continuous local estimate, not the global
+                # estimate that consumes navsat's own /odometry/gps output.
+                ('/odometry/filtered', '/odometry/local'),
+                ('/odometry/gps', '/odometry/gps'),
+            ],
+        ),
     ])

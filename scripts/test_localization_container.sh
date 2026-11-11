@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build source EKFs and test standalone/bringup with no legacy packages.
+# Build rover configuration against the released robot_localization binaries.
 set -eo pipefail
 workspace_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if ! command -v docker >/dev/null 2>&1; then
@@ -15,6 +15,6 @@ docker build -t rover-localization-test \
 docker run --rm --network none --read-only \
   --tmpfs /tmp:exec,mode=1777,size=4g \
   --cap-drop ALL --security-opt no-new-privileges \
-  --mount "type=bind,source=$workspace_dir/src/robot_localization,target=/source/src/robot_localization,readonly" \
+  --mount "type=bind,source=$workspace_dir/src/rover_localization,target=/source/src/rover_localization,readonly" \
   --mount "type=bind,source=$workspace_dir/src/rover_bringup,target=/source/src/rover_bringup,readonly" \
   rover-localization-test

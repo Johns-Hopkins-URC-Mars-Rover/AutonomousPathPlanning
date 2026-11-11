@@ -8,10 +8,12 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    """Launch sensors and optional direct dual-EKF localization."""
+    """Launch rover sensors and optional dual-EKF localization."""
     imu_launch = PathJoinSubstitution([FindPackageShare('icm20948_imu_interface'), 'launch', 'imu_launch.py'])
     gps_launch = PathJoinSubstitution([FindPackageShare('l76x_gps_interface'), 'launch', 'gps_launch.py'])
-    zed_launch = PathJoinSubstitution([FindPackageShare('robot_localization'), 'launch', 'zed_driver.launch.py'])
+    zed_launch = PathJoinSubstitution([FindPackageShare('zed_wrapper'), 'launch', 'zed_camera.launch.py'])
+    localization_launch = PathJoinSubstitution([
+        FindPackageShare('rover_localization'), 'launch', 'dual_ekf_launch.py'])
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
@@ -35,16 +37,7 @@ def generate_launch_description():
             description='Launch the ZED camera driver.',
         ),
         DeclareLaunchArgument('enable_localization', default_value='false'),
-        DeclareLaunchArgument('enable_global', default_value='false'),
-        DeclareLaunchArgument('heading_mode', default_value='unset'),
-        DeclareLaunchArgument('initial_heading_deg', default_value='nan'),
-        DeclareLaunchArgument('heading_topic', default_value='/imu/heading'),
-        DeclareLaunchArgument('publish_approximate_mounts', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
-        DeclareLaunchArgument('use_zed_odom', default_value='true'),
-        DeclareLaunchArgument('use_wheel_odom', default_value='true'),
-        DeclareLaunchArgument('use_zed_imu', default_value='true'),
-        DeclareLaunchArgument('use_icm_imu', default_value='true'),
         DeclareLaunchArgument(
             'camera_model',
             default_value='zed2i',
@@ -65,15 +58,16 @@ def generate_launch_description():
             condition=IfCondition(enable_zed),
             launch_arguments={
                 'camera_model': camera_model,
+                # robot_localization is the only owner of map/odom TF.
+                'publish_tf': 'false',
+                'publish_map_tf': 'false',
             }.items(),
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('robot_localization'), 'launch', 'dual_ekf.launch.py'])),
+            PythonLaunchDescriptionSource(localization_launch),
             condition=IfCondition(LaunchConfiguration('enable_localization')),
-            launch_arguments={name: LaunchConfiguration(name) for name in (
-                'enable_global', 'heading_mode', 'initial_heading_deg', 'heading_topic',
-                'publish_approximate_mounts', 'use_sim_time',
-                'use_zed_odom', 'use_wheel_odom', 'use_zed_imu', 'use_icm_imu')}.items(),
+            launch_arguments={
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }.items(),
         )]),
     ])

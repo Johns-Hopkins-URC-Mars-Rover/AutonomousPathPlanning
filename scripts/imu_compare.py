@@ -20,7 +20,6 @@ Usage:
 import argparse
 import csv
 import math
-import importlib.util
 from pathlib import Path
 
 import rclpy
@@ -32,11 +31,27 @@ from tf2_ros import Buffer, TransformListener, TransformException
 from rclpy.time import Time
 import copy
 
-# These scripts run from the repository; reuse the tested ROS-free math.
-_contract_path = Path(__file__).resolve().parents[1] / 'src/robot_localization/scripts/sensor_contracts.py'
-_spec = importlib.util.spec_from_file_location('sensor_contracts', _contract_path)
-_contracts = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_contracts)
+def normalize_quaternion(q):
+    norm = math.sqrt(sum(value * value for value in q))
+    if norm < 1e-12:
+        raise ValueError('zero-length quaternion')
+    return tuple(value / norm for value in q)
+
+
+def multiply(a, b):
+    ax, ay, az, aw = a
+    bx, by, bz, bw = b
+    return (
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+        aw * bw - ax * bx - ay * by - az * bz,
+    )
+
+
+def rotate(q, vector):
+    rotated = multiply(multiply(q, (*vector, 0.0)), (-q[0], -q[1], -q[2], q[3]))
+    return rotated[:3]
 
 SOURCES = {
     'icm': '/imu/data_raw',
@@ -115,20 +130,20 @@ class ImuCompare(Node):
             try:
                 transform = self.buffer.lookup_transform(self.base_frame, msg.header.frame_id, Time()).transform
                 rotation = transform.rotation
-                q = _contracts.normalize_quaternion((rotation.x, rotation.y, rotation.z, rotation.w))
+                q = normalize_quaternion((rotation.x, rotation.y, rotation.z, rotation.w))
                 msg = copy.deepcopy(msg)
                 for field, covariance_field in (('angular_velocity', 'angular_velocity_covariance'),
                                                 ('linear_acceleration', 'linear_acceleration_covariance')):
                     vector = getattr(msg, field)
-                    vector.x, vector.y, vector.z = _contracts.rotate(q, (vector.x, vector.y, vector.z))
+                    vector.x, vector.y, vector.z = rotate(q, (vector.x, vector.y, vector.z))
                     cov = getattr(msg, covariance_field)
-                    columns = [_contracts.rotate(q, tuple(float(i == j) for i in range(3))) for j in range(3)]
+                    columns = [rotate(q, tuple(float(i == j) for i in range(3))) for j in range(3)]
                     rotated = [sum(columns[i][r]*cov[i*3+j]*columns[j][c]
                                    for i in range(3) for j in range(3)) for r in range(3) for c in range(3)]
                     setattr(msg, covariance_field, rotated)
                 if msg.orientation_covariance[0] >= 0:
                     ori = msg.orientation
-                    qb = _contracts.multiply((ori.x, ori.y, ori.z, ori.w), (-q[0], -q[1], -q[2], q[3]))
+                    qb = multiply((ori.x, ori.y, ori.z, ori.w), (-q[0], -q[1], -q[2], q[3]))
                     ori.x, ori.y, ori.z, ori.w = qb
                 msg.header.frame_id = self.base_frame
             except (TransformException, ValueError) as error:
