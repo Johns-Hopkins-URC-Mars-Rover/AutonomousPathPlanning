@@ -1,0 +1,82 @@
+### --- LOCAL EKF INSTANCE --- ###
+local_ekf_node:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: true
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom # Publishes odom -> base_link
+
+    odom0: /diff_drive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+
+    odom1: /zed/zed_node/odom
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+
+    imu0: /zed/zed_node/imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  true,  true,  false]
+
+### --- GLOBAL EKF INSTANCE --- ###
+global_ekf_node:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: true
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: map # Publishes map -> odom
+
+    odom0: /diff_drive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+
+    odom1: /zed/zed_node/odom
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+
+    imu0: /zed/zed_node/imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  true,  true,  false]
+
+    odom2: /odometry/gps
+    odom2_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+
+### --- NAVSAT TRANSFORM NODE --- ###
+navsat_transform_node:
+  ros__parameters:
+    frequency: 30.0
+    magnetic_declination_radians: 0.0 # Set your local magnetic declination if using a magnetometer
+    yaw_offset: 0.0 # Offset if IMU doesn't read 0 when facing East
+    zero_altitude: true
+    publish_filtered_gps: true
+    use_odometry_yaw: false
