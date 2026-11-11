@@ -301,7 +301,7 @@
   <joint name="gps_joint" type="fixed">
     <parent link="chassis"/>
     <child link="gps_link"/>
-    <origin xyz="-0.1524 0.025 0.20" rpy="0 0 0"/>
+    <origin xyz="-0.1524 0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="gps_link">
     <sensor name="navsat" type="gps">
@@ -334,7 +334,7 @@
   <joint name="imu_joint" type="fixed">
     <parent link="chassis"/>
     <child link="imu_link"/>
-    <origin xyz="-0.1524 -0.025 0.20" rpy="0 0 0"/>
+    <origin xyz="-0.1524 -0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
