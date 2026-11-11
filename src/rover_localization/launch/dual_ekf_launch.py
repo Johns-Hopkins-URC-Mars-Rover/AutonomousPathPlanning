@@ -8,7 +8,9 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('rover_localization')
-    ekf_config_path = os.path.join(pkg_share, 'config', 'ekf.yaml')
+    local_config = os.path.join(pkg_share, 'config', 'local_ekf.yaml')
+    global_config = os.path.join(pkg_share, 'config', 'global_ekf.yaml')
+    navsat_config = os.path.join(pkg_share, 'config', 'navsat.yaml')
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     return LaunchDescription([
@@ -19,7 +21,7 @@ def generate_launch_description():
             executable='ekf_node',
             name='local_ekf_node',
             output='screen',
-            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+            parameters=[local_config, {'use_sim_time': use_sim_time}],
             remappings=[('/odometry/filtered', '/odometry/local')],
         ),
 
@@ -29,7 +31,7 @@ def generate_launch_description():
             executable='ekf_node',
             name='global_ekf_node',
             output='screen',
-            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+            parameters=[global_config, {'use_sim_time': use_sim_time}],
             remappings=[('/odometry/filtered', '/odometry/global')],
         ),
 
@@ -39,7 +41,7 @@ def generate_launch_description():
             executable='navsat_transform_node',
             name='navsat_transform_node',
             output='screen',
-            parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+            parameters=[navsat_config, {'use_sim_time': use_sim_time}],
             remappings=[
                 ('/gps/fix', '/gps/fix'),
                 ('/imu', '/zed/zed_node/imu/data'),
