@@ -11,8 +11,8 @@ class NavigationClient(Node):
     def __init__(self):
         super().__init__('navigation_client')
 
-        self.declare_parameter('lat', float('nan'))
-        self.declare_parameter('lon', float('nan'))
+        self.declare_parameter('lat', 1.0)
+        self.declare_parameter('lon', 1.0)
         self.declare_parameter('heading', 0.0)
 
         # convert from gps lat/lon to coord from map
@@ -44,6 +44,8 @@ class NavigationClient(Node):
         request.ll_point.latitude = lat
         request.ll_point.longitude = lon
         request.ll_point.altitude = 0.0
+        self.get_logger().info(f'Sending goal: lat={lat}, lon={lon}')
+        
 
         response = self.wait_for_result(self.converter.call_async(request), timeout=10.0)
 
@@ -51,7 +53,7 @@ class NavigationClient(Node):
 
         goal = NavigateToPose.Goal()
         goal.pose.header.frame_id = 'map'
-        goal.pose.header.stamp = self.get_clock().now().to_msg()
+        goal.pose.header.stamp = rclpy.time.Time().to_msg()
         goal.pose.pose.position.x = point.x
         goal.pose.pose.position.y = point.y
         goal.pose.pose.position.z = 0.0  # we don't need a target altitude

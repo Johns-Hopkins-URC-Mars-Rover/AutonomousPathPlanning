@@ -71,7 +71,7 @@ global_costmap:
   global_costmap:
     ros__parameters:
       use_sim_time: true
-      global_frame: odom # temp
+      global_frame: map # temp
       robot_base_frame: base_link
       robot_radius: 0.5 # errr might want to change later
       track_unknown_space: false
@@ -85,7 +85,7 @@ global_costmap:
         enabled: true
         observation_sources: pointcloud
         pointcloud:
-          topic: /zed/zed_node/point_cloud/cloud_registered
+          topic: /depth/points
           data_type: PointCloud2
           marking: true
           clearing: true
@@ -113,7 +113,7 @@ local_costmap:
         enabled: true
         observation_sources: pointcloud
         pointcloud:
-          topic: /zed/zed_node/point_cloud/cloud_registered
+          topic: /depth/points
           data_type: PointCloud2
           marking: true
           clearing: true
@@ -126,3 +126,15 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: true
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.5, 0.0, 1.0]
+    min_velocity: [-0.5, 0.0, -1.0]
+    max_accel: [2.5, 0.0, 3.2]
+    max_decel: [-2.5, 0.0, -3.2]
+    odom_topic: "/odometry/local"

@@ -41,14 +41,16 @@ def generate_launch_description():
             executable='navsat_transform_node',
             name='navsat_transform_node',
             output='screen',
+            arguments=['--ros-args', '--log-level', 'navsat_transform_node:=debug'],
             parameters=[navsat_config, {'use_sim_time': use_sim_time}],
             remappings=[
-                ('/gps/fix', '/gps/fix'),
-                ('/imu', '/zed/zed_node/imu/data'),
+                ('gps/fix', '/gps/fix'),
+                # ('/gps/fix', '/rover/gps/fix'),
+                ('imu', '/zed/zed_node/imu/data'),
                 # Navsat must use the continuous local estimate, not the global
                 # estimate that consumes navsat's own /odometry/gps output.
-                ('/odometry/filtered', '/odometry/local'),
-                ('/odometry/gps', '/odometry/gps'),
+                ('odometry/filtered', '/odometry/local'),
+                ('odometry/gps', '/odometry/gps'),
             ],
         ),
     ])

@@ -307,10 +307,26 @@
     <sensor name="navsat" type="gps">
       <always_on>true</always_on>
       <update_rate>10</update_rate>
+      <gps>
+      <position_sensing>
+        <horizontal>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.5</stddev>
+          </noise>
+        </horizontal>
+        <vertical>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>1.0</stddev>
+          </noise>
+        </vertical>
+      </position_sensing>
+      </gps>
       <plugin name="gps_controller" filename="libgazebo_ros_gps_sensor.so">
         <ros>
           <namespace>/rover</namespace>
-          <remapping>~/out:=gps/fix</remapping>
+          <remapping>~/out:=/gps/fix</remapping>
         </ros>
         <frame_name>gps_link</frame_name>
       </plugin>
@@ -421,6 +437,8 @@
     <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
   </joint>
 
+  <link name="zed_imu_link"/>
+
   <gazebo reference="zed_camera_link">
     <sensor name="zed_depth_camera" type="depth">
       <always_on>true</always_on>
@@ -440,11 +458,11 @@
       <plugin name="zed_depth_camera_plugin" filename="libgazebo_ros_camera.so">
         <ros>
           <namespace>/zed</namespace>
-          <remapping>image_raw:=rgb/image_raw</remapping>
-          <remapping>depth/image_raw:=depth/image_raw</remapping>
-          <remapping>camera_info:=rgb/camera_info</remapping>
-          <remapping>depth/camera_info:=depth/camera_info</remapping>
-          <remapping>points:=depth/points</remapping>
+          <remapping>image_raw:=/rgb/image_raw</remapping>
+          <remapping>depth/image_raw:=/depth/image_raw</remapping>
+          <remapping>camera_info:=/rgb/camera_info</remapping>
+          <remapping>depth/camera_info:=/depth/camera_info</remapping>
+          <remapping>points:=/depth/points</remapping>
         </ros>
         <camera_name>zed_depth_camera</camera_name>
         <frame_name>zed_camera_optical_frame</frame_name>
@@ -452,7 +470,27 @@
         <max_depth>20.0</max_depth>
       </plugin>
     </sensor>
+    <sensor name="zed_imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <plugin name="zed_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+        <ros>
+          <namespace>/zed</namespace>
+          <remapping>~/out:=/zed/zed_node/imu/data</remapping>
+        </ros>
+        <frame_name>zed_imu_link</frame_name>
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+      </plugin>
+    </sensor>
   </gazebo>
+
+  <joint name="zed_imu_joint" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_imu_link"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+
 
   <ros2_control name="Rover" type="system">
     <hardware>
