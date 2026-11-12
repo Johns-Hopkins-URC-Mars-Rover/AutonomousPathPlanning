@@ -9,8 +9,8 @@ from launch.actions import (
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import SetRemap
 
 
 def generate_launch_description():
@@ -30,10 +30,6 @@ def generate_launch_description():
             period=3.0,
             condition=IfCondition(LaunchConfiguration('enable_nav2')),
             actions=[GroupAction(actions=[
-                # Humble's velocity smoother publishes its final Twist on
-                # /cmd_vel. Gazebo's diff-drive controller expects Twist on
-                # its unstamped controller input.
-                SetRemap(src='cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
                 IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
                     FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
                 launch_arguments={
@@ -41,6 +37,16 @@ def generate_launch_description():
                     'params_file': PathJoinSubstitution([
                         FindPackageShare('rover_description'), 'config', 'nav2_params.yaml']),
                 }.items()),
+                # Keep Nav2's standard controller -> velocity smoother topic
+                # chain, then bridge its final Twist to Gazebo's unstamped
+                # diff-drive input.
+                Node(
+                    package='rover_navigation',
+                    executable='cmd_vel_relay',
+                    name='cmd_vel_relay',
+                    output='screen',
+                    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+                ),
             ])],
         ),
     ]

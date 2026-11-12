@@ -25,6 +25,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+                'cmd_vel_relay = rover_navigation.cmd_vel_relay:main',
                 'navigation_client = rover_navigation.navigation_client:main'
         ],
     },
