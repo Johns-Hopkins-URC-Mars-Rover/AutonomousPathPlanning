@@ -12,6 +12,33 @@ ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
 | `robot_localization` | Contains the local/global EKFs, ZED/wheel odometry and raw ZED/ICM gyro configuration, sensor adapters, heading/TF helpers, GPS conversion, and tests. See [`DUAL_EKF.md`](src/robot_localization/DUAL_EKF.md). |
 | `rover_bringup` | Provides the top-level rover launch file that starts the enabled hardware drivers. |
 
+### One-command sensor selection
+
+After building and sourcing the ROS workspace, select components using `yes` or
+`no` (the values are command arguments, not interactive prompts):
+
+```bash
+ros2 launch rover_bringup simple.launch.py \
+  zed:=yes icm:=no wheel:=yes gps:=no localization:=yes drivers:=yes
+```
+
+`icm:=no` disables both the external ICM driver and its EKF input. `zed` controls
+the ZED driver, optical odometry and gyro input; `wheel` selects an existing
+wheel odometry topic, but does not start a motor controller. `gps:=yes` starts
+GPS global localization when localization is enabled, as well as the GPS
+driver when `drivers:=yes`. Use `drivers:=no` when all selected drivers already
+run elsewhere. Defaults are `zed:=yes`, `icm:=no`, `wheel:=no`, `gps:=no`,
+`localization:=yes`, and `drivers:=yes`.
+
+GPS/global localization requires verified sensor mounts and an earth-referenced
+heading. For example, with a measured startup heading, add
+`gps:=yes heading_mode:=startup initial_heading_deg:=<measured_bearing>`;
+the bearing uses true north = 0 and east = 90 degrees. The launch rejects an
+unspecified heading. A URDF or other TF publisher must supply the sensor mounts;
+see [the dual-EKF guide](src/robot_localization/DUAL_EKF.md) for provisional
+bench mounts and the alternative verified heading topic. Do not publish two
+sets of mount transforms.
+
 The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
 
 ## 1. Prerequisites

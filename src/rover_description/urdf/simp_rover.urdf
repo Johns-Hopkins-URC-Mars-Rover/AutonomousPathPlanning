@@ -289,20 +289,44 @@
       <mass value="0.01"/>
       <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
     </inertial>
+    <visual>
+      <geometry>
+        <box size="0.065 0.0305 0.010"/>
+      </geometry>
+      <material name="gps_green">
+        <color rgba="0.1 0.4 0.1 1"/>
+      </material>
+    </visual>
   </link>
   <joint name="gps_joint" type="fixed">
     <parent link="chassis"/>
     <child link="gps_link"/>
-    <origin xyz="0.0 0 0.0" rpy="0 0 0"/>
+    <origin xyz="-0.1524 0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="gps_link">
     <sensor name="navsat" type="gps">
       <always_on>true</always_on>
       <update_rate>10</update_rate>
+      <gps>
+      <position_sensing>
+        <horizontal>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.5</stddev>
+          </noise>
+        </horizontal>
+        <vertical>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>1.0</stddev>
+          </noise>
+        </vertical>
+      </position_sensing>
+      </gps>
       <plugin name="gps_controller" filename="libgazebo_ros_gps_sensor.so">
         <ros>
           <namespace>/rover</namespace>
-          <remapping>~/out:=gps/fix</remapping>
+          <remapping>~/out:=/gps/fix</remapping>
         </ros>
         <frame_name>gps_link</frame_name>
       </plugin>
@@ -314,11 +338,19 @@
       <mass value="0.01"/>
       <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
     </inertial>
+    <visual>
+      <geometry>
+        <box size="0.0254 0.0254 0.005"/>
+      </geometry>
+      <material name="imu_red">
+        <color rgba="0.7 0.05 0.05 1"/>
+      </material>
+    </visual>
   </link>
   <joint name="imu_joint" type="fixed">
     <parent link="chassis"/>
     <child link="imu_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="-0.1524 -0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
@@ -376,68 +408,89 @@
     </sensor>
   </gazebo>
 
-  <link name="camera_link">
+  <link name="zed_camera_link">
     <visual>
       <geometry>
-        <box size="0.1 0.1 0.1"/>
+        <mesh filename="package://rover_description/meshes/zed2i.stl"/>
       </geometry>
-      <material name="black">
-        <color rgba="0 0 0 1"/>
+      <material name="dark_gray">
+        <color rgba="0.15 0.15 0.15 1"/>
       </material>
     </visual>
-    <collision>
-      <geometry>
-        <box size="0.02 0.05 0.03"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.05"/>
-      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-    </inertial>
   </link>
-  <joint name="camera_joint" type="fixed">
+
+  <joint name="zed_camera_joint" type="fixed">
     <parent link="chassis"/>
-    <child link="camera_link"/>
-    <origin xyz="0.0 0 0.3" rpy="0 0 3.1416"/>
+    <child link="zed_camera_link"/>
+    <origin xyz="0.2921 0 0.20" rpy="0 0 0"/>
   </joint>
-  <link name="camera_optical_link"/>
-  <joint name="camera_optical_joint" type="fixed">
-    <parent link="camera_link"/>
-    <child link="camera_optical_link"/>
-    <origin xyz="0 0 0" rpy="-1.5708 0 1.5708"/>
+
+  <gazebo reference="zed_camera_link">
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+
+  <link name="zed_camera_optical_frame"/>
+
+  <joint name="zed_camera_optical_joint" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
   </joint>
-  <gazebo reference="camera_link">
-    <sensor type="depth" name="depth_camera">
+
+  <link name="zed_imu_link"/>
+
+  <gazebo reference="zed_camera_link">
+    <sensor name="zed_depth_camera" type="depth">
+      <always_on>true</always_on>
       <update_rate>30</update_rate>
       <camera>
-        <horizontal_fov>1.047</horizontal_fov>
+        <horizontal_fov>1.92</horizontal_fov>
         <image>
           <width>640</width>
           <height>480</height>
           <format>R8G8B8</format>
         </image>
         <clip>
-          <near>0.1</near>
-          <far>10.0</far>
+          <near>0.2</near>
+          <far>20.0</far>
         </clip>
       </camera>
-      <plugin name="depth_camera_plugin" filename="libgazebo_ros_camera.so">
+      <plugin name="zed_depth_camera_plugin" filename="libgazebo_ros_camera.so">
         <ros>
-          <namespace>/camera</namespace>
-          <remapping>image_raw:=rgb/image_raw</remapping>
-          <remapping>depth/image_raw:=depth/image_raw</remapping>
-          <remapping>camera_info:=rgb/camera_info</remapping>
-          <remapping>depth/camera_info:=depth/camera_info</remapping>
-          <remapping>points:=depth/points</remapping>
+          <namespace>/zed</namespace>
+          <remapping>image_raw:=/rgb/image_raw</remapping>
+          <remapping>depth/image_raw:=/depth/image_raw</remapping>
+          <remapping>camera_info:=/rgb/camera_info</remapping>
+          <remapping>depth/camera_info:=/depth/camera_info</remapping>
+          <remapping>points:=/depth/points</remapping>
         </ros>
-        <camera_name>depth_camera</camera_name>
-        <frame_name>camera_optical_link</frame_name>
-        <hack_baseline>0.07</hack_baseline>
-        <min_depth>0.1</min_depth>
-        <max_depth>10.0</max_depth>
+        <camera_name>zed_depth_camera</camera_name>
+        <frame_name>zed_camera_optical_frame</frame_name>
+        <min_depth>0.2</min_depth>
+        <max_depth>20.0</max_depth>
+      </plugin>
+    </sensor>
+    <sensor name="zed_imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <plugin name="zed_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+        <ros>
+          <namespace>/zed</namespace>
+          <remapping>~/out:=/zed/zed_node/imu/data</remapping>
+        </ros>
+        <frame_name>zed_imu_link</frame_name>
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
       </plugin>
     </sensor>
   </gazebo>
+
+  <joint name="zed_imu_joint" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_imu_link"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+
 
   <ros2_control name="Rover" type="system">
     <hardware>
@@ -483,7 +536,7 @@
 
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-      <parameters>/home/clara/AutonomousPathPlanning/src/rover_description/config/rover_controller.yaml</parameters>
+      <parameters>@ROVER_CONTROLLER_CONFIG@</parameters>
     </plugin>
   </gazebo>
 

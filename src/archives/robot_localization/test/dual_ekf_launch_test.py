@@ -20,9 +20,10 @@ from tf2_ros import StaticTransformBroadcaster
 
 
 def generate_test_description():
+    simple = os.environ.get('ROVER_TEST_SIMPLE') == '1'
     bringup = os.environ.get('ROVER_TEST_BRINGUP') == '1'
-    package = 'rover_bringup' if bringup else 'robot_localization'
-    file = 'rover.launch.py' if bringup else 'dual_ekf.launch.py'
+    package = 'rover_bringup' if bringup or simple else 'robot_localization'
+    file = 'simple.launch.py' if simple else ('rover.launch.py' if bringup else 'dual_ekf.launch.py')
     path = os.path.join(get_package_share_directory(package), 'launch', file)
     arguments = {
         'enable_global': 'true', 'heading_mode': 'startup',
@@ -30,7 +31,12 @@ def generate_test_description():
     }
     if os.environ.get('ROVER_TEST_PROFILE') == 'zed_only':
         arguments.update(use_wheel_odom='false', use_zed_imu='false', use_icm_imu='false')
-    if bringup:
+    if simple:
+        arguments = {'zed': 'yes', 'icm': 'no', 'gps': 'yes', 'wheel': 'yes',
+                     'localization': 'yes', 'drivers': 'no',
+                     'heading_mode': 'startup', 'initial_heading_deg': '90',
+                     'publish_approximate_mounts': 'true'}
+    elif bringup:
         # Synthetic sensor publishers replace drivers; no legacy packages or
         # hardware drivers are installed in this independence test environment.
         arguments.update(enable_localization='true', enable_zed='false',
@@ -51,7 +57,7 @@ class TestDualEkf(unittest.TestCase):
         rclpy.init(domain_id=int(os.environ.get('ROVER_TEST_DOMAIN_ID', '198')))
         node = rclpy.create_node('dual_ekf_test_inputs')
         profile = os.environ.get('ROVER_TEST_PROFILE', 'full')
-        self.assertIn(profile, ('full', 'missing_wheel', 'zed_only', 'dropouts'))
+        self.assertIn(profile, ('full', 'missing_wheel', 'zed_only', 'dropouts', 'icm_off'))
         duration = 28.0 if profile == 'dropouts' else 19.0
         messages = {key: [] for key in ('local', 'global', 'gps', 'filtered', 'tf', 'diag')}
         diagnostics = []
@@ -82,6 +88,8 @@ class TestDualEkf(unittest.TestCase):
             absent = {'wheel'}
         elif profile == 'zed_only':
             absent = {'wheel', 'zed', 'icm'}
+        elif profile == 'icm_off':
+            absent = {'icm'}
         for key in absent:
             node.destroy_publisher(publishers.pop(key))
 
@@ -201,6 +209,9 @@ class TestDualEkf(unittest.TestCase):
                                         for s in reports), 'missing wheels must not produce fake measurements')
                     continue
                 if profile == 'zed_only' and key != 'camera':
+                    self.assertTrue(any(s.message == 'disabled by configuration' for s in reports))
+                    continue
+                if profile == 'icm_off' and key == 'icm_imu':
                     self.assertTrue(any(s.message == 'disabled by configuration' for s in reports))
                     continue
                 self.assertTrue(any(s.level == DiagnosticStatus.OK for s in reports),

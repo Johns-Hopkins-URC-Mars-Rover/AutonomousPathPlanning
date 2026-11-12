@@ -16,7 +16,7 @@ colcon --log-base /tmp/colcon-log build --symlink-install \
 source /tmp/install/setup.bash
 colcon --log-base /tmp/colcon-log test \
   --base-paths /source/src/robot_localization /source/src/rover_bringup \
-  --packages-select robot_localization \
+  --packages-select robot_localization rover_bringup \
   --build-base /tmp/build --install-base /tmp/install \
   --event-handlers console_direct+ \
   --ctest-args -R '^rover_' --output-on-failure
@@ -26,4 +26,7 @@ colcon test-result --test-result-base /tmp/build --verbose
 ROVER_TEST_BRINGUP=1 ROVER_TEST_PROFILE=zed_only python3 -m launch_testing.launch_test \
   /source/src/robot_localization/test/dual_ekf_launch_test.py \
   --junit-xml=/tmp/bringup-dual-ekf.xunit.xml --package-name=robot_localization
+ROVER_TEST_SIMPLE=1 ROVER_TEST_PROFILE=icm_off python3 -m launch_testing.launch_test \
+  /source/src/robot_localization/test/dual_ekf_launch_test.py \
+  --junit-xml=/tmp/simple-icm-off.xunit.xml --package-name=robot_localization
 printf '%s\n' 'PASS: standalone dual EKFs/navsat and rover_bringup work with both retiring packages absent.'
