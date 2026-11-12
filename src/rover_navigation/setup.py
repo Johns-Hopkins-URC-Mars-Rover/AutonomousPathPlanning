@@ -17,7 +17,11 @@ setup(
     maintainer_email='TODO',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'console_scripts': [
                 'navigation_client = rover_navigation.navigation_client:main'
