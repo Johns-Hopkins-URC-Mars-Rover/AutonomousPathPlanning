@@ -14,7 +14,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('use_sim_time', default_value='true'),
         # 1. Local EKF Node
         Node(
             package='robot_localization',
@@ -41,15 +41,14 @@ def generate_launch_description():
             executable='navsat_transform_node',
             name='navsat_transform_node',
             output='screen',
-            arguments=['--ros-args', '--log-level', 'navsat_transform_node:=debug'],
             parameters=[navsat_config, {'use_sim_time': use_sim_time}],
             remappings=[
                 ('gps/fix', '/gps/fix'),
-                # ('/gps/fix', '/rover/gps/fix'),
                 ('imu', '/zed/zed_node/imu/data'),
-                # Navsat must use the continuous local estimate, not the global
-                # estimate that consumes navsat's own /odometry/gps output.
-                ('odometry/filtered', '/odometry/local'),
+                # This is the standard dual-EKF robot_localization wiring. The
+                # global EKF publishes before GPS is available, so navsat can
+                # establish its transform and then supply GPS corrections.
+                ('odometry/filtered', '/odometry/global'),
                 ('odometry/gps', '/odometry/gps'),
             ],
         ),

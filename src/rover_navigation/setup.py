@@ -14,10 +14,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='TODO',
-    maintainer_email='TODO',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Joshua Dayal',
+    maintainer_email='joshuadayal72@example.com',
+    description='Navigate the rover to GPS coordinates through Nav2.',
+    license='Apache-2.0',
     extras_require={
         'test': [
             'pytest',

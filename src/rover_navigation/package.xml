@@ -2,8 +2,8 @@
   <name>rover_navigation</name>
   <version>0.0.0</version>
   <description>Rover navigation to GPS coordinates</description>
-  <maintainer email="TODO@email.com">TODO</maintainer>
-  <license>BSD</license>
+  <maintainer email="joshuadayal72@example.com">Joshua Dayal</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
 

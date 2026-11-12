@@ -536,7 +536,7 @@
 
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-      <parameters>/home/clara/AutonomousPathPlanning/src/rover_description/config/rover_controller.yaml</parameters>
+      <parameters>@ROVER_CONTROLLER_CONFIG@</parameters>
     </plugin>
   </gazebo>
 
