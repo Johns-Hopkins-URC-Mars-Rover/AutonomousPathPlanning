@@ -33,7 +33,7 @@ def generate_launch_description():
         GroupAction(actions=[include('robot_localization', 'dual_ekf.launch.py',
                 tuple(name for name in args if name != 'enable_nav2'))]),
         GroupAction(condition=IfCondition(LaunchConfiguration('enable_nav2')), actions=[
-            SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
+            SetRemap(src='cmd_vel_smoothed', dst='/diff_drive_controller/cmd_vel_unstamped'),
             IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
                 FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
             launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'),

@@ -1,6 +1,14 @@
 <?xml version="1.0" ?>
-<sdf version="1.4">
+<sdf version="1.6">
   <world name="default">
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>39.323178</latitude_deg>
+      <longitude_deg>-76.627894</longitude_deg>
+      <elevation>54.1</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
     <!-- A global light source -->
     <include>
       <uri>model://sun</uri>
@@ -12,7 +20,7 @@
         <collision name="collision">
           <geometry>
             <heightmap>
-              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park.tif</uri>
+              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park_fixed.tif</uri>
               <size>150 150 50</size>
               <pos>0 0 -46</pos>
             </heightmap>
@@ -45,7 +53,7 @@
                 <min_height>4</min_height>
                 <fade_dist>5</fade_dist>
               </blend>
-              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park.tif</uri>
+              <uri>file:///home/clara/AutonomousPathPlanning/src/rover_description/world/park_fixed.tif</uri>
               <size>150 150 50</size>
               <pos>0 0 -46</pos>
             </heightmap>
