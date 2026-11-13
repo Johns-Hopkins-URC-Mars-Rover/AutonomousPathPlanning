@@ -30,6 +30,11 @@ def generate_launch_description():
             description='Launch the L76X GPS driver.',
         ),
         DeclareLaunchArgument(
+            'calibrate_gps',
+            default_value='true',
+            description='At startup, measure real GPS error (rover parked ~60 s) and set its variance.',
+        ),
+        DeclareLaunchArgument(
             'enable_zed',
             default_value='true',
             description='Launch the ZED camera driver.',
@@ -59,6 +64,7 @@ def generate_launch_description():
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gps_launch),
             condition=IfCondition(enable_gps),
+            launch_arguments={'calibrate_gps': LaunchConfiguration('calibrate_gps')}.items(),
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(zed_launch),

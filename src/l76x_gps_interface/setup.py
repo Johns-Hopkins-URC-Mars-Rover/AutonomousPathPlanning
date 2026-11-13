@@ -26,7 +26,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'gps_publisher = l76x_gps_interface.gps_publisher:main'
+            'gps_publisher = l76x_gps_interface.gps_publisher:main',
+            'gps_error_calibrator = l76x_gps_interface.gps_error_calibrator:main',
         ],
     },
 )
