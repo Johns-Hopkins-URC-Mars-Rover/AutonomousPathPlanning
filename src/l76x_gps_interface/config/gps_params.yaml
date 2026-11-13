@@ -3,4 +3,4 @@
     baudrate: 9600
     frame_id: gps_link
     # ENU variances [m^2]. Zero means unknown; measure before enabling fusion.
-    position_variance: [0.0, 0.0, 0.0]
+    position_variance: [21.12529224, 39.88831046, 152.76019892]

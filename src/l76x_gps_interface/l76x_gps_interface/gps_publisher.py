@@ -22,7 +22,7 @@ class GPSPublisher(Node):
         baudrate = int(self.get_parameter("baudrate").value)
         self.frame_id = self.get_parameter("frame_id").value
 
-        self.variance = self.declare_parameter('position_variance', [0.0, 0.0, 0.0]).value
+        self.variance = self.declare_parameter('position_variance', [21.12529224, 39.88831046, 152.76019892]).value
         if (len(self.variance) != 3 or not all(math.isfinite(v) and v >= 0 for v in self.variance)
                 or (any(self.variance) and not all(v > 0 for v in self.variance))):
             raise ValueError('position_variance must be all zero (unknown) or 3 positive measured variances')
