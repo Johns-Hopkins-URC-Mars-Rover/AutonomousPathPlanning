@@ -11,7 +11,7 @@ def generate_launch_description():
     """Launch sensors and optional direct dual-EKF localization."""
     imu_launch = PathJoinSubstitution([FindPackageShare('icm20948_imu_interface'), 'launch', 'imu_launch.py'])
     gps_launch = PathJoinSubstitution([FindPackageShare('l76x_gps_interface'), 'launch', 'gps_launch.py'])
-    zed_launch = PathJoinSubstitution([FindPackageShare('robot_localization'), 'launch', 'zed_driver.launch.py'])
+    zed_launch = PathJoinSubstitution([FindPackageShare('rover_localization'), 'launch', 'zed_driver.launch.py'])
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
@@ -69,7 +69,7 @@ def generate_launch_description():
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('robot_localization'), 'launch', 'dual_ekf.launch.py'])),
+                FindPackageShare('rover_localization'), 'launch', 'hardware_localization.launch.py'])),
             condition=IfCondition(LaunchConfiguration('enable_localization')),
             launch_arguments={name: LaunchConfiguration(name) for name in (
                 'enable_global', 'heading_mode', 'initial_heading_deg', 'heading_topic',

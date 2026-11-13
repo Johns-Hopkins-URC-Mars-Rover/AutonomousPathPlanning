@@ -109,8 +109,8 @@ controller_server:
       transform_tolerance: 0.3
       short_circuit_trajectory_evaluation: true
       stateful: true
-      critics: [RotateToGoal, Oscillation, BaseObstacle, GoalAlign, PathAlign, PathDist, GoalDist]
-      BaseObstacle.scale: 0.02
+      critics: [RotateToGoal, Oscillation, ObstacleFootprint, GoalAlign, PathAlign, PathDist, GoalDist]
+      ObstacleFootprint.scale: 0.02
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
@@ -157,7 +157,10 @@ global_costmap:
       width: 150
       height: 150
       resolution: 0.25
-      robot_radius: 0.5
+      # Conservative projection of simplified URDF collisions:
+      # x [-0.4959, 0.57534], y [-0.378783, 0.378788] m.
+      footprint: "[[-0.52, -0.40], [0.60, -0.40], [0.60, 0.40], [-0.52, 0.40]]"
+      footprint_padding: 0.02
       track_unknown_space: false
       plugins: [voxel_layer, inflation_layer]
       voxel_layer:
@@ -201,7 +204,10 @@ local_costmap:
       width: 12
       height: 12
       resolution: 0.1
-      robot_radius: 0.5
+      # Conservative projection of simplified URDF collisions:
+      # x [-0.4959, 0.57534], y [-0.378783, 0.378788] m.
+      footprint: "[[-0.52, -0.40], [0.60, -0.40], [0.60, 0.40], [-0.52, 0.40]]"
+      footprint_padding: 0.02
       plugins: [voxel_layer, inflation_layer]
       voxel_layer:
         plugin: nav2_costmap_2d::VoxelLayer

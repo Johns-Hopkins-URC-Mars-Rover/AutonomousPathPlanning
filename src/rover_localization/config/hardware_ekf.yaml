@@ -1,0 +1,126 @@
+# Self-contained robot_localization rover baseline (planar).
+# Order of every 15-entry selection vector:
+# x y z | roll pitch yaw | vx vy vz | vroll vpitch vyaw | ax ay az.
+# Noise comes from each input message. Tune on recorded hardware data.
+ekf_local:
+  ros__parameters:
+    frequency: 30.0
+    # Keep output/TF at the configured rate even when measurements go quiet.
+    predict_to_current_time: true
+    sensor_timeout: 0.3
+    two_d_mode: true
+    publish_tf: true
+    print_diagnostics: true
+    reset_on_time_jump: true
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom
+    # Camera pose is converted to the rover origin before fusion. Relative
+    # mode removes its arbitrary startup origin. No duplicate camera twist.
+    odom0: /localization/zed_odom_base
+    odom0_config: [true, true, false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_relative: true
+    odom0_differential: false
+    odom0_queue_size: 10
+    # Encoder-integrated pose is correlated with encoder twist: use twist.
+    # Do not enforce vy=0 on a skid-steer rover that may slip sideways.
+    odom1: /localization/wheel_odom
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true, false, false,
+                   false, false, true,
+                   false, false, false]
+    odom1_queue_size: 10
+    imu0: /localization/zed_imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_queue_size: 50
+    imu1: /localization/icm_imu
+    imu1_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu1_queue_size: 50
+
+ekf_global:
+  ros__parameters:
+    frequency: 30.0
+    predict_to_current_time: true
+    sensor_timeout: 0.3
+    two_d_mode: true
+    publish_tf: true
+    print_diagnostics: true
+    reset_on_time_jump: true
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: map
+    # Differentiate camera pose in the map filter. Absolute camera pose lives
+    # in odom and must not pull the GPS-corrected map estimate back to odom.
+    # Feed raw measurements, not the local EKF plus those same measurements.
+    odom0: /localization/zed_odom_base
+    odom0_config: [true, true, false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_differential: true
+    odom0_relative: false
+    odom0_queue_size: 10
+    odom1: /localization/wheel_odom
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true, false, false,
+                   false, false, true,
+                   false, false, false]
+    odom1_queue_size: 10
+    imu0: /localization/zed_imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_queue_size: 50
+    imu1: /localization/icm_imu
+    imu1_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu1_queue_size: 50
+    odom2: /odometry/gps
+    odom2_config: [true, true, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom2_differential: false
+    odom2_relative: false
+    odom2_queue_size: 10
+
+navsat_transform:
+  ros__parameters:
+    frequency: 10.0
+    delay: 3.0
+    zero_altitude: true
+    # Humble mapToLL uses UTM even in LocalCartesian mode; use UTM for
+    # working filtered-GPS and ToLL conversions with the upstream binary.
+    use_local_cartesian: false
+    use_odometry_yaw: false
+    wait_for_datum: false
+    publish_filtered_gps: true
+    broadcast_cartesian_transform: false
+    # /localization/heading must already be ENU, true-east-zero. These offsets
+    # affect navsat only, not an EKF orientation input. Correct external heading
+    # upstream; startup_heading.py generates this convention directly.
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0

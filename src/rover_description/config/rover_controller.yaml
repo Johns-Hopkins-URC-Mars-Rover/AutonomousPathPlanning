@@ -14,8 +14,10 @@ diff_drive_controller:
     right_wheel_names: ["right_front_joint", "right_mid_joint", "right_back_joint"]
 
     # Measured from the simplified URDF wheel collision centers:
-    # left y ~= +0.36878 m, right y ~= -0.36878 m.
-    wheel_separation: 0.73756
+    # Mean left y = +0.348785 m, mean right y = -0.346668 m,
+    # including wheel collision-origin offsets. Geometric fixture value;
+    # a physical skid-steer effective track requires calibration.
+    wheel_separation: 0.695453
     wheel_radius: 0.0975
 
     base_frame_id: base_link
