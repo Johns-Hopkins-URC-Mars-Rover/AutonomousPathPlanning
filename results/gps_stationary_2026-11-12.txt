@@ -1,0 +1,36 @@
+# L76X GPS stationary covariance run, 2026-11-12
+# Tool: scripts/gps_covariance.py (axes: x=East, y=North, z=Up; units m / m^2)
+# Rover stationary. Prints every 300 fixes (~120 s at 2.5 Hz). Sky view not recorded.
+# Summary: E sd ~4.6 m, N sd ~6.5 m, U sd ~10-13 m; E/N correlation ~0.6.
+# Applied to src/l76x_gps_interface/config/gps_params.yaml as [50.0, 50.0, 200.0].
+
+[INFO] [1794538257.645184359] [gps_covariance]: Standard deviations (m): [4.52391664 5.9503619  8.69136193]
+[INFO] [1794538377.643963439] [gps_covariance]:
+GPS Covariance Matrix (m^2):
+[[ 19.23110353  14.65109346 -19.66980919]
+ [ 14.65109346  42.11271115 -27.24064082]
+ [-19.66980919 -27.24064082 101.26974872]]
+[INFO] [1794538377.645950094] [gps_covariance]: Standard deviations (m): [ 4.38532821  6.48943073 10.06328717]
+[INFO] [1794538497.644866314] [gps_covariance]:
+GPS Covariance Matrix (m^2):
+[[ 20.23570587  16.82822403 -25.28456283]
+ [ 16.82822403  43.86004572 -34.49557748]
+ [-25.28456283 -34.49557748 189.31242009]]
+[INFO] [1794538497.646915556] [gps_covariance]: Standard deviations (m): [ 4.49841148  6.62269173 13.759085  ]
+[INFO] [1794538617.644551731] [gps_covariance]:
+GPS Covariance Matrix (m^2):
+[[ 25.1032112   20.8679881  -30.86091389]
+ [ 20.8679881   44.44006789 -37.3907127 ]
+ [-30.86091389 -37.3907127  180.6002564 ]]
+[INFO] [1794538617.646355173] [gps_covariance]: Standard deviations (m): [ 5.01031049  6.66633842 13.43875948]
+[INFO] [1794538737.644843453] [gps_covariance]:
+GPS Covariance Matrix (m^2):
+[[ 22.82426895  18.91706631 -28.09498189]
+ [ 18.91706631  41.28051385 -32.99506173]
+ [-28.09498189 -32.99506173 166.05140659]]
+[INFO] [1794538737.646643501] [gps_covariance]: Standard deviations (m): [ 4.77747516  6.42499135 12.88609354]
+[INFO] [1794538857.644924545] [gps_covariance]:
+GPS Covariance Matrix (m^2):
+[[ 21.12529224  17.57861201 -26.08131263]
+ [ 17.57861201  39.88831046 -30.81895335]
+ [-26.08131263 -30.81895335 152.76019892]]

@@ -2,5 +2,11 @@
   ros__parameters:
     baudrate: 9600
     frame_id: gps_link
-    # ENU variances [m^2]. Zero means unknown; measure before enabling fusion.
-    position_variance: [0.0, 0.0, 0.0]
+    # ENU variances [m^2]. Zero means unknown and is rejected by localization.
+    # Measured 2026-11-12, rover stationary, scripts/gps_covariance.py
+    # (log: results/gps_stationary_2026-11-12.txt):
+    #   E ~21, N ~41, U ~150 m^2; E/N correlation ~0.6; still rising over the run.
+    # The driver publishes a diagonal only, so E/N are inflated to the worst
+    # horizontal direction (~50 m^2). U barely matters (2D EKF, zero_altitude).
+    # Re-measure in open sky; tighten only with longer, cleaner data.
+    position_variance: [50.0, 50.0, 200.0]
