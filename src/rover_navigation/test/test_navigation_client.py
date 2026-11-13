@@ -75,7 +75,7 @@ def configured_client(**overrides):
     node = bare_client()
     parameters = dict(lat=39.0, lon=-76.0, heading=90.0,
                       max_goal_distance=70.0, waypoint_margin=1.0,
-                      navigation_timeout=180.0)
+                      navigation_timeout=600.0)
     parameters.update(overrides)
     node.get_parameter = lambda key: SimpleNamespace(value=parameters[key])
     node.get_clock = Mock(return_value=SimpleNamespace(
@@ -112,7 +112,7 @@ def test_valid_goal_uses_map_yaw_and_bounded_action_waits():
     assert goal.pose.header.frame_id == 'map'
     assert goal.pose.pose.orientation.z == pytest.approx(2**-0.5)
     assert goal.pose.pose.orientation.w == pytest.approx(2**-0.5)
-    assert [call.kwargs['timeout'] for call in node.wait_for_result.call_args_list] == [10., 10., 180.]
+    assert [call.kwargs['timeout'] for call in node.wait_for_result.call_args_list] == [10., 10., 600.]
 
 
 @pytest.mark.parametrize('target', [(15.65, 43.69), (100., 0.)])

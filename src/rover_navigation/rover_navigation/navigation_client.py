@@ -104,7 +104,7 @@ class NavigationClient(Node):
         self.declare_parameter('max_goal_distance', 70.0)
         self.declare_parameter('waypoint_margin', 1.0)
         # Heading is a map-frame yaw in degrees: +X=0, +Y=90.
-        self.declare_parameter('navigation_timeout', 180.0)
+        self.declare_parameter('navigation_timeout', 600.0)
 
         # Convert GPS latitude/longitude to a point in the map frame.
         self.converter = self.create_client(FromLL, '/fromLL')
