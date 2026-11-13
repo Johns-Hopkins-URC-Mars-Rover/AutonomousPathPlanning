@@ -1,8 +1,8 @@
-# Gazebo/localization integration work
+# Gazebo/localization Integration Work
 
 Baseline: `1da6fe3`; branch: `fix/gazebo-localization-integration`.
 
-## Completion gates
+## Completion Gates
 
 1. Docker can run ROS 2 Humble and Gazebo Classic on this Mac, with evidence of a running simulation clock.
 2. Active packages build from their installed resources, without archived packages or machine-specific source paths.
@@ -10,7 +10,7 @@ Baseline: `1da6fe3`; branch: `fix/gazebo-localization-integration`.
 4. Commanded movement, GPS conversion, navigation success/cancellation, and sensor dropout have executable checks.
 5. Documentation describes the tested entry points and separates simulation evidence from unverified hardware behavior.
 
-## Shared contract
+## Shared Contract
 
 | Interface | Producer | Consumer |
 | --- | --- | --- |
@@ -28,7 +28,7 @@ Baseline: `1da6fe3`; branch: `fix/gazebo-localization-integration`.
 
 The URDF owns body/sensor transforms. No competing wheel-odometry TF publisher is allowed. Ground truth is only a test reference, never an estimator input. Simulated IMU orientation must be checked against Gazebo world axes and geographic conversion conventions. Simulation mounts are not measured hardware mounts.
 
-## Sequence and ownership
+## Sequence and Ownership
 
 First, the environment agent establishes the Docker runtime and reports a usable image/command. Implementation starts only after this gate.
 
@@ -40,7 +40,7 @@ Then three implementation agents own disjoint areas:
 
 Root coordinates documentation, shared interfaces, review and final combined testing. Each agent must report its changed interfaces to the other two, cross-review their assumptions, and report exact commands/results. Root arbitrates shared files. Do not commit, push, merge or delete user data during delegated work.
 
-## Verification loops
+## Verification Loops
 
 For each defect: reproduce with a focused check, record the failure, apply a minimal fix, rerun that check, and then run affected integration checks. Stop after three unsuccessful attempts at the same blocker and report the evidence; choose a different supported approach only when its assumptions are explicit.
 
