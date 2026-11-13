@@ -26,6 +26,7 @@ class GPSPublisher(Node):
         if (len(self.variance) != 3 or not all(math.isfinite(v) and v >= 0 for v in self.variance)
                 or (any(self.variance) and not all(v > 0 for v in self.variance))):
             raise ValueError('position_variance must be all zero (unknown) or 3 positive measured variances')
+        self.add_on_set_parameters_callback(self.on_parameters)
         self.pending = {}
         self.gga = {}
         self.last_epoch = None
@@ -50,6 +51,20 @@ class GPSPublisher(Node):
         self.timer = self.create_timer(0.05, self.read_serial)
 
         self.get_logger().info(f"Publishing /gps/fix at receiver baudrate {baudrate}")
+
+    def on_parameters(self, parameters):
+        """Let the startup calibrator replace position_variance while running."""
+        from rcl_interfaces.msg import SetParametersResult
+        for parameter in parameters:
+            if parameter.name != 'position_variance':
+                continue
+            value = list(parameter.value)
+            if (len(value) != 3 or not all(math.isfinite(v) and v > 0 for v in value)):
+                return SetParametersResult(
+                    successful=False, reason='position_variance needs 3 positive finite values')
+            self.variance = value
+            self.get_logger().info('position_variance set to %s' % value)
+        return SetParametersResult(successful=True)
 
     def read_serial(self):
         try:

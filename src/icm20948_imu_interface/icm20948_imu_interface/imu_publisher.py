@@ -56,10 +56,13 @@ class ImuPublisher(Node):
         self.declare_parameter("angular_velocity_covariance", [0.0] * 9)
         self.declare_parameter("linear_acceleration_covariance", [0.0] * 9)
         self.declare_parameter("diagnostics_topic", "/diagnostics")
-        # Gyro bias removal. The rover must sit still for gyro_bias_samples
+        # Gyro bias removal is optional. By default (calibrate_gyro false) no
+        # calibration runs and gyro_bias is used as given (0 if unset). With
+        # calibrate_gyro true the rover must sit still for gyro_bias_samples
         # samples (5 s at 50 Hz) after launch while the bias is measured; no
         # IMU data is published until then. A fixed gyro_bias [x, y, z] in
-        # rad/s skips calibration (empty list = calibrate at startup).
+        # rad/s always takes priority and skips calibration.
+        self.declare_parameter("calibrate_gyro", False)
         self.declare_parameter("gyro_bias_samples", 250)
         self.declare_parameter("gyro_bias", [0.0])
 
@@ -112,6 +115,10 @@ class ImuPublisher(Node):
             return
         if len(fixed) > 1:
             raise ValueError(f"gyro_bias must have 3 values (x, y, z), got {len(fixed)}")
+        if not self.get_parameter("calibrate_gyro").value:
+            self.gyro_bias = (0.0, 0.0, 0.0)
+            self.get_logger().info("Gyro bias calibration is off; publishing raw gyro data.")
+            return
         samples = self.get_parameter("gyro_bias_samples").value
         self.calibrator = GyroBiasCalibrator(num_samples=samples)
         self._cal_start = None
