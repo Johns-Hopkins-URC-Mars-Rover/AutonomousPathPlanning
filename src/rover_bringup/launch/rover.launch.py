@@ -9,6 +9,7 @@ from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import SetRemap
 
 
 def generate_launch_description():
@@ -33,6 +34,7 @@ def generate_launch_description():
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
     enable_costmap = LaunchConfiguration('enable_costmap')
+    enable_nav2 = LaunchConfiguration('enable_nav2')
     zed_use_pub_timestamps = LaunchConfiguration(
         'zed_use_pub_timestamps')
     zed_grab_frame_rate = LaunchConfiguration('zed_grab_frame_rate')
@@ -95,6 +97,7 @@ def generate_launch_description():
             default_value='zed2i',
             description='ZED camera model (for example: zed2i, zedx, or zedxm).',
         ),
+        DeclareLaunchArgument('enable_nav2', default_value='true'),
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -148,4 +151,13 @@ def generate_launch_description():
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }.items(),
         )]),
+        GroupAction(condition=IfCondition(enable_nav2), actions=[
+            SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
+            IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
+            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'), 
+                              'params_file': PathJoinSubstitution(
+                                  [FindPackageShare('rover_costmap'), 'config', 'costmap_params.yaml',]),
+            }.items()),
+        ]),
     ])
