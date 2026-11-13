@@ -49,10 +49,10 @@ axle. These friction coefficients and suspension constraints are simulation
 assumptions, not measured rover dynamics. `rover.urdf` retains the original CAD
 model for inspection; it is not the tested Gazebo entry point.
 
-The simplified model's original wheel axes have been restored by request. A
-positive velocity command moves the model backward in the `base_link` frame.
-This differs from the controller/odometry convention and can affect localization
-and Nav2. Previous passing navigation results predate the axis restoration.
+The simplified model retains the original wheel axes. A positive raw controller
+command moves it backward in the `base_link` frame. Simulation-only adapters
+correct wheel-odometry signs for the EKFs and Nav2 command signs for the wheel
+controller. These adapters are not part of the hardware localization path.
 
 ## Active packages
 

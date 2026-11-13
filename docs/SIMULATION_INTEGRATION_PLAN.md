@@ -15,7 +15,8 @@ Baseline: `1da6fe3`; branch: `fix/gazebo-localization-integration`.
 | Interface | Producer | Consumer |
 | --- | --- | --- |
 | `/clock` | Gazebo | All simulation nodes |
-| `/diff_drive_controller/odom` | Wheel controller | Local/global EKFs |
+| `/diff_drive_controller/odom` | Wheel controller | Simulation sign adapter |
+| `/simulation/wheel_odometry` | Simulation sign adapter | Local/global EKFs |
 | `/zed/zed_node/imu/data` | Simulated IMU | EKFs and navsat |
 | `/gps/fix` | Simulated GPS | navsat |
 | `/odometry/gps` | navsat | Global EKF |

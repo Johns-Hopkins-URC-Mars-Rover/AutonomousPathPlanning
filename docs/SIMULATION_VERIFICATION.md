@@ -4,12 +4,16 @@ Date: 2026-11-12. Work branch: `fix/gazebo-localization-integration`; baseline `
 All changes remain uncommitted for review.
 
 **Update:** At the user's request the six original wheel axes have been restored.
-Positive commands now move the simulated model backward relative to `base_link`.
-The motion test expects that direction. A positive-command run moved ground
-truth -0.277 m along the rover's forward axis, while the local estimate differed
-from ground-truth displacement by 0.529 m. A separate run failed the unchanged
-0.4 m localization disagreement threshold at 0.509 m. The passing movement and
-Nav2 results below predate this restoration and do not verify the current model.
+Positive raw controller commands move the simulated model backward relative to
+`base_link`. Before sign correction, local and ground-truth displacements
+disagreed by 0.509 m. Simulation-only adapters now correct wheel-odometry twist
+and Nav2 command signs without changing the original wheel axes or hardware path.
+After merging updated main, the complete simulation test passed: 60 package
+tests, raw positive motion -0.268 m, local/truth disagreement 0.014 m, and
+successful Nav2 goal, cancellation, outside-costmap and obstacle-marking checks.
+The synthetic localization rerun also passed five profiles without a shutdown
+traceback. Logs: `/private/tmp/rover-merged-final.log` and
+`/private/tmp/rover-shutdown-retest.log`.
 
 ## Environment and reproducible commands
 
