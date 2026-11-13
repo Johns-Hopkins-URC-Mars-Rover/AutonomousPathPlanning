@@ -8,7 +8,7 @@ global_costmap:
       use_sim_time: false
       # The physical ZED cloud can arrive several hundred milliseconds after
       # capture. Allow TF to catch up before discarding the observation.
-      transform_tolerance: 1.0
+      transform_tolerance: 2.0
       rolling_window: true
       width: 10
       height: 10
