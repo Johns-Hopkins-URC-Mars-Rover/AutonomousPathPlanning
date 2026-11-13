@@ -79,10 +79,13 @@ global_costmap:
       # capture. Allow TF to catch up before discarding the observation.
       transform_tolerance: 2.0
       rolling_window: true
+      # The GPS client advances through this rolling window using intermediate goals.
       width: 10
       height: 10
       resolution: 0.05
-      robot_radius: 0.381
+      # Enclose the URDF collision meshes at neutral joint positions.
+      footprint: "[[0.60, 0.40], [0.60, -0.40], [-0.52, -0.40], [-0.52, 0.40]]"
+      footprint_padding: 0.01
       always_send_full_costmap: true
       plugins: ["voxel_layer", "inflation_layer"]
       voxel_layer:
@@ -90,17 +93,21 @@ global_costmap:
         enabled: true
         publish_voxel_map: true
         footprint_clearing_enabled: true
-        origin_z: 0.0
-        z_resolution: 0.05
+        # URDF ground is approximately z=-0.30 relative to base_link.
+        # Sixteen 0.15 m layers cover [-0.30, 2.10), including 2 m returns.
+        origin_z: -0.30
+        z_resolution: 0.15
         z_voxels: 16
         unknown_threshold: 15
         mark_threshold: 0
+        min_obstacle_height: -0.25
         max_obstacle_height: 2.0
         observation_sources: zed_cloud
         zed_cloud:
           topic: /zed/zed_node/point_cloud/cloud_registered
           data_type: "PointCloud2"
-          min_obstacle_height: 0.05
+          # Approximately 5 cm above the URDF-derived ground plane.
+          min_obstacle_height: -0.25
           max_obstacle_height: 2.0
           obstacle_min_range: 0.3
           obstacle_max_range: 8.0
@@ -123,10 +130,14 @@ local_costmap:
       use_sim_time: false
       transform_tolerance: 1.0
       rolling_window: true
-      width: 3
-      height: 3
+      width: 8
+      height: 8
       resolution: 0.05
       robot_radius: 0.381
+      track_unknown_space: true
+      # Use the same physical footprint as the global costmap.
+      footprint: "[[0.60, 0.40], [0.60, -0.40], [-0.52, -0.40], [-0.52, 0.40]]"
+      footprint_padding: 0.01
       always_send_full_costmap: true
       plugins: ["voxel_layer", "inflation_layer"]
       voxel_layer:
@@ -134,17 +145,21 @@ local_costmap:
         enabled: true
         publish_voxel_map: true
         footprint_clearing_enabled: true
-        origin_z: 0.0
-        z_resolution: 0.05
+        # URDF ground is approximately z=-0.30 relative to base_link.
+        # Sixteen 0.15 m layers cover [-0.30, 2.10), including 2 m returns.
+        origin_z: -0.30
+        z_resolution: 0.15
         z_voxels: 16
         unknown_threshold: 15
         mark_threshold: 0
+        min_obstacle_height: -0.25
         max_obstacle_height: 2.0
         observation_sources: zed_cloud
         zed_cloud:
           topic: /zed/zed_node/point_cloud/cloud_registered
           data_type: "PointCloud2"
-          min_obstacle_height: 0.05
+          # Approximately 5 cm above the URDF-derived ground plane.
+          min_obstacle_height: -0.25
           max_obstacle_height: 2.0
           obstacle_min_range: 0.3
           obstacle_max_range: 5.0

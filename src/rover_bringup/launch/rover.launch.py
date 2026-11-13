@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
@@ -68,7 +68,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_costmap',
             default_value='false',
-            description='Launch the rover global and local costmaps.',
+            description='Launch standalone costmaps when Nav2 is disabled.',
         ),
         DeclareLaunchArgument(
             'zed_use_pub_timestamps',
@@ -144,7 +144,8 @@ def generate_launch_description():
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }.items(),
         )]),
-        GroupAction(actions=[IncludeLaunchDescription(
+        # Nav2's planner and controller own their costmaps when enabled.
+        GroupAction(condition=UnlessCondition(enable_nav2), actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(costmap_launch),
             condition=IfCondition(enable_costmap),
             launch_arguments={

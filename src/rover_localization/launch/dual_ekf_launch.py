@@ -45,9 +45,9 @@ def generate_launch_description():
             remappings=[
                 ('/gps/fix', '/gps/fix'),
                 ('/imu', '/zed/zed_node/imu/data'),
-                # Navsat must use the continuous local estimate, not the global
-                # estimate that consumes navsat's own /odometry/gps output.
-                ('/odometry/filtered', '/odometry/local'),
+                # GPS poses must be expressed in the global EKF's map frame,
+                # without depending on its changing map -> odom transform.
+                ('/odometry/filtered', '/odometry/global'),
                 ('/odometry/gps', '/odometry/gps'),
             ],
         ),
