@@ -11,6 +11,12 @@ imu_publisher:
     frame_id: imu_link
     pub_rate: 50
     diagnostics_topic: /diagnostics
+    # Gyro bias removal. At startup the rover must sit still for
+    # gyro_bias_samples samples (250 at 50 Hz = 5 s) while the bias is
+    # measured; no IMU data is published until then. Set gyro_bias to a fixed
+    # [x, y, z] in rad/s to skip calibration. [0.0] (one value) means calibrate.
+    gyro_bias_samples: 250
+    gyro_bias: [0.0]
     angular_velocity_covariance: [      # (rad/s)^2
       0.00046247786575553924, -0.0000883421234433383, 0.00013422339049407029,
       -0.0000883421234433383, 0.0005159220200298525, -0.00012246753116132067,
