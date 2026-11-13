@@ -14,7 +14,7 @@
     world_frame: odom
 
     # The Gazebo diff-drive controller is the continuous local motion source.
-    odom0: /diff_drive_controller/odom
+    odom0: /simulation/wheel_odometry
     odom0_config: [false, false, false,
                    false, false, false,
                    true,  true,  false,

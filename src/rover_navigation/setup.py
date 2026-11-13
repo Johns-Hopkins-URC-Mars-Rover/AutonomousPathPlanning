@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
                 'wait_for_localization = rover_navigation.wait_for_localization:main',
                 'cmd_vel_relay = rover_navigation.cmd_vel_relay:main',
+                'sim_wheel_odometry = rover_navigation.sim_wheel_odometry:main',
                 'navigation_client = rover_navigation.navigation_client:main'
         ],
     },
