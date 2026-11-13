@@ -32,6 +32,7 @@ def generate_launch_description():
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
+    enable_costmap = LaunchConfiguration('enable_costmap')
     enable_robot_state_publisher = LaunchConfiguration(
         'enable_robot_state_publisher')
     camera_model = LaunchConfiguration('camera_model')
@@ -58,7 +59,11 @@ def generate_launch_description():
             description='Publish the rover URDF fixed and joint transforms.',
         ),
         DeclareLaunchArgument('enable_localization', default_value='false'),
-        DeclareLaunchArgument('enable_costmaps', default_value='false'),
+        DeclareLaunchArgument(
+            'enable_costmap',
+            default_value='false',
+            description='Launch the rover global and local costmaps.',
+        ),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument(
             'camera_model',
@@ -104,7 +109,7 @@ def generate_launch_description():
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(costmap_launch),
-            condition=IfCondition(LaunchConfiguration('enable_costmaps')),
+            condition=IfCondition(enable_costmap),
             launch_arguments={
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }.items(),
