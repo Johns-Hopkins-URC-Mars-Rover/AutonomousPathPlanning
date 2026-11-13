@@ -35,6 +35,7 @@ def generate_launch_description():
     enable_costmap = LaunchConfiguration('enable_costmap')
     zed_use_pub_timestamps = LaunchConfiguration(
         'zed_use_pub_timestamps')
+    zed_grab_frame_rate = LaunchConfiguration('zed_grab_frame_rate')
     enable_robot_state_publisher = LaunchConfiguration(
         'enable_robot_state_publisher')
     camera_model = LaunchConfiguration('camera_model')
@@ -72,6 +73,13 @@ def generate_launch_description():
             description=(
                 'Stamp ZED messages at ROS publication time. Enable only as '
                 'a same-computer workaround for delayed camera timestamps.'),
+        ),
+        DeclareLaunchArgument(
+            'zed_grab_frame_rate',
+            default_value='30',
+            description=(
+                'ZED camera grab rate. The 30 FPS soft-test default reduces '
+                'localization and point-cloud processing load.'),
         ),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument(
@@ -111,6 +119,8 @@ def generate_launch_description():
                 'param_overrides': [
                     'debug.use_pub_timestamps:=',
                     zed_use_pub_timestamps,
+                    ';general.grab_frame_rate:=',
+                    zed_grab_frame_rate,
                 ],
             }.items(),
         )]),
