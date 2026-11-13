@@ -36,6 +36,7 @@ def generate_launch_description():
     zed_use_pub_timestamps = LaunchConfiguration(
         'zed_use_pub_timestamps')
     zed_grab_frame_rate = LaunchConfiguration('zed_grab_frame_rate')
+    zed_point_cloud_freq = LaunchConfiguration('zed_point_cloud_freq')
     enable_robot_state_publisher = LaunchConfiguration(
         'enable_robot_state_publisher')
     camera_model = LaunchConfiguration('camera_model')
@@ -81,6 +82,13 @@ def generate_launch_description():
                 'ZED camera grab rate. The 30 FPS soft-test default reduces '
                 'localization and point-cloud processing load.'),
         ),
+        DeclareLaunchArgument(
+            'zed_point_cloud_freq',
+            default_value='5.0',
+            description=(
+                'ZED registered point-cloud publication rate. Five Hz is '
+                'sufficient for the stationary costmap soft test.'),
+        ),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument(
             'camera_model',
@@ -121,6 +129,8 @@ def generate_launch_description():
                     zed_use_pub_timestamps,
                     ';general.grab_frame_rate:=',
                     zed_grab_frame_rate,
+                    ';depth.point_cloud_freq:=',
+                    zed_point_cloud_freq,
                 ],
             }.items(),
         )]),
