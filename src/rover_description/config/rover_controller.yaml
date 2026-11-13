@@ -15,7 +15,7 @@ diff_drive_controller:
 
     # Measured from the simplified URDF wheel collision centers:
     # left y ~= +0.36878 m, right y ~= -0.36878 m.
-    wheel_separation: 0.73756
+    wheel_separation: 0.695 # 0.73756
     wheel_radius: 0.0975
 
     base_frame_id: base_link
