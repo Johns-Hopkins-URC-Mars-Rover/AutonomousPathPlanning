@@ -1,0 +1,131 @@
+Starting >>> rover_navigation
+Finished <<< rover_navigation [0.87s]
+Starting >>> rover_localization
+Finished <<< rover_localization [0.81s]
+Starting >>> rover_bringup
+Starting >>> rover_description
+Finished <<< rover_bringup [3.18s]
+Finished <<< rover_description [3.38s]
+
+Summary: 4 packages finished [5.25s]
+Starting >>> rover_navigation
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-6.2.5, py-1.10.0, pluggy-0.13.0
+cachedir: /tmp/rover_ws/build/rover_navigation/.pytest_cache
+rootdir: /source/src/rover_navigation
+plugins: ament-xmllint-0.12.15, ament-lint-0.12.15, ament-copyright-0.12.15, launch-testing-ros-0.19.14, ament-flake8-0.12.15, ament-pep257-0.12.15, launch-testing-1.0.15, cov-3.0.0, colcon-core-0.21.3
+collected 35 items
+
+test/test_depth_probe.py ..                                              [  5%]
+test/test_localization_readiness.py ...........                          [ 37%]
+test/test_navigation_client.py ................                          [ 82%]
+test/test_navigation_footprint.py .                                      [ 85%]
+test/test_nodes.py .....                                                 [100%]
+
+----- generated xml file: /tmp/rover_ws/build/rover_navigation/pytest.xml ------
+============================== 35 passed in 0.89s ==============================
+Finished <<< rover_navigation [1.61s]
+Starting >>> rover_localization
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-6.2.5, py-1.10.0, pluggy-0.13.0
+rootdir: /source/src/rover_localization, configfile: pytest.ini
+plugins: ament-xmllint-0.12.15, ament-lint-0.12.15, ament-copyright-0.12.15, launch-testing-ros-0.19.14, ament-flake8-0.12.15, ament-pep257-0.12.15, launch-testing-1.0.15, cov-3.0.0, colcon-core-0.21.3
+collected 20 items
+
+test/launch_contract_test.py ...                                         [ 15%]
+test/test_rover_inputs.py ...........                                    [ 70%]
+test/test_sensor_contracts.py ......                                     [100%]
+
+---- generated xml file: /tmp/rover_ws/build/rover_localization/pytest.xml -----
+============================== 20 passed in 0.20s ==============================
+Finished <<< rover_localization [0.86s]
+Starting >>> rover_bringup
+Starting >>> rover_description
+UpdateCTestConfiguration  from :/tmp/rover_ws/build/rover_bringup/CTestConfiguration.ini
+Parse Config file:/tmp/rover_ws/build/rover_bringup/CTestConfiguration.ini
+   Site: 03f12015f95e
+   Build name: (empty)
+UpdateCTestConfiguration  from :/tmp/rover_ws/build/rover_description/CTestConfiguration.ini
+Parse Config file:/tmp/rover_ws/build/rover_description/CTestConfiguration.ini
+   Site: 03f12015f95e
+   Build name: (empty)
+ Add coverage exclude regular expressions.
+ Add coverage exclude regular expressions.
+Create new tag: 20261113-0509 - Experimental
+Create new tag: 20261113-0509 - Experimental
+UpdateCTestConfiguration  from :/tmp/rover_ws/build/rover_bringup/CTestConfiguration.ini
+Parse Config file:/tmp/rover_ws/build/rover_bringup/CTestConfiguration.ini
+Test project /tmp/rover_ws/build/rover_bringup
+Constructing a list of tests
+UpdateCTestConfiguration  from :/tmp/rover_ws/build/rover_description/CTestConfiguration.ini
+Parse Config file:/tmp/rover_ws/build/rover_description/CTestConfiguration.ini
+Test project /tmp/rover_ws/build/rover_description
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+test 1
+Checking test dependency graph...
+Checking test dependency graph end
+    Start 1: rover_simple_switches
+
+1: Test command: /usr/bin/python3 "-B" "-m" "unittest" "discover" "-s" "/source/src/rover_bringup/test" "-p" "test_simple_switches.py"
+1: Test timeout computed to be: 10000000
+test 1
+    Start 1: model_resources
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/tmp/rover_ws/build/rover_description/test_results/rover_description/model_resources.xunit.xml" "--package-name" "rover_description" "--output-file" "/tmp/rover_ws/build/rover_description/ament_cmake_pytest/model_resources.txt" "--command" "/usr/bin/python3" "-u" "-m" "pytest" "/source/src/rover_description/test/test_resources.py" "-o" "cache_dir=/tmp/rover_ws/build/rover_description/ament_cmake_pytest/model_resources/.cache" "--junit-xml=/tmp/rover_ws/build/rover_description/test_results/rover_description/model_resources.xunit.xml" "--junit-prefix=rover_description"
+1: Test timeout computed to be: 60
+1: ......
+1: ----------------------------------------------------------------------
+1: Ran 6 tests in 0.001s
+1: 
+1: OK
+1/1 Test #1: rover_simple_switches ............   Passed    0.14 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.15 sec
+Finished <<< rover_bringup [0.33s]
+1: -- run_test.py: invoking following command in '/tmp/rover_ws/build/rover_description':
+1:  - /usr/bin/python3 -u -m pytest /source/src/rover_description/test/test_resources.py -o cache_dir=/tmp/rover_ws/build/rover_description/ament_cmake_pytest/model_resources/.cache --junit-xml=/tmp/rover_ws/build/rover_description/test_results/rover_description/model_resources.xunit.xml --junit-prefix=rover_description
+1: ============================= test session starts ==============================
+1: platform linux -- Python 3.10.12, pytest-6.2.5, py-1.10.0, pluggy-0.13.0
+1: cachedir: /tmp/rover_ws/build/rover_description/ament_cmake_pytest/model_resources/.cache
+1: rootdir: /source/src/rover_description/test
+1: plugins: ament-xmllint-0.12.15, ament-lint-0.12.15, ament-copyright-0.12.15, launch-testing-ros-0.19.14, ament-flake8-0.12.15, ament-pep257-0.12.15, launch-testing-1.0.15, cov-3.0.0, colcon-core-0.21.3
+1: collected 3 items
+1: 
+1: ../../../../source/src/rover_description/test/test_resources.py ...      [100%]
+1: 
+1: - generated xml file: /tmp/rover_ws/build/rover_description/test_results/rover_description/model_resources.xunit.xml -
+1: ============================== 3 passed in 0.03s ===============================
+1: -- run_test.py: return code 0
+1: -- run_test.py: verify result file '/tmp/rover_ws/build/rover_description/test_results/rover_description/model_resources.xunit.xml'
+1/1 Test #1: model_resources ..................   Passed    0.54 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+pytest    =   0.54 sec*proc (1 test)
+
+Total Test time (real) =   0.55 sec
+Finished <<< rover_description [0.73s]
+
+Summary: 4 packages finished [3.37s]
+Summary: 60 tests, 0 errors, 0 failures, 0 skipped
+{"streams": {"clock": 24, "gps": 23, "imu": 222, "truth": 42, "local": 22, "global": 22, "points": 3, "wheel": 50}, "gps_conversion_error_m": 0.28485262026992775}
+{"truth_displacement_m": 0.2696844440317718, "forward_m": -0.2696547989329264, "local_delta_error_m": 0.015682734677440708}
+{"reverse_forward_axis_m": 0.3239676636413822, "turn_yaw_rad": -0.6292647757567826}
+PASS real Gazebo integration probe
+PASS simulation profile: motion
+{"streams": {"clock": 30, "gps": 29, "imu": 281, "truth": 54, "local": 28, "global": 28, "points": 4, "wheel": 4}, "gps_conversion_error_m": 1.346240560867273}
+{"obstacle_baseline_cost": 0, "obstacle_marked_cost": 99}
+PASS Nav2 reachable goal, cancellation, outside-costmap failure and physical obstacle costmap marking
+PASS real Gazebo integration probe
+PASS simulation profile: navigation
