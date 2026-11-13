@@ -6,11 +6,15 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: false
+      # The physical ZED cloud can arrive several hundred milliseconds after
+      # capture. Allow TF to catch up before discarding the observation.
+      transform_tolerance: 1.0
       rolling_window: true
       width: 10
       height: 10
       resolution: 0.05
       robot_radius: 0.381
+      always_send_full_costmap: true
       plugins: ["voxel_layer", "inflation_layer"]
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
@@ -48,11 +52,13 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: false
+      transform_tolerance: 1.0
       rolling_window: true
       width: 3
       height: 3
       resolution: 0.05
       robot_radius: 0.32
+      always_send_full_costmap: true
       plugins: ["voxel_layer", "inflation_layer"]
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
