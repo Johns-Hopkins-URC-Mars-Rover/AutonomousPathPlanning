@@ -33,6 +33,8 @@ def generate_launch_description():
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
     enable_costmap = LaunchConfiguration('enable_costmap')
+    zed_use_pub_timestamps = LaunchConfiguration(
+        'zed_use_pub_timestamps')
     enable_robot_state_publisher = LaunchConfiguration(
         'enable_robot_state_publisher')
     camera_model = LaunchConfiguration('camera_model')
@@ -63,6 +65,13 @@ def generate_launch_description():
             'enable_costmap',
             default_value='false',
             description='Launch the rover global and local costmaps.',
+        ),
+        DeclareLaunchArgument(
+            'zed_use_pub_timestamps',
+            default_value='false',
+            description=(
+                'Stamp ZED messages at ROS publication time. Enable only as '
+                'a same-computer workaround for delayed camera timestamps.'),
         ),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument(
@@ -98,6 +107,11 @@ def generate_launch_description():
                 # robot_localization is the only owner of map/odom TF.
                 'publish_tf': 'false',
                 'publish_map_tf': 'false',
+                # This ZED parameter is read-only after node initialization.
+                'param_overrides': [
+                    'debug.use_pub_timestamps:=',
+                    zed_use_pub_timestamps,
+                ],
             }.items(),
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
