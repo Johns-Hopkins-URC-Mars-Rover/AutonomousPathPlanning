@@ -15,6 +15,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        Node(package='rover_navigation', executable='sim_wheel_odometry',
+             name='sim_wheel_odometry', output='screen',
+             parameters=[{'use_sim_time': use_sim_time}]),
         # 1. Local EKF Node
         Node(
             package='robot_localization',

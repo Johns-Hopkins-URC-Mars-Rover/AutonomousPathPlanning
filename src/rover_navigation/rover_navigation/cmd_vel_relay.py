@@ -1,3 +1,4 @@
+import copy
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
@@ -12,7 +13,10 @@ class CmdVelRelay(Node):
             Twist, '/cmd_vel', self.relay, 10)
 
     def relay(self, message):
-        self.publisher.publish(message)
+        output = copy.deepcopy(message)
+        output.linear.x = -output.linear.x
+        output.angular.z = -output.angular.z
+        self.publisher.publish(output)
 
 
 def main(args=None):

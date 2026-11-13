@@ -17,6 +17,7 @@ setup(
         (os.path.join('share', package_name, 'config'),
             glob(os.path.join('config', '*.yaml'))),
     ],
+    scripts=glob('scripts/*.py'),
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='JoshuaDayal',

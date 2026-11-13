@@ -1,226 +1,143 @@
 # Autonomous Path Planning
 
-ROS 2 Humble workspace for the rover's positioning and sensor interfaces.
+ROS 2 Humble rover simulation, localization, navigation, and hardware sensor interfaces.
+The active simulation uses Gazebo Classic 11, wheel odometry and a simulated ZED IMU,
+upstream `robot_localization` local/global EKFs, GPS conversion, and Nav2 depth costmaps.
+The simulated camera supplies depth/point clouds; visual odometry is not implemented
+by this simulation.
 
-## Packages
+## Run on a Mac through Docker
 
-| Package | Purpose |
+Start Docker Desktop. Native ROS/Gazebo installation is unnecessary for this workflow.
+The image uses Linux AMD64 emulation on Apple Silicon to run the existing Classic plugins.
+The first build downloads ROS, Gazebo and Nav2 dependencies and can take several minutes.
+
+```bash
+bash scripts/run_simulation_container.sh --build bash -lc \
+  'source /opt/ros/humble/setup.bash; python3 /source/docker/gazebo_environment_smoke.py'
+```
+
+The repository is mounted read-only at `/source`. Build outputs and ROS logs live
+inside the temporary container. To build and launch the complete simulation:
+
+```bash
+bash scripts/run_simulation_container.sh bash -lc '
+  source /opt/ros/humble/setup.bash &&
+  colcon build --base-paths /source/src/rover_description /source/src/rover_localization /source/src/rover_navigation /source/src/rover_bringup --cmake-args -DBUILD_TESTING=OFF &&
+  source install/setup.bash &&
+  xvfb-run -a ros2 launch rover_description simulation.launch.py
+'
+```
+
+`xvfb-run` provides a virtual display for depth-camera rendering. This command runs
+headlessly; it does not open a Gazebo window on macOS. The container is removed on
+exit, so copy logs out before stopping a debugging container if they are needed.
+
+`simulation.launch.py` starts Gazebo, the rover, controllers, localization, and Nav2.
+Use `enable_nav2:=false` for isolated motion/localization testing. The default
+`flat.world` has a ground plane and geographic origin for repeatable baseline tests.
+To select park terrain, pass `world:=<installed-package-path>/world/park.world`.
+On a Linux desktop with a display, `gui:=true` also starts the Gazebo client.
+Nav2 starts after bounded localization readiness checks; `startup_timeout:=120.0`
+controls that deadline in wall seconds.
+
+The default `simp_rover.urdf` is a rigid suspension simulation fixture. Its
+formerly unconstrained rocker joints caused invalid physical/sensor states on
+ground contact; the fixture fixes those joints. Wheel friction is anisotropic
+(lower lateral friction for skid steering), expressed along the collision-frame
+axle. These friction coefficients and suspension constraints are simulation
+assumptions, not measured rover dynamics. `rover.urdf` retains the original CAD
+model for inspection; it is not the tested Gazebo entry point.
+
+The simplified model retains the original wheel axes. A positive raw controller
+command moves it backward in the `base_link` frame. Simulation-only adapters
+correct wheel-odometry signs for the EKFs and Nav2 command signs for the wheel
+controller. These adapters are not part of the hardware localization path.
+
+## Active packages
+
+| Package | Role |
 | --- | --- |
-| `ublox_dgnss` | Reads high-precision position data from supported u-blox GNSS receivers (F9P, F9R, and X20P). It also provides UBX messages, `NavSatFix` output, base/rover launch files, and NTRIP correction support. |
-| `icm20948_imu_interface` | Publishes ICM-20948 accelerometer, gyroscope, magnetometer, and diagnostic data over ROS 2. |
-| `zed-ros2-wrapper` | Stereolabs ROS 2 driver for ZED cameras. It publishes camera images, depth, point clouds, odometry, and sensor data. |
-| `robot_localization` | Contains the local/global EKFs, ZED/wheel odometry and raw ZED/ICM gyro configuration, sensor adapters, heading/TF helpers, GPS conversion, and tests. See [`DUAL_EKF.md`](src/robot_localization/DUAL_EKF.md). |
-| `rover_bringup` | Provides the top-level rover launch file that starts the enabled hardware drivers. |
+| `rover_description` | URDF, Gazebo worlds/sensors/controllers, simulation launches, Nav2 parameters, measured-mount launcher |
+| `rover_localization` | Simulation dual EKFs and hardware-specific sensor adapters/configuration using upstream `robot_localization` |
+| `rover_navigation` | GPS-to-map navigation client, command relay, localization readiness check |
+| `rover_bringup` | Hardware driver selection and optional hardware localization |
+| `l76x_gps_interface` | L76X GPS interface |
+| `icm20948_imu_interface` | ICM-20948 IMU interface |
 
-### One-command sensor selection
+`src/archives/COLCON_IGNORE` excludes historical estimators, drivers, and tests.
+Do not remove it to make a stale command work. The upstream Humble
+`robot_localization` binary supplies EKF/navsat executables; rover-specific
+launches and adapters belong in `rover_localization`.
 
-After building and sourcing the ROS workspace, select components using `yes` or
-`no` (the values are command arguments, not interactive prompts):
+## Ubuntu build
+
+For native execution use Ubuntu 22.04 with ROS 2 Humble, Colcon and rosdep.
+Install dependencies using package manifests, then build and source the workspace:
+
+```bash
+source /opt/ros/humble/setup.bash
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch rover_description simulation.launch.py
+```
+
+The ZED hardware driver additionally requires the initialized
+`src/zed-ros2-wrapper` submodule, compatible ZED SDK/CUDA, and a supported camera.
+Those hardware dependencies are not required for the Docker simulation.
+
+## Hardware bringup
+
+After installing the drivers, building and sourcing the hardware workspace:
 
 ```bash
 ros2 launch rover_bringup simple.launch.py \
   zed:=yes icm:=no wheel:=yes gps:=no localization:=yes drivers:=yes
 ```
 
-`icm:=no` disables both the external ICM driver and its EKF input. `zed` controls
-the ZED driver, optical odometry and gyro input; `wheel` selects an existing
-wheel odometry topic, but does not start a motor controller. `gps:=yes` starts
-GPS global localization when localization is enabled, as well as the GPS
-driver when `drivers:=yes`. Use `drivers:=no` when all selected drivers already
-run elsewhere. Defaults are `zed:=yes`, `icm:=no`, `wheel:=no`, `gps:=no`,
-`localization:=yes`, and `drivers:=yes`.
+`wheel` selects an existing encoder odometry topic; it does not launch a motor
+controller. `drivers:=no` uses sensors already running elsewhere. `zed` selects
+ZED optical odometry and gyro, `icm` selects the external gyro, and `gps` enables
+GPS/global estimation when localization is selected. The hardware profile is
+separate from the simulation's fixed sensor configuration.
 
-GPS/global localization requires verified sensor mounts and an earth-referenced
-heading. For example, with a measured startup heading, add
-`gps:=yes heading_mode:=startup initial_heading_deg:=<measured_bearing>`;
-the bearing uses true north = 0 and east = 90 degrees. The launch rejects an
-unspecified heading. A URDF or other TF publisher must supply the sensor mounts;
-see [the dual-EKF guide](src/robot_localization/DUAL_EKF.md) for provisional
-bench mounts and the alternative verified heading topic. Do not publish two
-sets of mount transforms.
-
-The workspace also contains rover-specific navigation, localization, and GPS interface packages under `src/`.
-
-## 1. Prerequisites
-
-- Ubuntu 22.04
-- ROS 2 Humble
-- `colcon` and `rosdep`
-- Git submodules checked out
-
-The ZED package additionally requires a compatible NVIDIA CUDA installation and the [ZED SDK](https://www.stereolabs.com/developers/release/).
-
-## 2. Clone the workspace
+Hardware localization can also launch directly:
 
 ```bash
-git clone --recurse-submodules https://github.com/Johns-Hopkins-URC-Mars-Rover/AutonomousPathPlanning.git
-cd AutonomousPathPlanning
+ros2 launch rover_localization hardware_localization.launch.py
 ```
 
-If the repository was cloned without submodules, run:
+GPS/global estimation requires measured sensor transforms and an earth-referenced
+heading. With a measured startup compass bearing use `heading_mode:=startup
+initial_heading_deg:=<bearing>` (north=0, east=90). The alternative
+`heading_mode:=imu heading_topic:=<topic>` requires a verified ENU heading source.
+A URDF or `rover_description sensor_mounts.launch.py mounts_file:=<JSON>` must
+publish the measured mounts. See `config/sensor_mounts.example.json`; its entries
+are deliberately unverified. `publish_approximate_mounts:=true` is an explicit
+bench fixture, not hardware calibration, and must not run alongside URDF mount TF.
+
+## Interfaces and tests
+
+See [the integration plan](docs/SIMULATION_INTEGRATION_PLAN.md) for the topic/TF
+contract and staged checks, and [verification results](docs/SIMULATION_VERIFICATION.md)
+for commands actually run, measured results and remaining limitations.
+
+Run `bash scripts/test_localization_container.sh` for active localization tests.
+Run the complete clean build, Colcon tests, and real Gazebo motion/navigation
+checks with:
 
 ```bash
-git submodule update --init --recursive
+bash scripts/test_simulation_container.sh
 ```
 
-## 3. Install dependencies
+The simulation probe in `scripts/probe_simulation.py` checks a running stack;
+`--motion` requires Nav2 disabled and `--navigation` tests the active Nav2 stack.
+A probe must run in the same container/network and ROS domain as its stack.
+Use different ROS domains for concurrent test stacks to prevent data interference.
 
-```bash
-source /opt/ros/humble/setup.bash
-sudo rosdep init  # Run once per machine; skip if already initialized
-rosdep update
-rosdep install --from-paths src --ignore-src -r -y
-```
-
-If `rosdep` cannot resolve the ICM-20948 Python driver, install it separately:
-
-```bash
-python3 -m pip install sparkfun-qwiic-icm20948
-```
-
-## 4. Build
-
-Build the entire workspace:
-
-```bash
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-source install/setup.bash
-```
-
-Or build only the package you need:
-
-```bash
-# u-blox driver and its dependencies
-colcon build --symlink-install --packages-up-to ublox_dgnss
-
-# ICM-20948 interface
-colcon build --symlink-install --packages-select icm20948_imu_interface
-
-# Self-contained local/global EKFs and rover bringup
-colcon build --symlink-install --packages-select robot_localization rover_bringup \
-  --cmake-args -DBUILD_TESTING=OFF
-
-# ZED wrapper (ZED SDK and CUDA must already be installed)
-colcon build --symlink-install --packages-up-to zed_wrapper \
-  --packages-skip zed_debug \
-  --cmake-args -DCMAKE_BUILD_TYPE=Release
-```
-
-After any build, source the workspace before running a node:
-
-```bash
-source install/setup.bash
-```
-
-## 5. Run
-
-### Rover bringup
-
-Connect the IMU and ZED camera, then start both drivers with one command:
-
-```bash
-ros2 launch rover_bringup rover.launch.py camera_model:=zed2i
-```
-
-Replace `zed2i` with the attached camera model. ICM and localization are disabled
-by default; L76X GPS and ZED are enabled. The camera default is `zed2i`, so the
-argument can be omitted on a rover using that model. Either driver can be
-disabled while diagnosing hardware:
-
-```bash
-ros2 launch rover_bringup rover.launch.py enable_imu:=false camera_model:=zedx
-ros2 launch rover_bringup rover.launch.py enable_zed:=false
-```
-
-When another subsystem is ready, add its package as an `exec_depend` in
-`src/rover_bringup/package.xml` and include its launch file from
-`src/rover_bringup/launch/rover.launch.py` in the same way.
-
-### u-blox GNSS
-
-Connect the receiver over USB, then launch high-precision latitude/longitude and `NavSatFix` output:
-
-```bash
-ros2 launch ublox_dgnss ublox_rover_hpposllh_navsatfix.launch.py
-```
-
-For a ZED-X20P receiver, use:
-
-```bash
-ros2 launch ublox_dgnss ublox_x20p_rover_hpposllh_navsatfix.launch.py
-```
-
-USB permissions may require the udev rules documented in [`src/ublox_dgnss/README.md`](src/ublox_dgnss/README.md).
-
-### ICM-20948 IMU
-
-Connect the sensor over I2C and ensure the current user has permission to access the I2C device, then run:
-
-```bash
-ros2 run icm20948_imu_interface imu_publisher
-```
-
-The node publishes `/imu/data_raw`, `/imu/mag`, and `/imu/diagnostics`.
-
-### Rover localization
-
-For the direct two-IMU and wheel/ZED dual-EKF workflow, follow
-[the dual-EKF build and run guide](src/robot_localization/DUAL_EKF.md).
-Enable local estimation from bringup with:
-
-```bash
-ros2 launch rover_bringup rover.launch.py enable_imu:=true \
-  enable_localization:=true publish_approximate_mounts:=true
-```
-
-The approximate mounts assume a centered IMU/GPS and a front-mounted ZED on
-the 27-inch-long rover. Disable them when the URDF supplies measured mounts.
-GPS/global estimation additionally requires an earth heading and usable GPS
-covariance; neither is silently guessed.
-
-Missing wheel or IMU data does not block the remaining inputs. For a test
-without wheel encoders, add `use_wheel_odom:=false`; see the guide for the
-other source switches and dropout/recovery diagnostics.
-
-Run `bash scripts/test_localization_container.sh` to build and test the source
-EKFs in isolation, including through bringup, with synthetic sensors. The test
-environment excludes the retiring custom localization and IMU-fusion packages.
-
-### ZED camera
-
-Connect the camera and replace `<camera_model>` with its model, such as `zed2i`, `zedx`, or `zedxm`:
-
-```bash
-ros2 launch zed_wrapper zed_camera.launch.py camera_model:=<camera_model>
-```
-
-See [`src/zed-ros2-wrapper/README.md`](src/zed-ros2-wrapper/README.md) for supported models and advanced configuration.
-
-## Docker (optional)
-
-The included image provides ROS 2 Humble and the rover's common ROS dependencies:
-
-```bash
-docker build -t autonomous-path-planning:humble .
-docker run -it --name autonomous-path-planning \
-  --mount type=bind,source="$(pwd)",target=/ros2_ws \
-  autonomous-path-planning:humble bash
-```
-
-Inside the container, repeat steps 3–5 (omit `sudo` because the container runs as root). Hardware must be passed through to the container. The base image does not include the ZED SDK, CUDA runtime, or NVIDIA container configuration required for a ZED camera.
-
-To reopen the container later:
-
-```bash
-docker start -ai autonomous-path-planning
-```
-
-## Localization with L76X GPS
-
-The build, run and output guide is [robot_localization/DUAL_EKF.md](src/robot_localization/DUAL_EKF.md).
-On two machines, the Jetson runs the ZED/L76X/ICM drivers with localization
-disabled; the ROS computer runs `robot_localization/dual_ekf.launch.py` and RViz.
-Synchronize their clocks and provide sensor TF on the ROS network. GPS/global
-fusion requires a measured startup bearing or a calibrated heading topic and
-usable GPS covariance. The full rover URDF's sensor origins are simulation
-fixtures, not measured hardware mounts.
+The local EKF alone owns `odom -> base_link`; the global EKF owns `map -> odom`.
+The URDF owns sensor mounts. `/simulation/ground_truth` is only a test reference.
+Simulation results do not establish physical rover accuracy or measured hardware
+mounts. Park terrain, desktop GUI rendering and real sensors require their own
+runtime verification.

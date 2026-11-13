@@ -1,81 +1,53 @@
-from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
+"""Gazebo Classic rover; world defaults to a portable flat test fixture."""
 import os
 
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, EmitEvent, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
+from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+
+
 def generate_launch_description():
-    package_name = 'rover_description'
-    urdf_name = 'simp_rover.urdf'
-    entity_name = 'rover'
-
-    package_share = get_package_share_directory(package_name)
-    urdf_file = os.path.join(package_share, 'urdf', urdf_name)
-    world_file = os.path.join(package_share, 'world', 'park.world')
-
-    with open(urdf_file, 'r') as infp:
-        robot_description = infp.read().replace('@ROVER_CONTROLLER_CONFIG@',
-            os.path.join(package_share, 'config', 'rover_controller.yaml'))
-
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('gazebo_ros'),
-                'launch',
-                'gazebo.launch.py'
-            )
-        ),
-        launch_arguments={'world': world_file}.items()
-    )
-
-    set_model_path = SetEnvironmentVariable(
-        name='GAZEBO_MODEL_PATH',
-        value=('/usr/share/gazebo-11/models:' + os.path.dirname(package_share) + ':'
-            + os.environ.get('GAZEBO_MODEL_PATH', '')),
-    )
-
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description, 'use_sim_time': True}],
-        output='screen'
-    )
-
-    spawn_entity = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=['-topic', 'robot_description', '-entity', entity_name, '-z', '0.5'],
-        output='screen'
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster'],
-        output='screen'
-    )
-
-    diff_drive_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['diff_drive_controller'],
-        output='screen'
-    )
-
+    share = get_package_share_directory('rover_description')
+    with open(os.path.join(share, 'urdf', 'simp_rover.urdf'), encoding='utf-8') as stream:
+        description = stream.read().replace('@ROVER_CONTROLLER_CONFIG@',
+            os.path.join(share, 'config', 'rover_controller.yaml'))
+    spawn = Node(package='gazebo_ros', executable='spawn_entity.py',
+        arguments=['-topic', 'robot_description', '-entity', 'rover', '-z', '0.5',
+                   '-timeout', '120'], output='screen')
+    # Spawners wait for controller-manager services instead of assuming fixed
+    # startup duration. Start after spawn exits so the plugin can initialize.
+    joint_states = Node(package='controller_manager', executable='spawner',
+        arguments=['joint_state_broadcaster', '--controller-manager-timeout', '120'],
+        output='screen')
+    drive = Node(package='controller_manager', executable='spawner',
+        arguments=['diff_drive_controller', '--controller-manager-timeout', '120'],
+        output='screen')
+    def next_or_shutdown(next_actions):
+        def callback(event, context):
+            if event.returncode != 0:
+                return [EmitEvent(event=Shutdown(reason='Robot spawn/controller startup failed'))]
+            return next_actions
+        return callback
     return LaunchDescription([
-        set_model_path,
-        gazebo,
-        robot_state_publisher,
-        spawn_entity,
-
-        TimerAction(
-            period=3.0,
-            actions=[joint_state_broadcaster_spawner]
-        ),
-
-        TimerAction(
-            period=5.0,
-            actions=[diff_drive_spawner]
-        ),
+        DeclareLaunchArgument('world', default_value=os.path.join(share, 'world', 'flat.world')),
+        DeclareLaunchArgument('gui', default_value='false'),
+        SetEnvironmentVariable('GAZEBO_MODEL_PATH', os.path.dirname(share) + ':' +
+            os.environ.get('GAZEBO_MODEL_PATH', '') + ':/usr/share/gazebo-11/models'),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(
+            get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')),
+            launch_arguments={'world': LaunchConfiguration('world'),
+                              'gui': LaunchConfiguration('gui')}.items()),
+        Node(package='robot_state_publisher', executable='robot_state_publisher',
+             parameters=[{'robot_description': ParameterValue(description, value_type=str),
+                          'use_sim_time': True}], output='screen'),
+        RegisterEventHandler(OnProcessExit(target_action=spawn, on_exit=next_or_shutdown([joint_states]))),
+        RegisterEventHandler(OnProcessExit(target_action=joint_states, on_exit=next_or_shutdown([drive]))),
+        RegisterEventHandler(OnProcessExit(target_action=drive, on_exit=next_or_shutdown([]))),
+        spawn,
     ])

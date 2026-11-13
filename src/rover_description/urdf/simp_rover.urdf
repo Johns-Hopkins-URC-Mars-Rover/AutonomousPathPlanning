@@ -22,7 +22,7 @@
         izz="0.291025448460444" />
     </inertial>
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 3.14159" />
       <geometry>
         <mesh filename="package://rover_description/meshes/chassis.STL" />
       </geometry>
@@ -62,12 +62,11 @@
       </geometry>
     </collision>
   </link>
-  <joint name="left_hub_joint" type="revolute">
+  <!-- Flat-baseline rigid suspension fixture; CAD rocker dynamics are not calibrated. -->
+  <joint name="left_hub_joint" type="fixed">
     <origin xyz="0.24617 0.25899 -0.02379" rpy="0 0 0" />
     <parent link="chassis" />
     <child link="left_hub_link" />
-    <axis xyz="0 -1 0" />
-    <limit lower="-3.14" upper="3.14" effort="1" velocity="50" />
   </joint>
 
   <link name="left_front_wheel">
@@ -156,12 +155,10 @@
       </geometry>
     </collision>
   </link>
-  <joint name="right_hub_joint" type="revolute">
+  <joint name="right_hub_joint" type="fixed">
     <origin xyz="0.24617 -0.25899 -0.02379" rpy="0 0 0" />
     <parent link="chassis" />
     <child link="right_hub_link" />
-    <axis xyz="0 -1 0" />
-    <limit lower="-3.14" upper="3.14" effort="1" velocity="50" />
   </joint>
 
   <link name="right_front_wheel">
@@ -411,7 +408,8 @@
   <link name="zed_camera_link">
     <visual>
       <geometry>
-        <mesh filename="package://rover_description/meshes/zed2i.stl"/>
+        <!-- Simulation visual only; dimensions are approximate. -->
+        <box size="0.035 0.175 0.030"/>
       </geometry>
       <material name="dark_gray">
         <color rgba="0.15 0.15 0.15 1"/>
@@ -422,7 +420,7 @@
   <joint name="zed_camera_joint" type="fixed">
     <parent link="chassis"/>
     <child link="zed_camera_link"/>
-    <origin xyz="0.2921 0 0.10" rpy="0 0 0"/>
+    <origin xyz="0.2921 0 0.20" rpy="0 0 0"/>
   </joint>
 
   <gazebo reference="zed_camera_link">
@@ -458,11 +456,11 @@
       <plugin name="zed_depth_camera_plugin" filename="libgazebo_ros_camera.so">
         <ros>
           <namespace>/zed</namespace>
-          <remapping>image_raw:=/rgb/image_raw</remapping>
-          <remapping>depth/image_raw:=/depth/image_raw</remapping>
-          <remapping>camera_info:=/rgb/camera_info</remapping>
-          <remapping>depth/camera_info:=/depth/camera_info</remapping>
-          <remapping>points:=/depth/points</remapping>
+          <remapping>zed_depth_camera/image_raw:=/rgb/image_raw</remapping>
+          <remapping>zed_depth_camera/depth/image_raw:=/depth/image_raw</remapping>
+          <remapping>zed_depth_camera/camera_info:=/rgb/camera_info</remapping>
+          <remapping>zed_depth_camera/depth/camera_info:=/depth/camera_info</remapping>
+          <remapping>zed_depth_camera/points:=/depth/points</remapping>
         </ros>
         <camera_name>zed_depth_camera</camera_name>
         <frame_name>zed_camera_optical_frame</frame_name>
@@ -540,4 +538,20 @@
     </plugin>
   </gazebo>
 
+  <!-- Skid-steer fixture permits lateral wheel slip, retain rolling traction.
+       These contact coefficients are simulation assumptions, not calibrated. -->
+  <gazebo reference="left_front_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <gazebo reference="left_mid_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <gazebo reference="left_back_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <gazebo reference="right_front_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <gazebo reference="right_mid_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <gazebo reference="right_back_wheel"><mu1>0.1</mu1><mu2>1.0</mu2><fdir1>0 0 1</fdir1></gazebo>
+  <!-- Independent physics truth for simulation tests; never fused. -->
+  <gazebo>
+    <plugin name="simulation_ground_truth" filename="libgazebo_ros_p3d.so">
+      <ros><namespace>/simulation</namespace><remapping>odom:=ground_truth</remapping></ros>
+      <body_name>base_link</body_name><frame_name>world</frame_name>
+      <update_rate>20</update_rate><gaussian_noise>0.0</gaussian_noise>
+    </plugin>
+  </gazebo>
 </robot>
