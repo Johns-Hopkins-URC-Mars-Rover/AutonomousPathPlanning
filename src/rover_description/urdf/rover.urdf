@@ -3,7 +3,7 @@
   <joint name="base_link_joint" type="fixed">
     <parent link="base_link"/>
     <child link="chassis"/>
-    <origin xyz="0 0 0" rpy="0 0 3.14159"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
   <link
     name="chassis">
@@ -148,7 +148,7 @@
     type="continuous">
     <origin
       xyz="0.217263894918702 0.109798 -0.111676144229464"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="left_hub_link" />
     <child
@@ -206,7 +206,7 @@
     type="continuous">
     <origin
       xyz="-0.205346325358771 0.109798 -0.13231798021001"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="left_hub_link" />
     <child
@@ -322,7 +322,7 @@
     type="continuous">
     <origin
       xyz="0.23167 -0.10662 -0.077493"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="right_hub_link" />
     <child
@@ -380,7 +380,7 @@
     type="continuous">
     <origin
       xyz="-0.18294 -0.10662 -0.16188"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="right_hub_link" />
     <child
@@ -438,7 +438,7 @@
     type="continuous">
     <origin
       xyz="-0.3984 0.36878 -0.14593"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="chassis" />
     <child
@@ -496,7 +496,7 @@
     type="continuous">
     <origin
       xyz="-0.398397807372039 -0.368783 -0.145930651885583"
-      rpy="0 0 3.14159" />
+      rpy="0 0 0" />
     <parent
       link="chassis" />
     <child
@@ -527,7 +527,7 @@
   <joint name="gps_joint" type="fixed">
     <parent link="chassis"/>
     <child link="gps_link"/>
-    <origin xyz="0.1524 0.025 0.1238" rpy="0 0 3.14159"/>
+    <origin xyz="-0.1524 0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="gps_link">
     <sensor name="navsat" type="gps">
@@ -573,7 +573,7 @@
   <joint name="zed_camera_joint" type="fixed">
     <parent link="chassis"/>
     <child link="zed_camera_link"/>
-    <origin xyz="-0.2921 0 0.10" rpy="0 0 3.14159"/>
+    <origin xyz="0.2921 0 0.10" rpy="0 0 0"/>
   </joint>
 
   <gazebo reference="zed_camera_link">
@@ -644,7 +644,7 @@
   <joint name="zed_imu_joint" type="fixed">
     <parent link="zed_camera_link"/>
     <child link="zed_imu_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <link name="imu_link">
@@ -664,7 +664,7 @@
   <joint name="imu_joint" type="fixed">
     <parent link="chassis"/>
     <child link="imu_link"/>
-    <origin xyz="0.1524 -0.025 0.1238" rpy="0 3.14159 0"/>
+    <origin xyz="-0.1524 -0.025 0.1238" rpy="0 0 0"/>
   </joint>
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
