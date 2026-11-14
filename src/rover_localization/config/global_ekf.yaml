@@ -23,7 +23,7 @@
                    false, false, true,
                    false, false, false]
 
-    imu0: /zed/zed_node/imu/data
+    imu0: /imu/data
     # Constrain heading with the same IMU orientation used by navsat.
     imu0_config: [false, false, false,
                   false, false, true,

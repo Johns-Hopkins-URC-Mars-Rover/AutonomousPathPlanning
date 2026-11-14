@@ -1,0 +1,91 @@
+# IMU fusion node. See ../README.md.
+#
+# Sensor noise is NOT set here: it comes from the covariances in the IMU
+# messages. An IMU whose messages have no covariance is dropped unless a
+# *_variance_override or *_variance_fallback is set below.
+#
+# The values under "filter", the bias settings and "init" are filter tuning
+# starting points, not measured sensor properties. Tune them on real data.
+imu_fusion:
+  ros__parameters:
+    base_frame: base_link
+    output_topic: /imu/data
+    diagnostics_topic: /diagnostics
+    publish_rate: 100.0            # Hz
+    reorder_delay: 0.015           # s measurements wait to be put in stamp order
+    imu_timeout: 0.5               # s without a sample before an IMU is "timed out"
+    gravity_update_period: 0.1     # s between gravity (roll/pitch) pseudo-measurements
+
+    filter:
+      rate_walk: 1.0               # rad/s / sqrt(s): how fast the turn rate may change
+      accel_walk: 5.0              # m/s^2 / sqrt(s): how fast the specific force may change
+      init_attitude_sigma: 0.05    # rad
+      init_rate_sigma: 0.05        # rad/s
+      init_accel_sigma: 0.5        # m/s^2
+      gravity: 9.80665
+      gravity_sigma: 0.5           # m/s^2 expected non-gravity acceleration (vibration)
+      gravity_adapt: 0.5           # m/s^2: gravity noise doubles at this | |a| - g |
+      gravity_skip: 2.0            # m/s^2: gravity update skipped beyond this
+      mag_yaw_sigma: 0.1           # rad, used only with use_magnetometer
+      nis_gate_3dof: 16.27         # chi-square 99.9 %, 3 dof
+      nis_gate_1dof: 10.83         # chi-square 99.9 %, 1 dof
+      nis_max_consecutive: 20      # forced accept after this many consecutive rejections
+      stuck_count: 20              # identical consecutive samples that mark a stream stuck
+
+    init:
+      duration: 1.0                # s of stationary data averaged at start
+      min_samples: 20
+      gyro_std_max: 0.05           # rad/s: above this the rover is "moving"
+      accel_std_max: 0.5           # m/s^2
+      gyro_mean_max: 0.1           # rad/s: at least one gyro must read below this (rotation check)
+      accel_norm_tol: 1.0          # m/s^2: allowed | |mean a| - g |
+
+    # ZED camera IMU (frame zed_imu_link, TF from the ZED URDF).
+    zed:
+      enabled: true
+      topic: /zed/zed_node/imu/data
+      use_raw: false               # true: raw_topic, needs publish_imu_raw (zed_overrides.yaml)
+      raw_topic: /zed/zed_node/imu/data_raw
+      accel_inflation: 1.5         # covers the ignored lever arm
+      gyro_bias_walk: 1.0e-5       # rad/s / sqrt(s), the SDK already removes most bias
+      accel_bias_walk: 1.0e-4
+      init_gyro_bias_sigma: 0.002  # rad/s, tight prior: keeps the ZED bias near zero
+      init_accel_bias_sigma: 0.05
+      gyro_saturation: 0.0         # rad/s norm, 0 = check disabled
+      accel_saturation: 0.0
+      # Optional diagonal variances (sensor axes), x y z. Override replaces the
+      # message covariance; fallback is used only if the message has none.
+      # gyro_variance_override: [0.0, 0.0, 0.0]     # (rad/s)^2
+      # accel_variance_override: [0.0, 0.0, 0.0]    # (m/s^2)^2
+      # gyro_variance_fallback: [0.0, 0.0, 0.0]
+      # accel_variance_fallback: [0.0, 0.0, 0.0]
+
+    # ICM-20948 (frame imu_link). Keep disabled until the driver publishes
+    # measured covariances and base_link -> imu_link has been measured.
+    icm:
+      enabled: false
+      topic: /imu/data_raw
+      accel_inflation: 1.5
+      gyro_bias_walk: 1.0e-4
+      accel_bias_walk: 1.0e-3
+      init_gyro_bias_sigma: 0.01
+      init_accel_bias_sigma: 0.1
+      gyro_saturation: 33.0        # rad/s: 0.95 of the +-2000 dps range set by the driver
+      accel_saturation: 149.0      # m/s^2: 0.95 of the +-16 g range set by the driver
+      # gyro_variance_override: [0.0, 0.0, 0.0]
+      # accel_variance_override: [0.0, 0.0, 0.0]
+      # gyro_variance_fallback: [0.0, 0.0, 0.0]
+      # accel_variance_fallback: [0.0, 0.0, 0.0]
+
+    # Optional yaw aid from the ICM magnetometer. Off by default. Needs
+    # icm.enabled and the mount TF. Yaw stays relative to the start heading
+    # (no magnetic north). Calibrate hard/soft iron before using it.
+    use_magnetometer: false
+    mag:
+      topic: /imu/mag
+      hard_iron: [0.0, 0.0, 0.0]                     # field units of the topic (Tesla)
+      soft_iron: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]   # row-major
+      # Rotation from the magnetometer axes to the IMU (accel/gyro) axes,
+      # row-major. Identity is an assumption: verify against the datasheet,
+      # the AK09916 axes may differ from the accel/gyro axes.
+      to_imu_rotation: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
