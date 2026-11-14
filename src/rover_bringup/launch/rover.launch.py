@@ -49,7 +49,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'enable_imu',
-            default_value='false',
+            default_value='true',
             description='Launch the ICM-20948 driver and Madgwick orientation filter.',
         ),
         DeclareLaunchArgument(
@@ -123,6 +123,8 @@ def generate_launch_description():
             name='imu_filter_madgwick',
             condition=IfCondition(enable_imu),
             output='screen',
+            # /imu/data belongs to rover_imu_fusion, which the EKFs consume.
+            remappings=[('imu/data', '/imu/madgwick')],
             parameters=[madgwick_config, {
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }],

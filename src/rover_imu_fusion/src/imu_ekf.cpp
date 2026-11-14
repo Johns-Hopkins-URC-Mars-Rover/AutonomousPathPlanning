@@ -122,6 +122,7 @@ void ImuEkf::initialize(const NominalState & state, double time)
   gravity_applied_ = 0;
   gravity_skipped_ = 0;
   has_mag_ref_ = false;
+  yaw_aligned_ = false;
   initialized_ = true;
 }
 
@@ -418,6 +419,49 @@ UpdateStatus ImuEkf::updateMagYaw(double t, const Eigen::Vector3d & m_body)
   y(0, 0) = err;
   Eigen::Matrix<double, 1, 1> Rm;
   Rm(0, 0) = cfg_.mag_yaw_sigma * cfg_.mag_yaw_sigma;
+  return applyUpdate<1>(H, y, Rm, cfg_.nis_gate_1dof);
+}
+
+UpdateStatus ImuEkf::updateAbsYaw(double t, double yaw)
+{
+  if (!initialized_) {
+    throw std::logic_error("ImuEkf update called before initialize");
+  }
+  if (!validValue(cfg_.abs_yaw_sigma) || cfg_.abs_yaw_sigma <= 0.0) {
+    throw std::logic_error("abs_yaw_sigma must be set to use absolute yaw");
+  }
+  if (!std::isfinite(yaw)) {
+    return UpdateStatus::kSkipped;
+  }
+  if (!predict(t)) {
+    return UpdateStatus::kStale;
+  }
+  const Eigen::Matrix3d R = x_.q.toRotationMatrix();
+  // Heading of the body x axis in the world frame.
+  const double current = std::atan2(R(1, 0), R(0, 0));
+  double err = yaw - current;
+  err = std::atan2(std::sin(err), std::cos(err));
+
+  // Body-frame direction of the world z axis; the yaw error lives along it.
+  const Eigen::Vector3d u = R.transpose() * Eigen::Vector3d::UnitZ();
+
+  if (!yaw_aligned_) {
+    // Rotate the world frame about z. The attitude error is stored in body
+    // axes, so P only needs the extra yaw uncertainty of the new reference.
+    x_.q = Eigen::Quaterniond(Eigen::AngleAxisd(err, Eigen::Vector3d::UnitZ())) * x_.q;
+    x_.q.normalize();
+    P_.block<3, 3>(idx::kTheta, idx::kTheta) +=
+      cfg_.abs_yaw_sigma * cfg_.abs_yaw_sigma * u * u.transpose();
+    yaw_aligned_ = true;
+    return UpdateStatus::kApplied;
+  }
+
+  Eigen::Matrix<double, 1, kStateDim> H = Eigen::Matrix<double, 1, kStateDim>::Zero();
+  H.block<1, 3>(0, idx::kTheta) = u.transpose();
+  Eigen::Matrix<double, 1, 1> y;
+  y(0, 0) = err;
+  Eigen::Matrix<double, 1, 1> Rm;
+  Rm(0, 0) = cfg_.abs_yaw_sigma * cfg_.abs_yaw_sigma;
   return applyUpdate<1>(H, y, Rm, cfg_.nis_gate_1dof);
 }
 

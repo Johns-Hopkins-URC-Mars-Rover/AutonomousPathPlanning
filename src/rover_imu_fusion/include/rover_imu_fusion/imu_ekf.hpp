@@ -51,6 +51,10 @@ namespace rover_imu_fusion
 //   y = wrap(alpha_ref - alpha), H_theta = (R^T e_z)^T, noise sigma_m^2.
 //   alpha_ref is the heading at the first sample, so yaw stays relative to
 //   the start heading (no magnetic north, no declination).
+//
+// Absolute yaw (optional): same measurement model as the magnetometer yaw but
+//   y = wrap(yaw_meas - yaw(q)). The first sample aligns the world frame to the
+//   source (q <- Rz(y) q), so the filter yaw becomes north-referenced.
 constexpr int kStateDim = 21;
 using StateCov = Eigen::Matrix<double, kStateDim, kStateDim>;
 using StateVec = Eigen::Matrix<double, kStateDim, 1>;
@@ -107,6 +111,10 @@ struct EkfConfig
 
   // Magnetometer yaw noise (rad). Only needed when the magnetometer is used.
   double mag_yaw_sigma{-1.0};
+
+  // Absolute (north-referenced) yaw noise in rad, e.g. from the Madgwick
+  // filter. Only needed when absolute yaw is used.
+  double abs_yaw_sigma{-1.0};
 
   // NIS (chi-square) gates. Defaults are the 99.9 % points.
   double nis_gate_3dof{16.27};
@@ -183,6 +191,13 @@ public:
   UpdateStatus updateMagYaw(double t, const Eigen::Vector3d & m_body);
   bool hasMagReference() const {return has_mag_ref_;}
 
+  // Absolute yaw of base_link about the world z axis, in the frame the caller
+  // wants the filter's world yaw to use (ENU for Madgwick). The first call
+  // rotates the filter's world frame onto that yaw and widens the yaw
+  // uncertainty to abs_yaw_sigma; later calls are ordinary yaw updates.
+  UpdateStatus updateAbsYaw(double t, double yaw);
+  bool yawAligned() const {return yaw_aligned_;}
+
   const ImuCounters & counters(int imu) const;
   std::size_t gravityApplied() const {return gravity_applied_;}
   std::size_t gravitySkipped() const {return gravity_skipped_;}
@@ -221,6 +236,7 @@ private:
 
   double mag_ref_heading_{0.0};
   bool has_mag_ref_{false};
+  bool yaw_aligned_{false};
 
   // Returns kApplied when the sample is healthy, otherwise the reject reason.
   UpdateStatus checkHealth(StreamHealth & h, const Eigen::Vector3d & z, double limit) const;

@@ -15,11 +15,11 @@ namespace rover_imu_fusion
 
 struct Measurement
 {
-  enum class Kind {kGyro, kAccel, kMag};
+  enum class Kind {kGyro, kAccel, kMag, kYaw};
   Kind kind{Kind::kGyro};
-  int imu{0};                                    // 0 ICM, 1 ZED (ignored for kMag)
+  int imu{0};                                    // 0 ICM, 1 ZED (ignored for kMag, kYaw)
   double stamp{0.0};                             // s
-  Eigen::Vector3d z{Eigen::Vector3d::Zero()};    // base_link axes
+  Eigen::Vector3d z{Eigen::Vector3d::Zero()};    // base_link axes; kYaw: z.x() = absolute yaw (rad)
   Eigen::Matrix3d R{Eigen::Matrix3d::Zero()};    // measurement covariance, base_link axes
 };
 

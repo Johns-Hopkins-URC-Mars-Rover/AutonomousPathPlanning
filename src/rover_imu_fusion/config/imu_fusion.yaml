@@ -27,6 +27,7 @@ imu_fusion:
       gravity_adapt: 0.5           # m/s^2: gravity noise doubles at this | |a| - g |
       gravity_skip: 2.0            # m/s^2: gravity update skipped beyond this
       mag_yaw_sigma: 0.1           # rad, used only with use_magnetometer
+      abs_yaw_sigma: 0.05          # rad (~3 deg), Madgwick yaw noise, used with use_madgwick_yaw
       nis_gate_3dof: 16.27         # chi-square 99.9 %, 3 dof
       nis_gate_1dof: 10.83         # chi-square 99.9 %, 1 dof
       nis_max_consecutive: 20      # forced accept after this many consecutive rejections
@@ -81,6 +82,14 @@ imu_fusion:
     # icm.enabled and the mount TF. Yaw stays relative to the start heading
     # (no magnetic north). Calibrate hard/soft iron before using it.
     use_magnetometer: false
+
+    # North-referenced yaw from the Madgwick filter (rover_bringup runs it and
+    # remaps its output to madgwick.topic). The first sample aligns the filter
+    # to ENU; later samples correct yaw drift. Needs icm.enabled and the
+    # base_link -> imu_link TF. Don't also enable use_magnetometer.
+    use_madgwick_yaw: true
+    madgwick:
+      topic: /imu/madgwick
     mag:
       topic: /imu/mag
       hard_iron: [0.0, 0.0, 0.0]                     # field units of the topic (Tesla)

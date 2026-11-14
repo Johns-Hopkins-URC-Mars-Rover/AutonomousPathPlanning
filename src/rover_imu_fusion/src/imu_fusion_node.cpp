@@ -68,6 +68,7 @@ public:
     setupImu(kIcm, "icm", "/imu/data_raw", false);
     setupImu(kZed, "zed", "/zed/zed_node/imu/data", true);
     setupMagnetometer();
+    setupAbsoluteYaw(cfg.ekf.abs_yaw_sigma);
 
     // Filtering runs on a fixed-rate timer rather than per message, so the output
     // rate does not depend on the IMU rates.
@@ -105,6 +106,10 @@ private:
   rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr diag_publisher_;
   rclcpp::TimerBase::SharedPtr publish_timer_;
   rclcpp::TimerBase::SharedPtr diag_timer_;
+
+  // Absolute yaw from Madgwick (optional).
+  bool use_abs_yaw_{false};
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr abs_yaw_subscription_;
 
   // Magnetometer (optional).
   bool use_mag_{false};
@@ -171,6 +176,7 @@ private:
     e.gravity_adapt = declare_parameter<double>("filter.gravity_adapt", 0.5);
     e.gravity_skip = declare_parameter<double>("filter.gravity_skip", 2.0);
     e.mag_yaw_sigma = declare_parameter<double>("filter.mag_yaw_sigma", 0.1);
+    e.abs_yaw_sigma = declare_parameter<double>("filter.abs_yaw_sigma", 0.05);
     e.nis_gate_3dof = declare_parameter<double>("filter.nis_gate_3dof", 16.27);
     e.nis_gate_1dof = declare_parameter<double>("filter.nis_gate_1dof", 10.83);
     e.nis_max_consecutive =
@@ -270,6 +276,52 @@ private:
       topic, rclcpp::SensorDataQoS(),
       [this](const sensor_msgs::msg::MagneticField::ConstSharedPtr msg) {onMag(*msg);});
     RCLCPP_INFO(get_logger(), "magnetometer yaw aid enabled: %s", topic.c_str());
+  }
+
+  // Absolute yaw from the Madgwick filter (orientation of the ICM in ENU).
+  // Gives the fused output a north-referenced heading.
+  void setupAbsoluteYaw(double sigma)
+  {
+    use_abs_yaw_ = declare_parameter<bool>("use_madgwick_yaw", false);
+    const auto topic = declare_parameter<std::string>("madgwick.topic", "/imu/madgwick");
+    if (!use_abs_yaw_) {
+      return;
+    }
+    if (!inputs_[kIcm].enabled) {
+      RCLCPP_WARN(
+        get_logger(), "use_madgwick_yaw needs icm.enabled (mount TF); Madgwick yaw ignored");
+      use_abs_yaw_ = false;
+      return;
+    }
+    if (!(sigma > 0.0)) {
+      throw std::invalid_argument("filter.abs_yaw_sigma must be positive");
+    }
+    abs_yaw_subscription_ = create_subscription<sensor_msgs::msg::Imu>(
+      topic, rclcpp::SensorDataQoS(),
+      [this](const sensor_msgs::msg::Imu::ConstSharedPtr msg) {onMadgwick(*msg);});
+    RCLCPP_INFO(get_logger(), "absolute yaw from Madgwick enabled: %s", topic.c_str());
+  }
+
+  void onMadgwick(const sensor_msgs::msg::Imu & msg)
+  {
+    const ImuRotator * rot = inputs_[kIcm].rotator.get();
+    if (rot == nullptr || !rot->hasExtrinsic()) {
+      return;  // mount TF not known yet
+    }
+    Eigen::Quaterniond q(
+      msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z);
+    if (!(q.norm() > 0.5) || !q.coeffs().allFinite()) {
+      return;  // Madgwick publishes no valid orientation yet
+    }
+    q.normalize();
+    // Madgwick gives R_enu<-imu. rotation() is R_base<-imu (v_base = R v_imu),
+    // so base_link in ENU is R_enu<-imu * R_base<-imu^T.
+    const Eigen::Matrix3d R_enu_base = q.toRotationMatrix() * rot->rotation().transpose();
+    Measurement m;
+    m.kind = Measurement::Kind::kYaw;
+    m.stamp = stampOrNow(msg.header.stamp);
+    m.z = Eigen::Vector3d(std::atan2(R_enu_base(1, 0), R_enu_base(0, 0)), 0.0, 0.0);
+    fusion_->add(m);
   }
 
   double stampOrNow(const builtin_interfaces::msg::Time & t)

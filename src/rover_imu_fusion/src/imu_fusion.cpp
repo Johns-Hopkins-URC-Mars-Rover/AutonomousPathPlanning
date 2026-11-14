@@ -21,16 +21,17 @@ ImuFusion::ImuFusion(const FusionConfig & config)
 void ImuFusion::add(const Measurement & m)
 {
   // Drop samples with an invalid IMU index; the magnetometer has no IMU index.
-  if (m.kind != Measurement::Kind::kMag && (m.imu < 0 || m.imu > 1)) {
+  const bool aux = m.kind == Measurement::Kind::kMag || m.kind == Measurement::Kind::kYaw;
+  if (!aux && (m.imu < 0 || m.imu > 1)) {
     return;
   }
   if (!std::isfinite(m.stamp) || m.stamp < 0. || !m.z.allFinite() ||
-      (m.kind != Measurement::Kind::kMag && !isCovarianceProvided(m.R))) {
+      (!aux && !isCovarianceProvided(m.R))) {
     return;
   }
   // Track the newest stamp per IMU for the timeout check. This is done on
   // arrival, before reordering, so a live IMU is seen as live immediately.
-  if (m.kind != Measurement::Kind::kMag) {
+  if (!aux) {
     auto & last = last_stamp_[static_cast<std::size_t>(m.imu)];
     last = std::max(last, m.stamp);
   }
@@ -54,7 +55,7 @@ void ImuFusion::process(double cutoff)
 void ImuFusion::handle(const Measurement & m)
 {
   // Before the filter exists, samples only feed the stationary initializer
-  // (the magnetometer is ignored). The measurement that completes the window
+  // (the magnetometer and absolute yaw are ignored). The measurement that completes the window
   // seeds the filter and is itself not applied as an update.
   if (!ekf_) {
     if (m.kind == Measurement::Kind::kGyro) last_gyro_applied_[m.imu] = m.stamp;
@@ -90,6 +91,9 @@ void ImuFusion::handle(const Measurement & m)
       break;
     case Measurement::Kind::kMag:
       ekf_->updateMagYaw(m.stamp, m.z);
+      break;
+    case Measurement::Kind::kYaw:
+      ekf_->updateAbsYaw(m.stamp, m.z.x());
       break;
   }
 }

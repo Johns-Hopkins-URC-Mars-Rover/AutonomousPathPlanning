@@ -33,6 +33,7 @@ EkfConfig testConfig()
   c.init_accel_bias_sigma = {0.05, 0.05};
   c.gravity_sigma = 0.3;
   c.mag_yaw_sigma = 0.05;
+  c.abs_yaw_sigma = 0.05;
   return c;
 }
 
@@ -477,4 +478,54 @@ TEST(MagYaw, ThrowsWhenSigmaNotSet)
   ImuEkf ekf(c);
   ekf.initialize(NominalState{}, 0.0);
   EXPECT_THROW(ekf.updateMagYaw(0.1, Eigen::Vector3d(1, 0, 0)), std::logic_error);
+}
+
+// ---------------------------------------------------------------------------
+// Absolute yaw
+// ---------------------------------------------------------------------------
+
+namespace
+{
+double yawOf(const ImuEkf & ekf)
+{
+  const Eigen::Matrix3d R = ekf.state().q.toRotationMatrix();
+  return std::atan2(R(1, 0), R(0, 0));
+}
+}  // namespace
+
+TEST(AbsYaw, FirstCallAlignsWorldFrameThenYawTracks)
+{
+  ImuEkf ekf(testConfig());
+  ekf.initialize(NominalState{}, 0.0);
+
+  EXPECT_EQ(ekf.updateAbsYaw(0.01, 2.0), UpdateStatus::kApplied);
+  EXPECT_TRUE(ekf.yawAligned());
+  EXPECT_NEAR(yawOf(ekf), 2.0, 1e-9);
+
+  // The reference then moves; the filter follows it.
+  for (int k = 2; k <= 60; ++k) {
+    ekf.updateAbsYaw(0.01 * k, 2.2);
+  }
+  EXPECT_NEAR(yawOf(ekf), 2.2, 5e-3);
+}
+
+TEST(AbsYaw, WrapsAcrossPi)
+{
+  ImuEkf ekf(testConfig());
+  ekf.initialize(NominalState{}, 0.0);
+  ekf.updateAbsYaw(0.01, 3.1);
+  for (int k = 2; k <= 60; ++k) {
+    ekf.updateAbsYaw(0.01 * k, -3.1);  // 0.083 rad away through +-pi
+  }
+  EXPECT_NEAR(std::cos(yawOf(ekf)), std::cos(-3.1), 5e-3);
+  EXPECT_NEAR(std::sin(yawOf(ekf)), std::sin(-3.1), 5e-3);
+}
+
+TEST(AbsYaw, ThrowsWhenSigmaNotSet)
+{
+  EkfConfig c = testConfig();
+  c.abs_yaw_sigma = -1.0;
+  ImuEkf ekf(c);
+  ekf.initialize(NominalState{}, 0.0);
+  EXPECT_THROW(ekf.updateAbsYaw(0.1, 0.0), std::logic_error);
 }
