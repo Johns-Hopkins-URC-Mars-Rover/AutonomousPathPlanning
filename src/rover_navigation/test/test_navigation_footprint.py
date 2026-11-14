@@ -1,5 +1,6 @@
 """Nav2 polygon must contain all simplified URDF collision projections."""
 import ast
+import struct
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -24,8 +25,8 @@ def pose(element):
     return rotation([float(v) for v in element.get('rpy','0 0 0').split()]), np.array([float(v) for v in element.get('xyz','0 0 0').split()])
 
 
-def collision_bounds():
-    robot = ET.parse(ROOT / 'urdf/simp_rover.urdf').getroot()
+def collision_bounds(filename='rover.urdf'):
+    robot = ET.parse(ROOT / 'urdf' / filename).getroot()
     transforms = {'base_link': (np.eye(3), np.zeros(3))}
     pending = list(robot.findall('joint'))
     while pending:
@@ -50,8 +51,19 @@ def collision_bounds():
             elif cylinder is not None:
                 axis = r[:,2]
                 extent = float(cylinder.get('radius'))*np.sqrt(np.maximum(0.,1-axis*axis))+float(cylinder.get('length'))/2*np.abs(axis)
+            elif geometry.find('mesh') is not None:
+                mesh = geometry.find('mesh')
+                path = ROOT / mesh.get('filename').split('package://rover_description/')[1]
+                data = path.read_bytes()
+                count = struct.unpack_from('<I', data, 80)[0]
+                vertices = np.array([struct.unpack_from('<9f', data, 84+50*i+12)
+                                     for i in range(count)]).reshape(-1, 3)
+                vertices *= np.array([float(v) for v in mesh.get('scale', '1 1 1').split()])
+                points = vertices @ r.T + t
+                bounds += [points.min(axis=0), points.max(axis=0)]
+                continue
             else:
-                raise AssertionError('Add explicit bounds for new collision geometry')
+                raise AssertionError('Unsupported collision geometry')
             bounds += [t-extent,t+extent]
     return np.min(bounds,axis=0),np.max(bounds,axis=0)
 
@@ -66,5 +78,7 @@ def test_costmaps_cover_collision_geometry_with_polygon():
         assert np.all(footprint.min(axis=0) <= lower[:2])
         assert np.all(footprint.max(axis=0) >= upper[:2])
         assert params['footprint_padding'] >= .02
-    critics = config['controller_server']['ros__parameters']['FollowPath']['critics']
-    assert 'ObstacleFootprint' in critics
+        corner_radius = np.linalg.norm(np.abs(footprint).max(axis=0) + params['footprint_padding'])
+        assert params['inflation_layer']['inflation_radius'] > corner_radius
+    controller = config['controller_server']['ros__parameters']['FollowPath']
+    assert controller['CostCritic']['consider_footprint'] is True

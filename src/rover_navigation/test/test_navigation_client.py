@@ -26,6 +26,7 @@ def costmap_response(width=10, height=10, resolution=0.05, origin=(-5., -5.)):
     metadata.size_y = round(height / resolution)
     metadata.origin.position.x, metadata.origin.position.y = origin
     metadata.origin.orientation.w = 1.0
+    response.map.data = [0] * (metadata.size_x * metadata.size_y)
     return response
 
 
@@ -75,7 +76,7 @@ def configured_client(**overrides):
     node = bare_client()
     parameters = dict(lat=39.0, lon=-76.0, heading=90.0,
                       max_goal_distance=70.0, waypoint_margin=1.0,
-                      navigation_timeout=600.0)
+                      navigation_timeout=600.0, arrival_tolerance=1.0)
     parameters.update(overrides)
     node.get_parameter = lambda key: SimpleNamespace(value=parameters[key])
     node.get_clock = Mock(return_value=SimpleNamespace(
@@ -85,6 +86,10 @@ def configured_client(**overrides):
     node.costmap = Mock()
     node.navigator = Mock()
     node.wait_for_navigation_active = Mock()
+    node.wait_for_guard = Mock()
+    node.assert_guard_ready = Mock()
+    node.confirm_arrival = Mock()
+    node.get_current_position = Mock(return_value=SimpleNamespace(x=0., y=0.))
     return node
 
 
@@ -112,7 +117,10 @@ def test_valid_goal_uses_map_yaw_and_bounded_action_waits():
     assert goal.pose.header.frame_id == 'map'
     assert goal.pose.pose.orientation.z == pytest.approx(2**-0.5)
     assert goal.pose.pose.orientation.w == pytest.approx(2**-0.5)
-    assert [call.kwargs['timeout'] for call in node.wait_for_result.call_args_list] == [10., 10., 600.]
+    waits = [call.kwargs['timeout'] for call in node.wait_for_result.call_args_list]
+    assert waits[:2] == [10., 10.]
+    assert 0 < waits[2] <= 600.
+    node.confirm_arrival.assert_called_once()
 
 
 @pytest.mark.parametrize('target', [(15.65, 43.69), (100., 0.)])
@@ -260,6 +268,7 @@ def test_new_waypoint_acceptance_timeout_keeps_new_goal_cancelable():
 
 def test_missing_rover_transform_has_bounded_failure():
     node = configured_client()
+    node.get_current_position = client.NavigationClient.get_current_position.__get__(node)
     node.tf_buffer = Mock()
     node.tf_buffer.lookup_transform.side_effect = client.TransformException('No map TF')
     with patch.object(client.rclpy, 'spin_once'):
@@ -286,15 +295,8 @@ def test_uninitialized_costmap_is_rejected(field, value):
 
 def test_default_rolling_map_supports_waypoints_at_all_target_bearings():
     source = Path(__file__).resolve().parents[2]
-    params = yaml.safe_load((source / 'rover_costmap/config/costmap_params.yaml').read_text())
-    launch = ast.parse((source / 'rover_navigation/launch/navigation_launch.py').read_text())
-    distance = next(float(keyword.value.value)
-                    for node in ast.walk(launch)
-                    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                    and node.func.id == 'DeclareLaunchArgument' and node.args
-                    and isinstance(node.args[0], ast.Constant)
-                    and node.args[0].value == 'max_goal_distance'
-                    for keyword in node.keywords if keyword.arg == 'default_value')
+    params = yaml.safe_load((source / 'rover_description/config/nav2_params.yaml').read_text())
+    distance = 100.0
     global_params = params['global_costmap']['global_costmap']['ros__parameters']
     local_params = params['local_costmap']['local_costmap']['ros__parameters']
     metadata = costmap_response(
@@ -304,7 +306,7 @@ def test_default_rolling_map_supports_waypoints_at_all_target_bearings():
     for heading in range(0, 360, 15):
         angle = math.radians(heading)
         waypoint = client.select_waypoint(SimpleNamespace(x=0., y=0.), SimpleNamespace(
-            x=distance * math.cos(angle), y=distance * math.sin(angle)), metadata, distance, 1.)
+            x=distance * math.cos(angle), y=distance * math.sin(angle)), metadata, 10.0, 1.)
         assert abs(waypoint.x) < global_params['width'] / 2
         assert abs(waypoint.y) < global_params['height'] / 2
         assert not waypoint.is_final
@@ -352,12 +354,12 @@ def test_navigation_readiness_waits_for_lifecycle_activation():
         future = Future()
         future.set_result(SimpleNamespace(current_state=SimpleNamespace(id=state)))
         return future
-    service.call_async.side_effect = [response(2), response(3), response(3)]
+    service.call_async.side_effect = [response(2), response(3), response(3), response(3)]
     with patch.object(client.rclpy, 'spin_until_future_complete'), \
             patch.object(client.rclpy, 'spin_once'):
         client.wait_for_navigation_active(node, timeout=1.)
-    assert service.call_async.call_count == 3
-    assert node.destroy_client.call_count == 2
+    assert service.call_async.call_count == 4
+    assert node.destroy_client.call_count == 3
 
 
 def test_navigation_readiness_has_bounded_missing_service_failure():
@@ -366,3 +368,43 @@ def test_navigation_readiness_has_bounded_missing_service_failure():
     with pytest.raises(TimeoutError, match='Nav2'):
         client.wait_for_navigation_active(node, timeout=.01)
     node.destroy_client.assert_called_once()
+
+
+def test_occupied_final_target_is_not_sent():
+    grid = costmap_response().map
+    grid.data[100 * grid.metadata.size_x + 120] = 254  # (1.0, 0.0)
+    with pytest.raises(RuntimeError, match='Final GPS target footprint is occupied'):
+        client.select_waypoint(SimpleNamespace(x=0., y=0.),
+                               SimpleNamespace(x=1., y=0.), grid, 10., 1.)
+
+
+def test_projected_intermediate_target_is_shortened_before_obstacle():
+    grid = costmap_response().map
+    grid.data[100 * grid.metadata.size_x + 175] = 254
+    waypoint = client.select_waypoint(SimpleNamespace(x=0., y=0.),
+                                     SimpleNamespace(x=20., y=0.), grid, 10., 1.)
+    assert 1.5 < waypoint.x < 3.
+    assert not waypoint.is_final
+
+
+def test_zero_path_feedback_does_not_report_arrival():
+    node = configured_client()
+    node.final_target = SimpleNamespace(x=10., y=0.)
+    node.tf_buffer = Mock()
+    node.tf_buffer.lookup_transform.return_value.transform.translation = SimpleNamespace(x=0., y=0.)
+    node.feedback_callback(SimpleNamespace(feedback=SimpleNamespace(distance_remaining=0.)))
+    text = node.get_logger().info.call_args.args[0]
+    assert '10.0 m' in text and 'awaiting action result' in text
+    node.confirm_arrival.assert_not_called()
+
+
+def test_success_is_not_reported_if_arrival_confirmation_fails():
+    node = configured_client()
+    node.next_waypoint = Mock(return_value=client.Waypoint(1., 2., True))
+    node.navigate_waypoint = Mock()
+    node.wait_for_result = Mock(return_value=SimpleNamespace(map_point=SimpleNamespace(x=1., y=2.)))
+    node.confirm_arrival.side_effect = RuntimeError('localization jumped')
+    with pytest.raises(RuntimeError, match='localization jumped'):
+        node.navigate()
+    assert not any('Navigation succeeded' in call.args[0]
+                   for call in node.get_logger().info.call_args_list)

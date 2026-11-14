@@ -19,6 +19,7 @@ install(DIRECTORY
   urdf
   meshes
   config
+  behavior_trees
   world
   DESTINATION share/${PROJECT_NAME}
 )

@@ -1,0 +1,18 @@
+<!-- Replan at 1 Hz. On failure halt FollowPath, wait stationary, and retry
+     twice. Preserve observed obstacles: no clearing, spin or backup recovery. -->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="2" name="BoundedNavigation">
+      <PipelineSequence name="PlanAndFollow">
+        <RateController hz="1.0">
+          <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+        </RateController>
+        <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="goal_checker"/>
+      </PipelineSequence>
+      <ReactiveFallback>
+        <GoalUpdated/>
+        <Wait wait_duration="3.0"/>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

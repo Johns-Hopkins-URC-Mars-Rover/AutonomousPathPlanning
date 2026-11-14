@@ -1,4 +1,5 @@
 import math
+import signal
 import time
 from typing import NamedTuple
 
@@ -6,11 +7,14 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.signals import SignalHandlerOptions
+from rclpy.qos import DurabilityPolicy, QoSProfile
 from rclpy.time import Time
 from nav2_msgs.action import NavigateToPose
 from nav2_msgs.srv import GetCostmap
 from robot_localization.srv import FromLL
 from lifecycle_msgs.srv import GetState
+from std_msgs.msg import Bool, String
 from tf2_ros import Buffer, TransformException, TransformListener
 
 
@@ -62,13 +66,43 @@ def select_waypoint(position, target, costmap, max_distance, margin):
             scale = min(scale, (lower - current) / delta)
     if scale <= 0.0:
         raise CostmapNotReady('Waiting for the rolling costmap to provide forward space')
-    return Waypoint(position.x + scale * dx, position.y + scale * dy, scale >= 1.0)
+    if len(costmap.data) != metadata.size_x * metadata.size_y:
+        raise RuntimeError('The global costmap has no complete cost data')
+
+    def occupied(x, y):
+        # A circumscribed 0.9 m disk conservatively covers the hardware footprint
+        # at any goal orientation. Unknown (255) is allowed by the planner's
+        # exploration policy; inscribed/lethal obstacles (253/254) are not.
+        radius = 0.9
+        for iy in range(max(0, int((y-radius-origin.y)/resolution)),
+                        min(metadata.size_y, int((y+radius-origin.y)/resolution)+1)):
+            for ix in range(max(0, int((x-radius-origin.x)/resolution)),
+                            min(metadata.size_x, int((x+radius-origin.x)/resolution)+1)):
+                cx = origin.x + (ix+0.5)*resolution
+                cy = origin.y + (iy+0.5)*resolution
+                if math.hypot(cx-x, cy-y) <= radius:
+                    if costmap.data[iy*metadata.size_x+ix] in (253, 254):
+                        return True
+        return False
+
+    if scale >= 1.0 and occupied(target.x, target.y):
+        raise RuntimeError('Final GPS target footprint is occupied; select a clear arrival location')
+    # If a projected intermediate endpoint lands on an obstacle, shorten it.
+    # Nav2 still plans the detour; this is not a substitute for exploration.
+    while scale > 0.0:
+        x, y = position.x+scale*dx, position.y+scale*dy
+        if not occupied(x, y):
+            return Waypoint(x, y, scale >= 1.0)
+        scale -= max(0.2, resolution) / distance
+        if scale*distance < 1.5:
+            break
+    raise RuntimeError('No clear intermediate target toward GPS goal; stopping instead of looping')
 
 
 def wait_for_navigation_active(node, timeout=60.0):
     """An action service can exist while Nav2 still rejects all goals."""
     deadline = time.monotonic() + timeout
-    for name in ('bt_navigator', 'velocity_smoother'):
+    for name in ('collision_monitor', 'velocity_smoother', 'bt_navigator'):
         service = node.create_client(GetState, '/' + name + '/get_state')
         try:
             remaining = deadline-time.monotonic()
@@ -98,13 +132,24 @@ class NavigationClient(Node):
     def __init__(self):
         super().__init__('navigation_client')
 
-        self.declare_parameter('lat', 39.323178)
-        self.declare_parameter('lon', -76.627894)
-        self.declare_parameter('heading', 0.0)
-        self.declare_parameter('max_goal_distance', 70.0)
+        self.declare_parameter('lat', float('nan'))
+        self.declare_parameter('lon', float('nan'))
+        self.declare_parameter('heading', float('nan'))
+        self.declare_parameter('max_goal_distance', 10.0)
         self.declare_parameter('waypoint_margin', 1.0)
         # Heading is a map-frame yaw in degrees: +X=0, +Y=90.
         self.declare_parameter('navigation_timeout', 600.0)
+        self.declare_parameter('arrival_tolerance', 1.0)
+        self.final_target = None
+        self.guard_ready = False
+        self.guard_received = None
+        self.guard_reason = 'waiting for navigation guard'
+        status_qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.guard_subscription = self.create_subscription(
+            Bool, '/navigation_guard/ready', self.receive_guard, status_qos)
+        self.guard_status_subscription = self.create_subscription(
+            String, '/navigation_guard/status',
+            lambda message: setattr(self, 'guard_reason', message.data), status_qos)
 
         # Convert GPS latitude/longitude to a point in the map frame.
         self.converter = self.create_client(FromLL, '/fromLL')
@@ -113,8 +158,37 @@ class NavigationClient(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-    def wait_for_result(self, future, timeout=None, cancel_on_timeout=True):
-        rclpy.spin_until_future_complete(self, future, timeout_sec=timeout)
+    def receive_guard(self, message):
+        self.guard_ready = message.data
+        self.guard_received = time.monotonic()
+
+    def assert_guard_ready(self):
+        if (not self.guard_ready or self.guard_received is None
+                or time.monotonic()-self.guard_received > 0.75):
+            reason = self.guard_reason
+            if reason == 'ready':
+                reason = 'guard readiness was lost; inspect /navigation_guard/status'
+            raise RuntimeError('Navigation stopped: ' + reason)
+
+    def wait_for_guard(self, timeout=120.0):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            rclpy.spin_once(self, timeout_sec=0.1)
+            if self.guard_ready and self.guard_received is not None:
+                self.assert_guard_ready()
+                return
+        raise TimeoutError('Navigation inputs not ready: ' + self.guard_reason)
+
+    def wait_for_result(self, future, timeout=None, cancel_on_timeout=True,
+                        monitor=False):
+        if monitor:
+            deadline = time.monotonic() + timeout
+            while not future.done() and time.monotonic() < deadline:
+                rclpy.spin_once(self, timeout_sec=0.05)
+                self.assert_guard_ready()
+            self.assert_guard_ready()
+        else:
+            rclpy.spin_until_future_complete(self, future, timeout_sec=timeout)
 
         if not future.done():
             if cancel_on_timeout:
@@ -132,6 +206,11 @@ class NavigationClient(Node):
             rclpy.spin_once(self, timeout_sec=min(0.1, max(0.0, deadline - time.monotonic())))
             try:
                 transform = self.tf_buffer.lookup_transform('map', 'base_link', Time())
+                stamp = transform.header.stamp
+                age = (self.get_clock().now().nanoseconds * 1e-9
+                       - stamp.sec - stamp.nanosec * 1e-9)
+                if not -0.1 <= age <= 0.75:
+                    continue
                 return transform.transform.translation
             except TransformException:
                 continue
@@ -161,7 +240,7 @@ class NavigationClient(Node):
 
         if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
             raise ValueError(f'Invalid GPS target: latitude={lat}, longitude={lon}')
-        if not math.isfinite(heading):
+        if math.isinf(heading):
             raise ValueError(f'Invalid target heading: {heading}')
         if not math.isfinite(max_goal_distance) or max_goal_distance <= 0.0:
             raise ValueError(f'Invalid maximum waypoint distance: {max_goal_distance}')
@@ -169,12 +248,16 @@ class NavigationClient(Node):
             raise ValueError('waypoint_margin must be positive and finite')
         if not math.isfinite(navigation_timeout) or navigation_timeout <= 0.0:
             raise ValueError('navigation_timeout must be positive and finite')
+        arrival_tolerance = self.get_parameter('arrival_tolerance').value
+        if not math.isfinite(arrival_tolerance) or arrival_tolerance <= 0.0:
+            raise ValueError('arrival_tolerance must be positive and finite')
 
         if not self.converter.wait_for_service(timeout_sec=30.0):
             raise RuntimeError('Timed out waiting for /fromLL')
         if not self.navigator.wait_for_server(timeout_sec=30.0):
             raise RuntimeError('Timed out waiting for /navigate_to_pose')
         self.wait_for_navigation_active()
+        self.wait_for_guard()
 
         request = FromLL.Request()
         request.ll_point.latitude = lat
@@ -187,19 +270,59 @@ class NavigationClient(Node):
         point = response.map_point
         if not all(math.isfinite(value) for value in (point.x, point.y)):
             raise RuntimeError('The GPS conversion returned a non-finite map point')
+        self.final_target = point
 
         if not self.costmap.wait_for_service(timeout_sec=10.0):
             raise RuntimeError('Timed out waiting for /global_costmap/get_costmap')
 
         self.get_logger().info(f'Final GPS target: map x={point.x:.2f}, y={point.y:.2f}')
+        deadline = time.monotonic() + navigation_timeout
+        previous_position = None
+        stalled_waypoints = 0
         while True:
+            self.assert_guard_ready()
+            remaining_time = deadline - time.monotonic()
+            if remaining_time <= 0.0:
+                raise TimeoutError('GPS mission timeout reached')
             waypoint = self.next_waypoint(point, max_goal_distance, waypoint_margin)
-            yaw = (math.radians(heading) if waypoint.is_final else
-                   math.atan2(point.y - waypoint.y, point.x - waypoint.x))
-            self.navigate_waypoint(waypoint, yaw, navigation_timeout)
+            position = self.get_current_position()
+            # Match the approach direction instead of forcing a final yaw of
+            # zero when the operator only supplied a GPS position.
+            bearing = math.atan2(waypoint.y-position.y, waypoint.x-position.x)
+            yaw = math.radians(heading) if waypoint.is_final and math.isfinite(heading) else bearing
+            remaining_time = deadline - time.monotonic()
+            if remaining_time <= 0.0:
+                raise TimeoutError('GPS mission timeout reached')
+            self.navigate_waypoint(waypoint, yaw, remaining_time)
             if waypoint.is_final:
+                self.confirm_arrival(point, arrival_tolerance)
                 self.get_logger().info('Navigation succeeded at the final GPS target')
                 return
+            current = self.get_current_position()
+            if previous_position is not None:
+                moved = math.hypot(current.x-previous_position[0], current.y-previous_position[1])
+                stalled_waypoints = stalled_waypoints+1 if moved < 0.20 else 0
+                if stalled_waypoints >= 2:
+                    raise RuntimeError('Intermediate goals completed without estimated pose movement')
+            previous_position = (current.x, current.y)
+
+    def confirm_arrival(self, target, tolerance):
+        # A zero path-distance feedback value is NOT an arrival test. Confirm
+        # success against fresh TF for 2 seconds, with the guard still healthy.
+        deadline = time.monotonic() + 10.0
+        close_since = None
+        while time.monotonic() < deadline:
+            self.assert_guard_ready()
+            position = self.get_current_position(timeout=1.0)
+            distance = math.hypot(target.x-position.x, target.y-position.y)
+            if distance <= tolerance:
+                close_since = close_since or time.monotonic()
+                if time.monotonic()-close_since >= 2.0:
+                    return
+            else:
+                close_since = None
+            rclpy.spin_once(self, timeout_sec=0.1)
+        raise RuntimeError('Nav2 reported success but final-target arrival could not be confirmed')
 
     def navigate_waypoint(self, waypoint, yaw, timeout):
 
@@ -222,14 +345,14 @@ class NavigationClient(Node):
         self.goal_handle = None
         self.pending_goal = self.navigator.send_goal_async(goal, feedback_callback=self.feedback_callback)
         self.goal_handle = self.wait_for_result(
-            self.pending_goal, timeout=10.0, cancel_on_timeout=False)
+            self.pending_goal, timeout=10.0, cancel_on_timeout=False, monitor=True)
 
         if not self.goal_handle.accepted:
             raise RuntimeError('Goal rejected :(')
         self.get_logger().info('Goal accepted :)')
 
         result = self.wait_for_result(
-            self.goal_handle.get_result_async(), timeout=timeout)
+            self.goal_handle.get_result_async(), timeout=timeout, monitor=True)
         if result.status != GoalStatus.STATUS_SUCCEEDED:
             raise RuntimeError(f'Navigation finished with action status {result.status}')
         self.goal_handle = None
@@ -237,7 +360,16 @@ class NavigationClient(Node):
 
     def feedback_callback(self, message):
         remaining = message.feedback.distance_remaining
-        self.get_logger().info(f'{remaining:.1f} m left to current waypoint')
+        try:
+            pose = self.tf_buffer.lookup_transform('map', 'base_link', Time()).transform.translation
+            distance = math.hypot(self.final_target.x-pose.x, self.final_target.y-pose.y)
+            self.get_logger().info(
+                f'Estimated final-target distance: {distance:.1f} m; '
+                f'current waypoint path distance: {remaining:.1f} m '
+                '(feedback only; awaiting action result)', throttle_duration_sec=2.0)
+        except (TransformException, AttributeError):
+            self.get_logger().warning('Final-target distance unavailable: waiting for TF',
+                                      throttle_duration_sec=2.0)
 
     def abort_action(self):
         if getattr(self, 'goal_handle', None) is None and getattr(self, 'pending_goal', None) is not None:
@@ -250,8 +382,16 @@ class NavigationClient(Node):
                 self.get_logger().warning('Goal was already terminal or cancellation was rejected')
 
 
+def interrupt_mission(signum, frame):
+    raise KeyboardInterrupt
+
+
 def main(args=None):
-    rclpy.init(args=args)
+    # Keep the ROS context alive on Ctrl+C so cancellation can be acknowledged
+    # before shutdown. The default rclpy signal handler shuts it down first.
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+    previous_int = signal.getsignal(signal.SIGINT)
+    previous_term = signal.signal(signal.SIGTERM, interrupt_mission)
     node = NavigationClient()
     status = 0
     try:
@@ -262,6 +402,10 @@ def main(args=None):
         node.get_logger().error(str(error))
         status = 1
     finally:
+        # A terminal interrupt can reach the child directly and again through
+        # ros2 launch. Do not let the second signal interrupt bounded cancellation.
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
         if status:
             try:
                 node.abort_action()
@@ -269,6 +413,8 @@ def main(args=None):
                 node.get_logger().error(f'Could not confirm cancellation: {error}')
         node.destroy_node()
         rclpy.try_shutdown()
+        signal.signal(signal.SIGINT, previous_int)
+        signal.signal(signal.SIGTERM, previous_term)
     if status:
         raise SystemExit(status)
 

@@ -9,7 +9,6 @@ from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import SetRemap
 
 
 def generate_launch_description():
@@ -67,7 +66,11 @@ def generate_launch_description():
             default_value='true',
             description='Publish the rover URDF fixed and joint transforms.',
         ),
-        DeclareLaunchArgument('enable_localization', default_value='false'),
+        DeclareLaunchArgument('enable_localization', default_value='true'),
+        DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([
+            FindPackageShare('rover_description'), 'config', 'nav2_params.yaml'])),
+        DeclareLaunchArgument('cmd_vel_topic',
+                              default_value='/diff_drive_controller/cmd_vel_unstamped'),
         DeclareLaunchArgument(
             'enable_costmap',
             default_value='false',
@@ -170,12 +173,11 @@ def generate_launch_description():
             }.items(),
         )]),
         GroupAction(condition=IfCondition(enable_nav2), actions=[
-            SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
             IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
-            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'), 
-                              'params_file': PathJoinSubstitution(
-                                  [FindPackageShare('rover_costmap'), 'config', 'costmap_params.yaml',]),
+                FindPackageShare('rover_navigation'), 'launch', 'nav2.launch.py'])),
+            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'),
+                              'params_file': LaunchConfiguration('params_file'),
+                              'cmd_vel_topic': LaunchConfiguration('cmd_vel_topic'),
             }.items()),
         ]),
     ])

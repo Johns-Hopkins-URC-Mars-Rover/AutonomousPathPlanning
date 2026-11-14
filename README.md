@@ -191,3 +191,68 @@ Synchronize their clocks and provide sensor TF on the ROS network. GPS/global
 fusion requires a measured startup bearing or a calibrated heading topic and
 usable GPS covariance. The full rover URDF's sensor origins are simulation
 fixtures, not measured hardware mounts.
+
+### Hardware GPS navigation test
+
+The hardware path uses `rover.urdf` and preserves the tested drive convention:
+positive linear X moves forward, positive angular Z turns left. Do not run the
+simulation-only `cmd_vel_relay` or `sim_wheel_odometry` on the real rover.
+
+Build and source the workspace after updating it:
+
+```bash
+colcon build --symlink-install --packages-up-to rover_bringup
+source install/setup.bash
+```
+
+Start the existing motor/encoder interface separately. Then start hardware
+sensors, localization, and exactly one Nav2 stack:
+
+```bash
+ros2 launch rover_bringup rover.launch.py \
+  use_sim_time:=false enable_localization:=true enable_nav2:=true
+```
+
+This selects `rover_description/config/nav2_params.yaml`. Nav2 owns its two
+costmaps; do not launch standalone costmaps or another Nav2 stack alongside it.
+If sensors already run elsewhere, disable their corresponding `enable_*` flags.
+Do not publish measured mount TF separately when the URDF already owns it.
+
+In another sourced terminal, check readiness, then submit an explicit GPS goal:
+
+```bash
+ros2 topic echo /navigation_guard/status
+# Ctrl+C after observing "ready"; this command does not start motion.
+ros2 launch rover_navigation navigation_launch.py lat:=YOUR_LATITUDE lon:=YOUR_LONGITUDE
+```
+
+The GPS launch defaults to **client only** (`launch_nav2:=false`). It requires
+latitude and longitude rather than silently choosing a simulation destination.
+Omitting heading chooses the target approach bearing; arrival is position-only
+with a 1 m estimated-pose tolerance, not a guarantee of 1 m geographic accuracy.
+The client reports final-target estimated straight-line distance separately from
+path distance to the current intermediate waypoint. A zero feedback distance is
+not treated as arrival. Final success requires the Nav2 action to succeed and
+fresh localization to remain within tolerance for two seconds.
+
+Normal path following is forward-only, capped at 0.25 m/s and 0.35 rad/s. Normal
+steering may rotate the rover; recovery never spins or backs up. When blocked,
+the trees wait stationary for 3 s and retry twice, then abort. They do not clear
+observed obstacles. This is a local obstacle-navigation baseline, not terrain
+classification or exploration capable of escaping every unknown enclosure.
+
+Autonomous command flow is `controller -> velocity_smoother -> collision_monitor
+-> velocity_guard -> /diff_drive_controller/cmd_vel_unstamped`. The guard holds
+zero commands until local/global/GPS odometry, fused IMU, depth and TF are fresh
+for two seconds. Lost data or commands stop output; the client cancels a mission
+when guard readiness is lost. A sudden global pose correction (>1 m or >0.7 rad,
+with allowance for real motion) latches a stop. Check heading, GPS and TF before
+restarting the navigation stack and submitting another goal. These are jump
+thresholds, not replacements for GPS covariance. Cancel the GPS client with
+Ctrl+C to request cancellation of its accepted goal.
+
+The guard does not replace physical emergency stopping. Front depth observations
+cannot establish clearance for side sweep, drop-offs or terrain slope. Validate
+sensor mounts, heading, braking distance and the URDF footprint in a clear test
+area. Disable Nav2 before manual command-direction tests to avoid competing
+publishers. Hardware calibration and upstream covariance remain unchanged.
