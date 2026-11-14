@@ -1,7 +1,8 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -12,9 +13,22 @@ def generate_launch_description():
     global_config = os.path.join(pkg_share, 'config', 'global_ekf.yaml')
     navsat_config = os.path.join(pkg_share, 'config', 'navsat.yaml')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    use_icm = LaunchConfiguration('use_icm')
 
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('use_icm', default_value='false',
+                              description='Fuse the ICM-20948 with the ZED IMU'),
+        # 0. IMU fusion: ZED (and optionally ICM) IMUs -> /imu/data in base_link.
+        #    The EKFs and navsat consume the fused output, not the raw ZED IMU.
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(
+                get_package_share_directory('rover_imu_fusion'),
+                'launch', 'imu_fusion.launch.py')),
+            launch_arguments={'use_sim_time': use_sim_time,
+                              'use_icm': use_icm}.items(),
+        ),
+
         # 1. Local EKF Node
         Node(
             package='robot_localization',

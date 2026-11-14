@@ -23,8 +23,8 @@
                    false, false, true,
                    false, false, false]
 
-    # Use the same earth-referenced orientation as navsat_transform.
     imu0: /imu/data
+    # Constrain heading with the same IMU orientation used by navsat.
     imu0_config: [false, false, false,
                   false, false, true,
                   false, false, false,

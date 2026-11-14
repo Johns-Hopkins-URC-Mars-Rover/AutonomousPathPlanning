@@ -155,6 +155,8 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('enable_localization')),
             launch_arguments={
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
+                # Fuse the ICM with the ZED IMU whenever its driver runs.
+                'use_icm': enable_imu,
             }.items(),
         )]),
         # Nav2's planner and controller own their costmaps when enabled.

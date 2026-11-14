@@ -1,0 +1,15 @@
+# Optional overrides for the ZED wrapper, used from our side so the
+# zed-ros2-wrapper submodule stays untouched. Pass it to the ZED launch with
+#   ros2 launch zed_wrapper zed_camera.launch.py camera_model:=<model> \
+#     ros_params_override_path:=$(ros2 pkg prefix rover_imu_fusion)/share/rover_imu_fusion/config/zed_overrides.yaml
+---
+/**:
+    ros__parameters:
+        general:
+            # Same clock as the ICM driver (node wall time), so both IMUs share a time base.
+            sdk_timestamp_clock: 'SYSTEM_CLOCK'
+        sensors:
+            sensors_pub_rate: 100.   # Hz, max 400
+            # Only needed when imu_fusion zed.use_raw is true. The topic is
+            # published only while something subscribes to it.
+            publish_imu_raw: true
