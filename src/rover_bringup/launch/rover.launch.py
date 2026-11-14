@@ -3,17 +3,16 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import SetRemap
 
 
 def generate_launch_description():
-    """Launch rover sensors, localization, and costmaps."""
+    """Launch rover sensors, state publishing, and localization."""
     bringup_share = get_package_share_directory('rover_bringup')
     description_share = get_package_share_directory('rover_description')
     urdf_path = os.path.join(description_share, 'urdf', 'rover.urdf')
@@ -30,14 +29,10 @@ def generate_launch_description():
     zed_launch = PathJoinSubstitution([FindPackageShare('zed_wrapper'), 'launch', 'zed_camera.launch.py'])
     localization_launch = PathJoinSubstitution([
         FindPackageShare('rover_localization'), 'launch', 'dual_ekf_launch.py'])
-    costmap_launch = PathJoinSubstitution([
-        FindPackageShare('rover_costmap'), 'launch', 'costmap.launch.py'])
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
-    enable_costmap = LaunchConfiguration('enable_costmap')
-    enable_nav2 = LaunchConfiguration('enable_nav2')
     zed_use_pub_timestamps = LaunchConfiguration(
         'zed_use_pub_timestamps')
     zed_grab_frame_rate = LaunchConfiguration('zed_grab_frame_rate')
@@ -69,11 +64,6 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument('enable_localization', default_value='false'),
         DeclareLaunchArgument(
-            'enable_costmap',
-            default_value='false',
-            description='Launch standalone costmaps when Nav2 is disabled.',
-        ),
-        DeclareLaunchArgument(
             'zed_use_pub_timestamps',
             default_value='false',
             description=(
@@ -100,7 +90,6 @@ def generate_launch_description():
             default_value='zed2i',
             description='ZED camera model (for example: zed2i, zedx, or zedxm).',
         ),
-        DeclareLaunchArgument('enable_nav2', default_value='true'),
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -123,8 +112,9 @@ def generate_launch_description():
             name='imu_filter_madgwick',
             condition=IfCondition(enable_imu),
             output='screen',
-            # /imu/data belongs to rover_imu_fusion, which the EKFs consume.
-            remappings=[('imu/data', '/imu/madgwick')],
+            # Publish the corrected, north-referenced ICM output directly to
+            # the topic consumed by both EKFs and navsat_transform.
+            remappings=[('imu/data', '/imu/data')],
             parameters=[madgwick_config, {
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             }],
@@ -157,25 +147,6 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('enable_localization')),
             launch_arguments={
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
-                # Fuse the ICM with the ZED IMU whenever its driver runs.
-                'use_icm': enable_imu,
             }.items(),
         )]),
-        # Nav2's planner and controller own their costmaps when enabled.
-        GroupAction(condition=UnlessCondition(enable_nav2), actions=[IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(costmap_launch),
-            condition=IfCondition(enable_costmap),
-            launch_arguments={
-                'use_sim_time': LaunchConfiguration('use_sim_time'),
-            }.items(),
-        )]),
-        GroupAction(condition=IfCondition(enable_nav2), actions=[
-            SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
-            IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
-            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'), 
-                              'params_file': PathJoinSubstitution(
-                                  [FindPackageShare('rover_costmap'), 'config', 'costmap_params.yaml',]),
-            }.items()),
-        ]),
     ])

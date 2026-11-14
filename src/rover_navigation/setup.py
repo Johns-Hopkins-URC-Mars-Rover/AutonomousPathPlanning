@@ -11,6 +11,8 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/navigation_launch.py']),
+        ('share/' + package_name + '/behavior_trees', [
+            'behavior_trees/navigate_to_pose_forward_with_slow_backup.xml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,8 +28,6 @@ setup(
     entry_points={
         'console_scripts': [
                 'wait_for_localization = rover_navigation.wait_for_localization:main',
-                'cmd_vel_relay = rover_navigation.cmd_vel_relay:main',
-                'sim_wheel_odometry = rover_navigation.sim_wheel_odometry:main',
                 'navigation_client = rover_navigation.navigation_client:main'
         ],
     },

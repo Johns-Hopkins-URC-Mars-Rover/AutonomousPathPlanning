@@ -19,8 +19,8 @@ import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = ('rover_localization', 'rover_imu_fusion', 'rover_description',
-            'rover_bringup', 'l76x_gps_interface')
+PACKAGES = ('rover_localization', 'rover_description', 'rover_bringup',
+            'l76x_gps_interface')
 
 
 def execute(label, command, results, timeout=180):
@@ -95,24 +95,6 @@ def python_tests(coverage=False):
 def native_tests(compiler, eigen, results):
     with tempfile.TemporaryDirectory(prefix='rover-check-') as temp:
         build = Path(temp)
-        include = ROOT/'src/rover_imu_fusion/include'
-        flags = [compiler, '-O1', '-DNDEBUG', '-std=c++17', f'-I{eigen}', f'-I{include}']
-        objects = []
-        for name in ('imu_ekf', 'imu_fusion', 'imu_initializer', 'imu_transform'):
-            source = ROOT/f'src/rover_imu_fusion/src/{name}.cpp'
-            obj = build/(name+'.o')
-            if not execute(f'compile {name}', [*flags, '-c', source, '-o', obj], results):
-                return
-            objects.append(obj)
-        targets = [('imu_input_safety', ROOT/'src/rover_imu_fusion/test/test_input_safety.cpp'),
-                   ('imu_csv_replay', ROOT/'src/rover_imu_fusion/tools/replay_csv.cpp')]
-        for name, source in targets:
-            binary = build/name
-            if not execute(f'build {name}', [*flags, source, *objects, '-o', binary], results):
-                continue
-            command = [binary] if name == 'imu_input_safety' else [
-                sys.executable, '-B', ROOT/'src/rover_imu_fusion/test/test_replay_csv.py', binary]
-            execute(name, command, results)
         binary = build/'motion_model'
         if execute('build Release motion checks', [compiler, '-std=c++17', '-DNDEBUG',
                    f'-I{ROOT / "src/rover_localization/include"}',
@@ -148,7 +130,7 @@ def main():
             if execute('ROS package build', ['colcon', 'build', '--symlink-install', '--packages-select', *PACKAGES], results, timeout=1800):
                 # A child shell sources the just-built overlay; no host environment is modified.
                 execute('ROS package tests', ['bash', '-c',
-                    'source install/setup.bash && colcon test --packages-select rover_localization rover_imu_fusion l76x_gps_interface --event-handlers console_direct+'], results, timeout=900)
+                    'source install/setup.bash && colcon test --packages-select rover_localization l76x_gps_interface --event-handlers console_direct+'], results, timeout=900)
                 execute('ROS test results', ['colcon', 'test-result', '--verbose'], results)
         else:
             print('NOT RUN: ROS graph/build/GoogleTest/hardware checks (use --ros on sourced Ubuntu).')

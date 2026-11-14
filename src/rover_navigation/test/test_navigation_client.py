@@ -75,7 +75,10 @@ def configured_client(**overrides):
     node = bare_client()
     parameters = dict(lat=39.0, lon=-76.0, heading=90.0,
                       max_goal_distance=70.0, waypoint_margin=1.0,
-                      navigation_timeout=600.0)
+                      navigation_timeout=600.0,
+                      final_position_tolerance=5.0,
+                      final_position_samples=5,
+                      final_position_sample_period=1.0)
     parameters.update(overrides)
     node.get_parameter = lambda key: SimpleNamespace(value=parameters[key])
     node.get_clock = Mock(return_value=SimpleNamespace(
@@ -85,13 +88,83 @@ def configured_client(**overrides):
     node.costmap = Mock()
     node.navigator = Mock()
     node.wait_for_navigation_active = Mock()
+    node.verify_final_position = Mock(return_value=True)
+    node.last_recovery_count = 0
+    node.last_feedback_log_time = 0.0
+    node.current_cmd = None
+    node.current_cmd_time = None
+    node.active_waypoint = client.Waypoint(3.0, 4.0, True)
+    node.final_target = SimpleNamespace(x=3.0, y=4.0)
+    node.active_goal_yaw = 0.0
+    node.action_state = 'RUNNING'
+    node.tf_buffer = Mock()
+    node.tf_buffer.lookup_transform.side_effect = client.TransformException('No map TF')
     return node
+
+
+def test_feedback_logs_each_new_recovery_once():
+    node = configured_client()
+    logger = node.get_logger.return_value
+    feedback = SimpleNamespace(feedback=SimpleNamespace(
+        distance_remaining=10.0, number_of_recoveries=1))
+
+    node.feedback_callback(feedback)
+    node.feedback_callback(feedback)
+
+    logger.warning.assert_called_once()
+    assert 'recovery #1' in logger.warning.call_args.args[0]
+
+
+def test_feedback_distinguishes_tf_path_state_heading_command_and_recoveries():
+    node = configured_client()
+    node.final_target = SimpleNamespace(x=6.0, y=8.0)
+    transform = SimpleNamespace(transform=SimpleNamespace(
+        translation=SimpleNamespace(x=0.0, y=0.0),
+        rotation=SimpleNamespace(x=0.0, y=0.0, z=0.0, w=1.0)))
+    node.tf_buffer.lookup_transform.side_effect = None
+    node.tf_buffer.lookup_transform.return_value = transform
+    command = SimpleNamespace(
+        linear=SimpleNamespace(x=0.2), angular=SimpleNamespace(z=-0.1))
+
+    with patch.object(client.time, 'monotonic', side_effect=[100.0, 100.0]):
+        node.cmd_vel_callback(command)
+        node.feedback_callback(SimpleNamespace(feedback=SimpleNamespace(
+            distance_remaining=7.5, number_of_recoveries=2)))
+
+    log = node.get_logger.return_value.info.call_args.args[0]
+    assert 'state=RUNNING' in log
+    assert 'tf_to_final_gps_target=10.00 m' in log
+    assert 'tf_to_active_waypoint=5.00 m' in log
+    assert 'nav2_path_to_active_waypoint=7.50 m (advisory)' in log
+    assert 'heading_error=+0.0 deg' in log
+    assert 'linear.x=+0.200 m/s' in log
+    assert 'angular.z=-0.100 rad/s' in log
+    assert 'recoveries=2' in log
+
+
+def test_zero_path_feedback_does_not_report_success():
+    node = configured_client()
+    original_state = node.action_state
+    with patch.object(client.time, 'monotonic', return_value=100.0):
+        node.feedback_callback(SimpleNamespace(feedback=SimpleNamespace(
+            distance_remaining=0.0, number_of_recoveries=0)))
+
+    log = node.get_logger.return_value.info.call_args.args[0]
+    assert 'state=RUNNING' in log
+    assert 'nav2_path_to_active_waypoint=0.00 m (advisory)' in log
+    assert 'succeeded' not in log.lower()
+    assert node.action_state == original_state
+    node.navigator.send_goal_async.assert_not_called()
+    node.navigator.cancel_goal_async.assert_not_called()
 
 
 @pytest.mark.parametrize('overrides', [dict(lat=float('nan')), dict(lon=181.0),
                          dict(heading=float('inf')), dict(max_goal_distance=0.0),
                          dict(waypoint_margin=0.0),
-                         dict(navigation_timeout=float('nan'))])
+                         dict(navigation_timeout=float('nan')),
+                         dict(final_position_tolerance=0.0),
+                         dict(final_position_samples=2),
+                         dict(final_position_sample_period=0.0)])
 def test_invalid_parameters_never_send_goal(overrides):
     node = configured_client(**overrides)
     with pytest.raises(ValueError):
@@ -113,6 +186,57 @@ def test_valid_goal_uses_map_yaw_and_bounded_action_waits():
     assert goal.pose.pose.orientation.z == pytest.approx(2**-0.5)
     assert goal.pose.pose.orientation.w == pytest.approx(2**-0.5)
     assert [call.kwargs['timeout'] for call in node.wait_for_result.call_args_list] == [10., 10., 600.]
+    node.verify_final_position.assert_called_once()
+
+
+def test_final_position_requires_four_of_five_localization_samples():
+    node = configured_client()
+    node.verify_final_position = client.NavigationClient.verify_final_position.__get__(node)
+    node.wait_for_localization_sample = Mock()
+    target = SimpleNamespace(x=0.0, y=0.0)
+    node.get_current_position = Mock(side_effect=[
+        SimpleNamespace(x=0.0, y=0.0),
+        SimpleNamespace(x=20.0, y=0.0),
+        SimpleNamespace(x=20.0, y=0.0),
+        SimpleNamespace(x=20.0, y=0.0),
+        SimpleNamespace(x=20.0, y=0.0),
+    ])
+
+    assert not node.verify_final_position(target, 5.0, 5, 1.0)
+    assert node.wait_for_localization_sample.call_count == 4
+
+
+def test_final_position_accepts_one_noisy_outlier():
+    node = configured_client()
+    node.verify_final_position = client.NavigationClient.verify_final_position.__get__(node)
+    node.wait_for_localization_sample = Mock()
+    target = SimpleNamespace(x=0.0, y=0.0)
+    node.get_current_position = Mock(side_effect=[
+        SimpleNamespace(x=1.0, y=0.0),
+        SimpleNamespace(x=2.0, y=0.0),
+        SimpleNamespace(x=30.0, y=0.0),
+        SimpleNamespace(x=3.0, y=0.0),
+        SimpleNamespace(x=4.0, y=0.0),
+    ])
+
+    assert node.verify_final_position(target, 5.0, 5, 1.0)
+
+
+def test_unstable_final_position_replans_instead_of_reporting_arrival():
+    node = configured_client()
+    final_waypoint = client.Waypoint(1.0, 2.0, True)
+    node.next_waypoint = Mock(return_value=final_waypoint)
+    node.navigate_waypoint = Mock()
+    node.verify_final_position.side_effect = [False, True]
+    node.wait_for_result = Mock(return_value=SimpleNamespace(
+        map_point=SimpleNamespace(x=1.0, y=2.0)))
+
+    node.navigate()
+
+    assert node.navigate_waypoint.call_count == 2
+    assert node.verify_final_position.call_count == 2
+    warning = node.get_logger.return_value.warning
+    assert 'not stable' in warning.call_args_list[0].args[0]
 
 
 @pytest.mark.parametrize('target', [(15.65, 43.69), (100., 0.)])
@@ -240,7 +364,7 @@ def test_failed_intermediate_waypoint_stops_navigation():
     node.wait_for_result = Mock(side_effect=[
         SimpleNamespace(map_point=SimpleNamespace(x=100., y=0.)),
         Mock(accepted=True), SimpleNamespace(status=client.GoalStatus.STATUS_ABORTED)])
-    with pytest.raises(RuntimeError, match='action status'):
+    with pytest.raises(RuntimeError, match='action state ABORTED'):
         node.navigate()
     node.next_waypoint.assert_called_once()
     node.navigator.send_goal_async.assert_called_once()
@@ -286,7 +410,8 @@ def test_uninitialized_costmap_is_rejected(field, value):
 
 def test_default_rolling_map_supports_waypoints_at_all_target_bearings():
     source = Path(__file__).resolve().parents[2]
-    params = yaml.safe_load((source / 'rover_costmap/config/costmap_params.yaml').read_text())
+    params_path = source / 'rover_description/config/nav2_params.yaml'
+    params = yaml.safe_load(params_path.read_text(encoding='utf-8'))
     launch = ast.parse((source / 'rover_navigation/launch/navigation_launch.py').read_text())
     distance = next(float(keyword.value.value)
                     for node in ast.walk(launch)
@@ -309,7 +434,7 @@ def test_default_rolling_map_supports_waypoints_at_all_target_bearings():
         assert abs(waypoint.y) < global_params['height'] / 2
         assert not waypoint.is_final
     assert global_params['rolling_window'] is True
-    assert local_params['resolution'] == 0.05
+    assert local_params['resolution'] == 0.1
     assert global_params['width'] / global_params['resolution'] <= 1000
     assert global_params['height'] / global_params['resolution'] <= 1000
 
