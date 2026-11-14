@@ -14,10 +14,13 @@ from launch_ros.actions import SetRemap
 
 def generate_launch_description():
     """Launch rover sensors, localization, and costmaps."""
+    bringup_share = get_package_share_directory('rover_bringup')
     description_share = get_package_share_directory('rover_description')
     urdf_path = os.path.join(description_share, 'urdf', 'rover.urdf')
     controller_config = os.path.join(
         description_share, 'config', 'rover_controller.yaml')
+    madgwick_config = os.path.join(
+        bringup_share, 'config', 'madgwick.yaml')
     with open(urdf_path, encoding='utf-8') as urdf_file:
         robot_description = urdf_file.read().replace(
             '@ROVER_CONTROLLER_CONFIG@', controller_config)
@@ -47,7 +50,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_imu',
             default_value='false',
-            description='Launch the ICM-20948 driver.',
+            description='Launch the ICM-20948 driver and Madgwick orientation filter.',
         ),
         DeclareLaunchArgument(
             'enable_gps',
@@ -114,6 +117,16 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(imu_launch),
             condition=IfCondition(enable_imu),
         )]),
+        Node(
+            package='imu_filter_madgwick',
+            executable='imu_filter_madgwick_node',
+            name='imu_filter_madgwick',
+            condition=IfCondition(enable_imu),
+            output='screen',
+            parameters=[madgwick_config, {
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }],
+        ),
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gps_launch),
             condition=IfCondition(enable_gps),

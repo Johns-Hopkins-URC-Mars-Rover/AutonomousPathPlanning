@@ -44,7 +44,8 @@ def generate_launch_description():
             parameters=[navsat_config, {'use_sim_time': use_sim_time}],
             remappings=[
                 ('/gps/fix', '/gps/fix'),
-                ('/imu', '/zed/zed_node/imu/data'),
+                # Madgwick corrects the ICM-20948 orientation into true ENU.
+                ('/imu', '/imu/data'),
                 # GPS poses must be expressed in the global EKF's map frame,
                 # without depending on its changing map -> odom transform.
                 ('/odometry/filtered', '/odometry/global'),
