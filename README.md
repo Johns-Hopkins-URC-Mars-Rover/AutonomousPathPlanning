@@ -1,12 +1,10 @@
 # Autonomous Path Planning
 
-ROS 2 Humble software for driving the physical JHU rover to a GPS coordinate.
-
-The workspace starts the rover's IMU, GPS, ZED camera, robot model, dual-EKF localization, and Nav2. Nav2 uses the ZED point cloud for its local and global costmaps. It sends velocity commands to the rover's wheel controller.
+Incorporates Nav2 with ROS2 to autonomously drive our rover to a GPS coordinate while also avoiding obstacles. The workspace starts the rover's IMU, GPS, ZED camera, robot model, dual-EKF localization, and Nav2. Nav2 uses the ZED point cloud for its local and global costmaps. It sends velocity commands to the rover's wheel controller.
 
 For design details and troubleshooting, see the [project Wiki](https://github.com/Johns-Hopkins-URC-Mars-Rover/AutonomousPathPlanning/wiki).
 
-## What is in this repository?
+## Packages present in this repository
 
 | Package | Purpose |
 | --- | --- |
@@ -18,9 +16,9 @@ For design details and troubleshooting, see the [project Wiki](https://github.co
 | `rover_bringup` | Starts the physical-rover sensor and localization stack. |
 | `zed-ros2-wrapper` | Official Stereolabs ZED ROS 2 driver. |
 
-Packages under `src/archives` are not part of the active system and are not built.
+Packages under `src/archives` are not part of the active system and are not built. Some of them, such as the ublox_dgnss, will be incorporated in future builds.
 
-## Before you start
+## Setup Requirements
 
 Use Ubuntu 22.04 with ROS 2 Humble. The rover computer must also have:
 
@@ -59,7 +57,7 @@ git submodule update --init --recursive
 
 ## 2. Build
 
-The ZED SDK must be installed before building the ZED wrapper.
+We use colcon to build all our packages. Note: the ZED SDK must be installed before building the ZED wrapper.
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -75,6 +73,7 @@ Source the workspace again in every new terminal:
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ```
+You can make the above an alias for ease of use
 
 ## 3. Start the rover
 
@@ -91,8 +90,9 @@ ros2 launch rover_bringup rover.launch.py \
 ```
 
 This starts the sensor drivers, Madgwick heading filter, robot transforms, both EKFs, and `navsat_transform`. It does not start Nav2.
+Similalrly the above can be made into an alias. On the jetson, the current alias for the above is "kms".
 
-## 4. Check the rover data
+## 4. Verify that the rover is publishing necessary datapoints
 
 Do not start navigation until these commands show steady data:
 
@@ -115,7 +115,7 @@ ros2 run tf2_ros tf2_echo odom base_link
 ros2 run tf2_ros tf2_echo base_link zed_camera_link
 ```
 
-The full chain is:
+The full transform chain is:
 
 ```text
 map -> odom -> base_link -> chassis -> sensor frames
@@ -136,6 +136,7 @@ ros2 launch rover_navigation navigation_launch.py \
 ```
 
 Replace the example coordinates with the real target. `heading` is the final map heading in degrees: east is `0`, north is `90`, west is `180`, and south is `-90`.
+Set heading:=0.0 if you do not care about the rover's final heading orientation. 
 
 The navigation launch will:
 
@@ -167,7 +168,7 @@ To view the rover in RViz, use `map` as the Fixed Frame. Add RobotModel, TF, bot
 
 ## Docker development image
 
-The Docker image contains ROS 2 Humble and the open-source dependencies used by this workspace:
+The Docker image contains ROS 2 Humble and the dependencies used by this workspace:
 
 ```bash
 docker build -t autonomous-path-planning:humble .
