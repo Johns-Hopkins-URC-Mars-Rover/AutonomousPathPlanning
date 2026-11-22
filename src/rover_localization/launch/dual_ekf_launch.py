@@ -14,11 +14,9 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_sim_time', default_value='true'),
-        Node(package='rover_navigation', executable='sim_wheel_odometry',
-             name='sim_wheel_odometry', output='screen',
-             parameters=[{'use_sim_time': use_sim_time}]),
-        # 1. Local EKF Node
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        # 1. Local EKF Node. /imu/data comes directly from the Madgwick node
+        # launched by rover_bringup.
         Node(
             package='robot_localization',
             executable='ekf_node',
@@ -46,13 +44,13 @@ def generate_launch_description():
             output='screen',
             parameters=[navsat_config, {'use_sim_time': use_sim_time}],
             remappings=[
-                ('gps/fix', '/gps/fix'),
-                ('imu', '/zed/zed_node/imu/data'),
-                # This is the standard dual-EKF robot_localization wiring. The
-                # global EKF publishes before GPS is available, so navsat can
-                # establish its transform and then supply GPS corrections.
-                ('odometry/filtered', '/odometry/global'),
-                ('odometry/gps', '/odometry/gps'),
+                ('/gps/fix', '/gps/fix'),
+                # Madgwick corrects the ICM-20948 orientation into true ENU.
+                ('/imu', '/imu/data'),
+                # GPS poses must be expressed in the global EKF's map frame,
+                # without depending on its changing map -> odom transform.
+                ('/odometry/filtered', '/odometry/global'),
+                ('/odometry/gps', '/odometry/gps'),
             ],
         ),
     ])

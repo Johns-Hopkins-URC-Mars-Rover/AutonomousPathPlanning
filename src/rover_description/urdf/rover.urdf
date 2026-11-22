@@ -614,12 +614,11 @@
       <plugin name="zed_depth_camera_plugin"
               filename="libgazebo_ros_camera.so">
         <ros>
-          <namespace>/zed</namespace>
-          <remapping>image_raw:=/rgb/image_raw</remapping>
-          <remapping>depth/image_raw:=/depth/image_raw</remapping>
-          <remapping>camera_info:=/rgb/camera_info</remapping>
-          <remapping>depth/camera_info:=/depth/camera_info</remapping>
-          <remapping>points:=/depth/points</remapping>
+          <remapping>zed_depth_camera/image_raw:=/zed/zed_node/left/image_rect_color</remapping>
+          <remapping>zed_depth_camera/depth/image_raw:=/zed/zed_node/depth/depth_registered</remapping>
+          <remapping>zed_depth_camera/camera_info:=/zed/zed_node/left/camera_info</remapping>
+          <remapping>zed_depth_camera/depth/camera_info:=/zed/zed_node/depth/camera_info</remapping>
+          <remapping>zed_depth_camera/points:=/zed/zed_node/point_cloud/cloud_registered</remapping>
         </ros>
         <camera_name>zed_depth_camera</camera_name>
         <frame_name>zed_camera_optical_frame</frame_name>
@@ -714,8 +713,7 @@
       </imu>
       <plugin name="imu_controller" filename="libgazebo_ros_imu_sensor.so">
         <ros>
-          <namespace>/rover</namespace>
-          <remapping>~/out:=imu/data</remapping>
+          <remapping>~/out:=/imu/data_raw</remapping>
         </ros>
         <frame_name>imu_link</frame_name>
       </plugin>
@@ -767,6 +765,13 @@
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
       <parameters>@ROVER_CONTROLLER_CONFIG@</parameters>
+    </plugin>
+    <plugin name="zed_visual_odometry" filename="libgazebo_ros_p3d.so">
+      <ros><remapping>odom:=/zed/zed_node/odom</remapping></ros>
+      <body_name>zed_camera_link</body_name>
+      <frame_name>odom</frame_name>
+      <update_rate>30</update_rate>
+      <gaussian_noise>0.002</gaussian_noise>
     </plugin>
   </gazebo>
 </robot>

@@ -1,0 +1,22 @@
+imu_filter_madgwick:
+  ros__parameters:
+    # Fuse the ICM-20948 gyro, accelerometer and magnetometer topics into an
+    # earth-referenced sensor_msgs/Imu message on /imu/data.
+    use_mag: true
+    world_frame: enu
+    publish_tf: false
+    remove_gravity_vector: false
+
+    # Field-validated magnetic correction for the rover's operating region.
+    # Madgwick applies it here so the global EKF and navsat_transform consume
+    # identical corrected headings.
+    declination: 0.1898918226
+
+    # Field-validated rover mounting/heading correction.
+    yaw_offset: 2.26893
+
+    # Hard-iron biases measured on the assembled rover. Units are tesla,
+    # matching sensor_msgs/msg/MagneticField.
+    mag_bias_x: -1.05e-06
+    mag_bias_y: 4.77e-05
+    mag_bias_z: 3.8775e-05

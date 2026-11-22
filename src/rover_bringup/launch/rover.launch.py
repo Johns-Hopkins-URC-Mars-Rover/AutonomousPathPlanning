@@ -1,28 +1,51 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    """Launch sensors and optional direct dual-EKF localization."""
+    """Launch rover sensors, state publishing, and localization."""
+    bringup_share = get_package_share_directory('rover_bringup')
+    description_share = get_package_share_directory('rover_description')
+    urdf_path = os.path.join(description_share, 'urdf', 'rover.urdf')
+    controller_config = os.path.join(
+        description_share, 'config', 'rover_controller.yaml')
+    madgwick_config = os.path.join(
+        bringup_share, 'config', 'madgwick.yaml')
+    with open(urdf_path, encoding='utf-8') as urdf_file:
+        robot_description = urdf_file.read().replace(
+            '@ROVER_CONTROLLER_CONFIG@', controller_config)
+
     imu_launch = PathJoinSubstitution([FindPackageShare('icm20948_imu_interface'), 'launch', 'imu_launch.py'])
     gps_launch = PathJoinSubstitution([FindPackageShare('l76x_gps_interface'), 'launch', 'gps_launch.py'])
-    zed_launch = PathJoinSubstitution([FindPackageShare('rover_localization'), 'launch', 'zed_driver.launch.py'])
+    zed_launch = PathJoinSubstitution([FindPackageShare('zed_wrapper'), 'launch', 'zed_camera.launch.py'])
+    localization_launch = PathJoinSubstitution([
+        FindPackageShare('rover_localization'), 'launch', 'dual_ekf_launch.py'])
 
     enable_imu = LaunchConfiguration('enable_imu')
     enable_gps = LaunchConfiguration('enable_gps')
     enable_zed = LaunchConfiguration('enable_zed')
+    zed_use_pub_timestamps = LaunchConfiguration(
+        'zed_use_pub_timestamps')
+    zed_grab_frame_rate = LaunchConfiguration('zed_grab_frame_rate')
+    zed_point_cloud_freq = LaunchConfiguration('zed_point_cloud_freq')
+    enable_robot_state_publisher = LaunchConfiguration(
+        'enable_robot_state_publisher')
     camera_model = LaunchConfiguration('camera_model')
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'enable_imu',
-            default_value='false',
-            description='Launch the ICM-20948 driver.',
+            default_value='true',
+            description='Launch the ICM-20948 driver and Madgwick orientation filter.',
         ),
         DeclareLaunchArgument(
             'enable_gps',
@@ -34,21 +57,48 @@ def generate_launch_description():
             default_value='true',
             description='Launch the ZED camera driver.',
         ),
+        DeclareLaunchArgument(
+            'enable_robot_state_publisher',
+            default_value='true',
+            description='Publish the rover URDF fixed and joint transforms.',
+        ),
         DeclareLaunchArgument('enable_localization', default_value='false'),
-        DeclareLaunchArgument('enable_global', default_value='false'),
-        DeclareLaunchArgument('heading_mode', default_value='unset'),
-        DeclareLaunchArgument('initial_heading_deg', default_value='nan'),
-        DeclareLaunchArgument('heading_topic', default_value='/imu/heading'),
-        DeclareLaunchArgument('publish_approximate_mounts', default_value='false'),
+        DeclareLaunchArgument(
+            'zed_use_pub_timestamps',
+            default_value='false',
+            description=(
+                'Stamp ZED messages at ROS publication time. Enable only as '
+                'a same-computer workaround for delayed camera timestamps.'),
+        ),
+        DeclareLaunchArgument(
+            'zed_grab_frame_rate',
+            default_value='30',
+            description=(
+                'ZED camera grab rate. The 30 FPS soft-test default reduces '
+                'localization and point-cloud processing load.'),
+        ),
+        DeclareLaunchArgument(
+            'zed_point_cloud_freq',
+            default_value='5.0',
+            description=(
+                'ZED registered point-cloud publication rate. Five Hz is '
+                'sufficient for the stationary costmap soft test.'),
+        ),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
-        DeclareLaunchArgument('use_zed_odom', default_value='true'),
-        DeclareLaunchArgument('use_wheel_odom', default_value='true'),
-        DeclareLaunchArgument('use_zed_imu', default_value='true'),
-        DeclareLaunchArgument('use_icm_imu', default_value='true'),
         DeclareLaunchArgument(
             'camera_model',
             default_value='zed2i',
             description='ZED camera model (for example: zed2i, zedx, or zedxm).',
+        ),
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            condition=IfCondition(enable_robot_state_publisher),
+            output='screen',
+            parameters=[{
+                'robot_description': robot_description,
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }],
         ),
         # Scope includes so their generic params_file arguments cannot leak
         # between the IMU, GPS and EKF launches.
@@ -56,6 +106,19 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(imu_launch),
             condition=IfCondition(enable_imu),
         )]),
+        Node(
+            package='imu_filter_madgwick',
+            executable='imu_filter_madgwick_node',
+            name='imu_filter_madgwick',
+            condition=IfCondition(enable_imu),
+            output='screen',
+            # Publish the corrected, north-referenced ICM output directly to
+            # the topic consumed by both EKFs and navsat_transform.
+            remappings=[('imu/data', '/imu/data')],
+            parameters=[madgwick_config, {
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }],
+        ),
         GroupAction(actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gps_launch),
             condition=IfCondition(enable_gps),
@@ -65,15 +128,25 @@ def generate_launch_description():
             condition=IfCondition(enable_zed),
             launch_arguments={
                 'camera_model': camera_model,
+                # robot_localization is the only owner of map/odom TF.
+                'publish_tf': 'false',
+                'publish_map_tf': 'false',
+                # This ZED parameter is read-only after node initialization.
+                'param_overrides': [
+                    'debug.use_pub_timestamps:=',
+                    zed_use_pub_timestamps,
+                    ';general.grab_frame_rate:=',
+                    zed_grab_frame_rate,
+                    ';depth.point_cloud_freq:=',
+                    zed_point_cloud_freq,
+                ],
             }.items(),
         )]),
         GroupAction(actions=[IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('rover_localization'), 'launch', 'hardware_localization.launch.py'])),
+            PythonLaunchDescriptionSource(localization_launch),
             condition=IfCondition(LaunchConfiguration('enable_localization')),
-            launch_arguments={name: LaunchConfiguration(name) for name in (
-                'enable_global', 'heading_mode', 'initial_heading_deg', 'heading_topic',
-                'publish_approximate_mounts', 'use_sim_time',
-                'use_zed_odom', 'use_wheel_odom', 'use_zed_imu', 'use_icm_imu')}.items(),
+            launch_arguments={
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+            }.items(),
         )]),
     ])

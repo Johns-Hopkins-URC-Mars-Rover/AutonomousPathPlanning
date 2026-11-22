@@ -1,49 +1,87 @@
-# Gazebo/localization integration work
+# Physical-to-simulation integration contract
 
-Baseline: `1da6fe3`; branch: `fix/gazebo-localization-integration`.
+The simulation must replace hardware, not replace the rover architecture. The
+dual EKFs, `navsat_transform`, Nav2 parameters, navigation client, frames, and
+public topics remain the same as the field-tested physical stack.
 
-## Completion gates
+## Model choice
 
-1. Docker can run ROS 2 Humble and Gazebo Classic on this Mac, with evidence of a running simulation clock.
-2. Active packages build from their installed resources, without archived packages or machine-specific source paths.
-3. The rover spawns, controllers activate, sensors publish, and the local/global EKFs produce finite estimates with a connected TF tree.
-4. Commanded movement, GPS conversion, navigation success/cancellation, and sensor dropout have executable checks.
-5. Documentation describes the tested entry points and separates simulation evidence from unverified hardware behavior.
+Gazebo loads `simp_rover.urdf` because the full CAD model is expensive to
+simulate. `rover.urdf` remains the physical/RViz model. Both URDFs define the
+same GPS, ICM-20948, ZED, and ZED IMU links with the same parent, translation,
+and rotation. Automated tests compare these transforms.
 
-## Shared contract
+The simplified model intentionally differs only in body, suspension, collision,
+and wheel geometry needed by Gazebo. Its six wheel axes follow the ROS command
+convention directly; no simulation-only sign relay is used.
 
-| Interface | Producer | Consumer |
-| --- | --- | --- |
-| `/clock` | Gazebo | All simulation nodes |
-| `/diff_drive_controller/odom` | Wheel controller | Simulation sign adapter |
-| `/simulation/wheel_odometry` | Simulation sign adapter | Local/global EKFs |
-| `/zed/zed_node/imu/data` | Simulated IMU | EKFs and navsat |
-| `/gps/fix` | Simulated GPS | navsat |
-| `/odometry/gps` | navsat | Global EKF |
-| `/odometry/local`, `odom -> base_link` | Local EKF | Nav2 and global TF chain |
-| `/odometry/global`, `map -> odom` | Global EKF | navsat and Nav2 |
-| `/depth/points` | Simulated depth camera | Nav2 costmaps |
-| `/cmd_vel` | Nav2 velocity smoother | Relay |
-| `/diff_drive_controller/cmd_vel_unstamped` | Relay | Wheel controller |
+## Shared ROS boundary
 
-The URDF owns body/sensor transforms. No competing wheel-odometry TF publisher is allowed. Ground truth is only a test reference, never an estimator input. Simulated IMU orientation must be checked against Gazebo world axes and geographic conversion conventions. Simulation mounts are not measured hardware mounts.
+| Interface | Physical producer | Gazebo producer | Consumer |
+| --- | --- | --- | --- |
+| `/gps/fix` | L76X driver | Gazebo GPS | `navsat_transform` |
+| `/imu/data_raw` | ICM driver | Gazebo IMU | Madgwick and EKFs |
+| `/imu/mag` | ICM driver | Idealized magnetic-field simulator | Madgwick |
+| `/imu/data` | Madgwick | Madgwick | EKFs and `navsat_transform` |
+| `/zed/zed_node/imu/data` | ZED wrapper | Gazebo ZED IMU | Diagnostics/future fusion |
+| `/zed/zed_node/odom` | ZED wrapper | Noisy Gazebo pose plugin | EKFs |
+| `/zed/zed_node/point_cloud/cloud_registered` | ZED wrapper | Gazebo depth camera | Nav2 voxel layers |
+| `/diff_drive_controller/odom` | Wheel controller | `ros2_control` Gazebo controller | EKFs |
+| `/diff_drive_controller/cmd_vel_unstamped` | Motor controller input | Gazebo controller input | Drive system |
 
-## Sequence and ownership
+The simulated magnetic field is generated from Gazebo attitude so the same
+Madgwick processing stage exists in both environments. Simulation uses zero
+declination, yaw offset, and hard-iron bias because its sensor frame is ideal.
+The physical calibration remains isolated in `rover_bringup`.
 
-First, the environment agent establishes the Docker runtime and reports a usable image/command. Implementation starts only after this gate.
+## TF ownership
 
-Then three implementation agents own disjoint areas:
+```text
+map -> odom -> base_link -> chassis -> sensor frames
+```
 
-- Model agent: `rover_description` launch/world/URDF/controllers, resource portability and Gazebo sensor behavior.
-- Localization agent: `rover_localization`, `rover_bringup`, localization tests, intended hardware launch compatibility.
-- Navigation/test agent: `rover_navigation`, Nav2 configuration, active test harness and end-to-end test scripts.
+- Global EKF: `map -> odom`
+- Local EKF: `odom -> base_link`
+- `robot_state_publisher`: fixed body and sensor transforms
+- Wheel controller: odometry message only; `enable_odom_tf` is false
 
-Root coordinates documentation, shared interfaces, review and final combined testing. Each agent must report its changed interfaces to the other two, cross-review their assumptions, and report exact commands/results. Root arbitrates shared files. Do not commit, push, merge or delete user data during delegated work.
+`/simulation/ground_truth` is test evidence only and is never fused.
 
-## Verification loops
+## Launch sequence
 
-For each defect: reproduce with a focused check, record the failure, apply a minimal fix, rerun that check, and then run affected integration checks. Stop after three unsuccessful attempts at the same blocker and report the evidence; choose a different supported approach only when its assumptions are explicit.
+```bash
+ros2 launch rover_description simulation.launch.py gui:=true
+```
 
-Validation proceeds through static resource/configuration checks, a clean container build, headless Gazebo smoke tests, stationary/straight/turn motion checks, TF/time checks, GPS conversion, localization dropout/recovery, and Nav2 reachable/unreachable goals and cancellation. Tolerances must be set before assessing results. Repeat startup to expose timing failures.
+This starts Gazebo, simulated hardware topics, Madgwick, the physical dual-EKF
+launch, and the state publisher. Nav2 is normally started through the same GPS
+entry point used on the rover:
 
-Record environment versions, actual test counts, logs and limitations. A launch process starting is not sufficient proof that sensors, localization or navigation work. GUI rendering, hardware accuracy and real sensor calibration need separate evidence.
+```bash
+ros2 launch rover_navigation navigation_launch.py \
+  lat:=<target_latitude> lon:=<target_longitude> \
+  heading:=0.0 use_sim_time:=true
+```
+
+For direct Nav2 action tests, pass `enable_nav2:=true` to the simulation launch.
+
+## Verification gates
+
+1. Build and package tests pass in a clean ROS 2 Humble container.
+2. Gazebo publishes every interface in the table above with simulation stamps.
+3. The TF chain has one owner per dynamic transform.
+4. Positive linear velocity moves physically forward; positive angular velocity
+   turns counter-clockwise. Reverse remains negative linear velocity.
+5. GPS conversion agrees with global localization within the declared tolerance.
+6. A spawned obstacle appears in the Nav2 local costmap.
+7. A reachable Nav2 goal succeeds and cancellation is acknowledged.
+
+Run all automated checks with:
+
+```bash
+bash scripts/test_simulation_container.sh
+```
+
+Gazebo pose truth used for simulated ZED odometry is not a performance model of
+real visual odometry. Passing simulation proves interface and autonomy behavior,
+not real sensor accuracy, traction, latency, or calibration.

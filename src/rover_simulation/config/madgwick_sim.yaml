@@ -1,0 +1,14 @@
+imu_filter_madgwick:
+  ros__parameters:
+    use_mag: true
+    world_frame: enu
+    publish_tf: false
+    remove_gravity_vector: false
+
+    # Gazebo's world is already ENU and the simulated sensor has no mounting
+    # or hard-iron error. Physical calibration values must not be applied here.
+    declination: 0.0
+    yaw_offset: 0.0
+    mag_bias_x: 0.0
+    mag_bias_y: 0.0
+    mag_bias_z: 0.0

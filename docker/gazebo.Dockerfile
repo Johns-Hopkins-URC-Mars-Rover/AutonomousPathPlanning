@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-gazebo-ros-pkgs ros-humble-gazebo-ros2-control \
     ros-humble-ros2-controllers ros-humble-robot-state-publisher \
     ros-humble-robot-localization ros-humble-navigation2 ros-humble-nav2-bringup \
+    ros-humble-imu-filter-madgwick \
     ros-humble-launch-testing ros-humble-launch-testing-ament-cmake \
     ros-humble-ament-lint-auto ros-humble-ament-lint-common \
     xvfb xauth mesa-utils libgl1-mesa-dri \

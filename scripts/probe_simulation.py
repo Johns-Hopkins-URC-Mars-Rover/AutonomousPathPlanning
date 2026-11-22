@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Verify a running real Gazebo stack; ground truth is observation only.
 
-Acceptance thresholds are fixed here before evaluating a run: all six streams,
-connected TF, geographic round trip within 2 m, backward movement 0.10--1.0 m for a positive command
+Acceptance thresholds are fixed here before evaluating a run: all sensor and
+localization streams, connected TF, geographic round trip within 2 m, forward
+movement 0.10--1.0 m for a positive command
 for a 0.15 m/s command over 2 simulated seconds, local/truth delta disagreement
 below 0.4 m. Navigation: a 1 m forward map goal must succeed within 180 wall
 seconds; a second goal must acknowledge cancellation within 10 wall seconds.
@@ -26,7 +27,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from robot_localization.srv import FromLL
 from rosgraph_msgs.msg import Clock
-from sensor_msgs.msg import Imu, NavSatFix, PointCloud2
+from sensor_msgs.msg import Imu, MagneticField, NavSatFix, PointCloud2
 from sensor_msgs_py import point_cloud2
 from rover_navigation.wait_for_localization import valid_odometry
 from rover_navigation.navigation_client import wait_for_navigation_active
@@ -52,8 +53,10 @@ class Probe(Node):
         streams = [('clock', Clock, '/clock'), ('truth', Odometry, '/simulation/ground_truth'),
                    ('wheel', Odometry, '/diff_drive_controller/odom'),
                    ('local', Odometry, '/odometry/local'), ('global', Odometry, '/odometry/global'),
-                   ('gps', NavSatFix, '/gps/fix'), ('imu', Imu, '/zed/zed_node/imu/data'),
-                   ('points', PointCloud2, '/depth/points')]
+                   ('gps', NavSatFix, '/gps/fix'), ('raw_imu', Imu, '/imu/data_raw'),
+                   ('mag', MagneticField, '/imu/mag'), ('imu', Imu, '/imu/data'),
+                   ('points', PointCloud2,
+                    '/zed/zed_node/point_cloud/cloud_registered')]
         self.handles = [self.create_subscription(t, topic, lambda m, k=k: self.record(k, m),
                                                 qos_profile_sensor_data) for k, t, topic in streams]
         self.command = self.create_publisher(Twist, '/diff_drive_controller/cmd_vel_unstamped', 10)
@@ -87,7 +90,8 @@ class Probe(Node):
         return p.position.x, p.position.y, yaw
 
     def check_streams(self):
-        self.wait(lambda: len(self.messages) == 8 and all(v >= 3 for v in self.counts.values()))
+        self.wait(lambda: len(self.messages) == 10 and
+                  all(v >= 3 for v in self.counts.values()))
         for parent, child in [('map', 'odom'), ('odom', 'base_link'), ('base_link', 'zed_camera_optical_frame')]:
             self.wait(lambda: self.buffer.can_transform(parent, child, rclpy.time.Time()))
         # Sky pixels are infinite even in a valid depth image; require at
@@ -144,7 +148,8 @@ class Probe(Node):
         forward = dt[0]*math.cos(initial_truth[2])+dt[1]*math.sin(initial_truth[2])
         error = math.hypot(dl[0]-dt[0], dl[1]-dt[1])
         assert 0.10 < distance < 1.0, f'Truth displacement {distance:.3f}m'
-        assert -1.0 < forward < -0.10, f'Positive command did not move backward: {forward:.3f}m'
+        assert 0.10 < forward < 1.0, \
+            f'Positive command did not move forward: {forward:.3f}m'
         assert error < 0.4, f'Local/truth motion disagreement {error:.3f}m'
         print(json.dumps({'truth_displacement_m':distance,'forward_m':forward,'local_delta_error_m':error}),flush=True)
 
@@ -164,8 +169,8 @@ class Probe(Node):
         return handle
 
     def check_reverse_and_turn(self):
-        # Fixed before evaluation: negative command must travel forward by 0.10--1m;
-        # +0.4rad/s for 2sim seconds must turn negatively by 0.2--1.6rad.
+        # Fixed before evaluation: negative command must travel backward by
+        # 0.10--1m; +0.4rad/s for 2sim seconds must turn counter-clockwise.
         def command_for(linear, angular):
             start = self.get_clock().now().nanoseconds
             deadline = time.monotonic() + 180
@@ -188,12 +193,13 @@ class Probe(Node):
         after = self.pose('truth')
         backward = ((after[0]-before[0])*math.cos(before[2])
                     +(after[1]-before[1])*math.sin(before[2]))
-        assert 0.10 < backward < 1.0, f'Negative-command displacement {backward:.3f}m'
+        assert -1.0 < backward < -0.10, \
+            f'Negative-command displacement {backward:.3f}m'
         before = self.pose('truth')
         command_for(0.0, 0.4)
         after = self.pose('truth')
         yaw = math.atan2(math.sin(after[2]-before[2]), math.cos(after[2]-before[2]))
-        assert -1.6 < yaw < -0.2, f'Positive-command turn yaw {yaw:.3f}rad'
+        assert 0.2 < yaw < 1.6, f'Positive-command turn yaw {yaw:.3f}rad'
         print(json.dumps({'reverse_forward_axis_m': backward, 'turn_yaw_rad': yaw}), flush=True)
 
     def check_obstacle(self):

@@ -40,3 +40,64 @@ def test_controller_geometry_matches_collision_centers():
             centers.append(y)
         sides.append(sum(centers) / len(centers))
     assert abs(sides[0] - sides[1] - drive['wheel_separation']) < 1e-6
+
+
+def _joint_contract(joint):
+    origin = joint.find('origin')
+    return (
+        joint.find('parent').get('link'),
+        joint.find('child').get('link'),
+        origin.get('xyz', '0 0 0'),
+        origin.get('rpy', '0 0 0'),
+    )
+
+
+def test_simplified_model_matches_physical_sensor_tree():
+    full = ET.parse(ROOT / 'urdf/rover.urdf').getroot()
+    simple = ET.parse(ROOT / 'urdf/simp_rover.urdf').getroot()
+    full_links = {link.get('name') for link in full.findall('link')}
+    simple_links = {link.get('name') for link in simple.findall('link')}
+    required = {
+        'base_link', 'chassis', 'gps_link', 'imu_link',
+        'zed_camera_link', 'zed_camera_optical_frame', 'zed_imu_link',
+    }
+    assert required <= full_links
+    assert required <= simple_links
+
+    names = {
+        'base_link_joint', 'gps_joint', 'imu_joint', 'zed_camera_joint',
+        'zed_camera_optical_joint', 'zed_imu_joint',
+    }
+    full_joints = {joint.get('name'): joint for joint in full.findall('joint')}
+    simple_joints = {joint.get('name'): joint for joint in simple.findall('joint')}
+    for name in names:
+        assert _joint_contract(simple_joints[name]) == _joint_contract(full_joints[name])
+
+
+def test_simulated_sensor_topics_match_physical_contracts():
+    text = (ROOT / 'urdf/simp_rover.urdf').read_text()
+    for topic in (
+        '/gps/fix',
+        '/imu/data_raw',
+        '/zed/zed_node/imu/data',
+        '/zed/zed_node/odom',
+        '/zed/zed_node/point_cloud/cloud_registered',
+    ):
+        assert topic in text
+
+
+def test_simulation_uses_ros_forward_wheel_convention_directly():
+    robot = ET.parse(ROOT / 'urdf/simp_rover.urdf')
+    wheel_joints = [
+        joint for joint in robot.findall('joint')
+        if joint.get('name').endswith(('_front_joint', '_mid_joint', '_back_joint'))
+    ]
+    assert len(wheel_joints) == 6
+    assert all(joint.find('axis').get('xyz') == '0 1 0'
+               for joint in wheel_joints)
+
+
+def test_controller_does_not_publish_localization_tf():
+    config = yaml.safe_load((ROOT / 'config/rover_controller.yaml').read_text())
+    drive = config['diff_drive_controller']['ros__parameters']
+    assert drive['enable_odom_tf'] is False

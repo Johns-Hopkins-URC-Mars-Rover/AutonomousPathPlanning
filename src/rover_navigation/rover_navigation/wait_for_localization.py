@@ -1,4 +1,4 @@
-"""Bounded readiness gate for simulation Nav2 startup."""
+"""Bounded readiness gate for physical-rover Nav2 startup."""
 import math
 import time
 
