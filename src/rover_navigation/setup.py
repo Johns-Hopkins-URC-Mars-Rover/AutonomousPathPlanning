@@ -11,6 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/navigation_launch.py']),
+        ('share/' + package_name + '/config', ['config/nav2_params.yaml']),
         ('share/' + package_name + '/behavior_trees', [
             'behavior_trees/navigate_to_pose_forward_with_slow_backup.xml']),
     ],

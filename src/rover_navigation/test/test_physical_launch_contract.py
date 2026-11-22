@@ -9,7 +9,7 @@ SRC = Path(__file__).resolve().parents[2]
 NAVIGATION = SRC / 'rover_navigation'
 BRINGUP_LAUNCH = SRC / 'rover_bringup/launch/rover.launch.py'
 NAVIGATION_LAUNCH = NAVIGATION / 'launch/navigation_launch.py'
-NAV2_PARAMS = SRC / 'rover_description/config/nav2_params.yaml'
+NAV2_PARAMS = NAVIGATION / 'config/nav2_params.yaml'
 
 
 def parsed(path):
@@ -52,7 +52,7 @@ def test_physical_launch_uses_one_nav2_stack_and_actual_parameter_file():
     assert not {'nav2_bringup', 'rover_navigation', 'rover_costmap'} & bringup_strings
 
     launch_source = NAVIGATION_LAUNCH.read_text(encoding='utf-8')
-    assert "FindPackageShare('rover_description'), 'config', 'nav2_params.yaml'" in launch_source
+    assert "FindPackageShare('rover_navigation'), 'config', 'nav2_params.yaml'" in launch_source
     assert NAV2_PARAMS.is_file()
 
 

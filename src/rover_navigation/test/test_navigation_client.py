@@ -410,7 +410,7 @@ def test_uninitialized_costmap_is_rejected(field, value):
 
 def test_default_rolling_map_supports_waypoints_at_all_target_bearings():
     source = Path(__file__).resolve().parents[2]
-    params_path = source / 'rover_description/config/nav2_params.yaml'
+    params_path = source / 'rover_navigation/config/nav2_params.yaml'
     params = yaml.safe_load(params_path.read_text(encoding='utf-8'))
     launch = ast.parse((source / 'rover_navigation/launch/navigation_launch.py').read_text())
     distance = next(float(keyword.value.value)

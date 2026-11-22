@@ -9,6 +9,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2] / 'rover_description'
 NAVIGATION_ROOT = Path(__file__).resolve().parents[1]
+NAV2_CONFIG = NAVIGATION_ROOT / 'config/nav2_params.yaml'
 
 
 def rotation(rpy):
@@ -84,7 +85,7 @@ def collision_bounds():
 
 
 def test_costmaps_cover_collision_geometry_with_polygon():
-    config = yaml.safe_load((ROOT/'config/nav2_params.yaml').read_text())
+    config = yaml.safe_load(NAV2_CONFIG.read_text())
     lower, upper = collision_bounds()
     for name in ('global_costmap','local_costmap'):
         params = config[name][name]['ros__parameters']
@@ -98,7 +99,7 @@ def test_costmaps_cover_collision_geometry_with_polygon():
 
 
 def test_normal_navigation_is_forward_only_with_slow_reverse_recovery():
-    config = yaml.safe_load((ROOT/'config/nav2_params.yaml').read_text())
+    config = yaml.safe_load(NAV2_CONFIG.read_text())
     planner = config['planner_server']['ros__parameters']['GridBased']
     controller = config['controller_server']['ros__parameters']['FollowPath']
     progress_checker = config['controller_server']['ros__parameters']['progress_checker']

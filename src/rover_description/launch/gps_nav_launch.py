@@ -28,7 +28,7 @@ def generate_launch_description():
             IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
                 FindPackageShare('nav2_bringup'), 'launch', 'navigation_launch.py'])),
             launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'),
-                              'params_file': PathJoinSubstitution([FindPackageShare('rover_description'),
+                              'params_file': PathJoinSubstitution([FindPackageShare('rover_navigation'),
                                                                   'config', 'nav2_params.yaml'])}.items()),
         ]),
     ]
