@@ -36,7 +36,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'params_file',
             default_value=PathJoinSubstitution([
-                FindPackageShare('rover_description'), 'config', 'nav2_params.yaml']),
+                FindPackageShare('rover_navigation'), 'config', 'nav2_params.yaml']),
             description='Nav2 parameters for the physical rover.',
         ),
         # rover_bringup owns the dual EKFs. This launch owns only Nav2 and the
