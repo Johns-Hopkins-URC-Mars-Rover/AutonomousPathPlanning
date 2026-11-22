@@ -1,5 +1,13 @@
 .git
+.pytest_cache
+.vscode
 build
 install
 log
+results
+src/archives
+wiki
+*.bag
+*.db3
+*.mcap
 .DS_Store
