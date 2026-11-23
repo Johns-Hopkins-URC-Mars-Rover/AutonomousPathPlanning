@@ -73,6 +73,10 @@ Start Gazebo and localization:
 ros2 launch rover_description simulation.launch.py gui:=true
 ```
 
+The default world is `park.world`, which uses `park_fixed.tif` as its terrain
+heightmap. For a flat debugging world, pass
+`world:=$(ros2 pkg prefix rover_description)/share/rover_description/world/flat.world`.
+
 Then use the same GPS navigation launch, with simulation time enabled:
 
 ```bash

@@ -1,4 +1,4 @@
-"""Gazebo Classic rover; world defaults to a portable flat test fixture."""
+"""Gazebo Classic rover; world defaults to the park heightmap terrain."""
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -35,7 +35,7 @@ def generate_launch_description():
             return next_actions
         return callback
     return LaunchDescription([
-        DeclareLaunchArgument('world', default_value=os.path.join(share, 'world', 'flat.world')),
+        DeclareLaunchArgument('world', default_value=os.path.join(share, 'world', 'park.world')),
         DeclareLaunchArgument('gui', default_value='false'),
         SetEnvironmentVariable('GAZEBO_MODEL_PATH', os.path.dirname(share) + ':' +
             os.environ.get('GAZEBO_MODEL_PATH', '') + ':/usr/share/gazebo-11/models'),

@@ -12,6 +12,11 @@ def run_profile(name, probe_option, nav2):
         process = subprocess.Popen([
             'ros2', 'launch', 'rover_description', 'simulation.launch.py',
             'enable_nav2:=' + nav2,
+            # Keep integration thresholds deterministic even though interactive
+            # simulation now defaults to the park heightmap terrain.
+            'world:=' + str(Path(
+                '/tmp/rover_ws/install/rover_description/share/'
+                'rover_description/world/flat.world')),
         ], stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             # Probe owns bounded startup/motion/action deadlines. A child ROS

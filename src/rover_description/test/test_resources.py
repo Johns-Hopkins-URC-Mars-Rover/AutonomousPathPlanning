@@ -8,6 +8,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_park_has_no_developer_home():
     assert '/home/' not in (ROOT / 'world/park.world').read_text()
 
+
+def test_simulation_defaults_to_park_fixed_heightmap():
+    simulation = (ROOT / 'launch/simulation.launch.py').read_text()
+    gazebo = (ROOT / 'launch/gazebo_launch.py').read_text()
+    park = (ROOT / 'world/park.world').read_text()
+    assert "'park.world'" in simulation
+    assert "'park.world'" in gazebo
+    assert 'park_fixed.tif' in park
+    assert (ROOT / 'world/park_fixed.tif').is_file()
+
 def test_simplified_meshes_exist():
     robot = ET.parse(ROOT / 'urdf/simp_rover.urdf')
     for mesh in robot.findall('.//mesh'):

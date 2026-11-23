@@ -96,7 +96,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'world',
             default_value=PathJoinSubstitution([
-                FindPackageShare('rover_description'), 'world', 'flat.world',
+                FindPackageShare('rover_description'), 'world', 'park.world',
             ]),
         ),
         DeclareLaunchArgument('gui', default_value='false'),
